@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dom Leon Assinatura — Planos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/dist/tabler-icons.min.css">
+<style>
+  :root{
+    --bg:#F6F5F1;--card:#FFFFFF;--border:#E6E4DC;--border-strong:#D3D1C7;
+    --text-primary:#2C2C2A;--text-secondary:#5F5E5A;--text-muted:#888780;
+    --accent:#1D9E75;--accent-bg:#E1F5EE;--accent-text:#085041;
+    --danger-bg:#FCEBEB;--danger-text:#791F1F;
+    --radius:10px;--radius-lg:16px;--sidebar-w:220px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text-primary);min-height:100vh;display:flex;}
+
+  .sidebar{
+    width:var(--sidebar-w);flex-shrink:0;background:var(--card);
+    border-right:0.5px solid var(--border);padding:20px 14px;height:100vh;position:sticky;top:0;
+  }
+  .sidebar-brand{display:flex;align-items:center;gap:10px;padding:6px 8px 20px;border-bottom:0.5px solid var(--border);margin-bottom:16px;}
+  .sidebar-brand span{font-size:14px;font-weight:600;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius);font-size:13px;color:var(--text-secondary);cursor:pointer;margin-bottom:2px;}
+  .nav-item i{font-size:18px;}
+  .nav-item.active{background:var(--accent-bg);color:var(--accent-text);font-weight:500;}
+  .nav-item:hover:not(.active){background:var(--bg);}
+
+  .main{flex:1;padding:28px 32px;max-width:1200px;}
+  .page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+  .page-header h1{font-size:20px;font-weight:600;}
+  .page-header p{font-size:13px;color:var(--text-secondary);margin-top:2px;}
+
+  .tabs{display:flex;gap:4px;background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:4px;margin-bottom:20px;width:fit-content;}
+  .tab-btn{padding:8px 16px;border-radius:8px;font-size:13px;border:none;background:transparent;color:var(--text-secondary);cursor:pointer;font-family:inherit;}
+  .tab-btn.active{background:var(--bg);border:0.5px solid var(--border-strong);font-weight:500;color:var(--text-primary);}
+
+  .panel{display:none;}
+  .panel.active{display:block;}
+
+  .btn-primary{
+    background:var(--text-primary);color:#fff;border:none;padding:10px 16px;
+    border-radius:var(--radius);font-size:13px;font-family:inherit;cursor:pointer;
+    display:inline-flex;align-items:center;gap:6px;
+  }
+  .btn-secondary{
+    background:var(--card);color:var(--text-primary);border:0.5px solid var(--border-strong);
+    padding:9px 14px;border-radius:var(--radius);font-size:13px;font-family:inherit;cursor:pointer;
+  }
+  .toolbar-row{display:flex;justify-content:flex-end;margin-bottom:14px;}
+
+  /* Combos fixos - cards */
+  .combo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+  .combo-admin-card{background:var(--card);border:0.5px solid var(--border);border-radius:12px;padding:14px;}
+  .combo-thumb{
+    width:100%;height:90px;border-radius:10px;background:var(--accent-bg);color:var(--accent-text);
+    display:flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:10px;
+  }
+  .combo-admin-card .nome{font-size:14px;font-weight:600;}
+  .combo-admin-card .itens{font-size:12px;color:var(--text-secondary);margin:4px 0 8px;}
+  .combo-admin-card .preco{font-size:15px;font-weight:600;margin-bottom:10px;}
+  .combo-actions{display:flex;gap:8px;}
+  .icon-btn{
+    flex:1;height:32px;border-radius:8px;border:0.5px solid var(--border-strong);
+    background:var(--bg);display:flex;align-items:center;justify-content:center;gap:6px;
+    font-size:12px;cursor:pointer;color:var(--text-secondary);
+  }
+  .icon-btn.danger:hover{background:var(--danger-bg);color:var(--danger-text);border-color:var(--danger-bg);}
+  .icon-btn:hover{background:var(--border);}
+
+  .add-card{
+    border:1.5px dashed var(--border-strong);border-radius:12px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    color:var(--text-muted);font-size:13px;cursor:pointer;min-height:180px;gap:8px;
+  }
+  .add-card:hover{border-color:var(--accent);color:var(--accent-text);}
+  .add-card i{font-size:24px;}
+
+  /* Itens monte o seu - tabela por categoria */
+  .categoria-block{margin-bottom:20px;}
+  .categoria-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+  .categoria-header h3{font-size:14px;font-weight:600;}
+  .table-card{background:var(--card);border:0.5px solid var(--border);border-radius:12px;overflow:hidden;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{text-align:left;padding:10px 16px;font-size:11px;text-transform:uppercase;letter-spacing:0.03em;color:var(--text-muted);font-weight:500;border-bottom:0.5px solid var(--border);}
+  td{padding:10px 16px;border-bottom:0.5px solid var(--border);}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:var(--bg);}
+  .row-actions{display:flex;gap:6px;justify-content:flex-end;}
+  .row-actions .icon-btn{flex:none;width:30px;height:30px;padding:0;}
+  .status-toggle{
+    display:inline-flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;
+  }
+  .status-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);}
+  .status-dot.off{background:var(--border-strong);}
+
+  /* Modal simples */
+  .modal-overlay{
+    display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);
+    align-items:center;justify-content:center;z-index:10;
+  }
+  .modal-overlay.open{display:flex;}
+  .modal-box{background:var(--card);border-radius:14px;padding:22px;width:380px;max-width:90vw;}
+  .modal-box h3{font-size:15px;font-weight:600;margin-bottom:16px;}
+  .field{margin-bottom:12px;}
+  .field label{font-size:12px;font-weight:500;color:var(--text-secondary);display:block;margin-bottom:6px;}
+  .field input{
+    width:100%;height:36px;border:0.5px solid var(--border-strong);border-radius:var(--radius);
+    padding:0 10px;font-size:13px;font-family:inherit;background:var(--bg);
+  }
+  .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="sidebar-brand">
+    <i class="ti ti-bread" style="font-size:20px;color:var(--accent-text);"></i>
+    <span>Dom Leon Admin</span>
+  </div>
+  <div class="nav-item"><i class="ti ti-layout-dashboard"></i>Dashboard</div>
+  <div class="nav-item" onclick="window.location.href='mod3-admin-assinantes.html'"><i class="ti ti-users"></i>Assinantes</div>
+  <div class="nav-item" onclick="window.location.href='mod3-admin-assinantes.html?tab=producao'"><i class="ti ti-clipboard-list"></i>Produção do dia</div>
+  <div class="nav-item active"><i class="ti ti-package"></i>Planos</div>
+  <div class="nav-item" onclick="window.location.href='mod5-entrega.html'"><i class="ti ti-truck-delivery"></i>Logística</div>
+  <div class="nav-item" onclick="window.location.href='mod7-relatorios.html?tab=checklist'"><i class="ti ti-checklist"></i>Checklist retirada</div>
+  <div class="nav-item"><i class="ti ti-cash"></i>Financeiro</div>
+  <div class="nav-item" onclick="window.location.href='mod7-relatorios.html'"><i class="ti ti-chart-bar"></i>Relatórios</div>
+</div>
+
+<div class="main">
+
+  <div class="page-header">
+    <div>
+      <h1>Planos</h1>
+      <p>Cadastro de combos fixos e dos itens disponíveis no Monte o seu</p>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showPanel('combos')">Combos fixos</button>
+    <button class="tab-btn" onclick="showPanel('itens')">Itens do Monte o seu</button>
+  </div>
+
+  <!-- PAINEL: COMBOS FIXOS -->
+  <div class="panel active" id="panel-combos">
+    <div class="toolbar-row">
+      <button class="btn-primary" onclick="abrirModalCombo()"><i class="ti ti-plus"></i>Novo combo</button>
+    </div>
+    <div class="combo-grid" id="combo-grid">
+      <div class="combo-admin-card">
+        <div class="combo-thumb"><i class="ti ti-bread"></i></div>
+        <div class="nome">Café da manhã completo</div>
+        <div class="itens">6 pães · queijo · fruta</div>
+        <div class="preco">R$ 89,90/mês</div>
+        <div class="combo-actions">
+          <div class="icon-btn" onclick="abrirModalCombo(this)"><i class="ti ti-edit"></i>Editar</div>
+          <div class="icon-btn danger" onclick="excluirCombo(this)"><i class="ti ti-trash"></i>Excluir</div>
+        </div>
+      </div>
+      <div class="combo-admin-card">
+        <div class="combo-thumb"><i class="ti ti-salad"></i></div>
+        <div class="nome">Dom Leon fit</div>
+        <div class="itens">integral · queijo branco · fruta</div>
+        <div class="preco">R$ 79,90/mês</div>
+        <div class="combo-actions">
+          <div class="icon-btn" onclick="abrirModalCombo(this)"><i class="ti ti-edit"></i>Editar</div>
+          <div class="icon-btn danger" onclick="excluirCombo(this)"><i class="ti ti-trash"></i>Excluir</div>
+        </div>
+      </div>
+      <div class="combo-admin-card">
+        <div class="combo-thumb"><i class="ti ti-cookie"></i></div>
+        <div class="nome">Doce lar</div>
+        <div class="itens">sortido doce · sáb e dom</div>
+        <div class="preco">R$ 49,90/mês</div>
+        <div class="combo-actions">
+          <div class="icon-btn" onclick="abrirModalCombo(this)"><i class="ti ti-edit"></i>Editar</div>
+          <div class="icon-btn danger" onclick="excluirCombo(this)"><i class="ti ti-trash"></i>Excluir</div>
+        </div>
+      </div>
+      <div class="add-card" onclick="abrirModalCombo()">
+        <i class="ti ti-plus"></i>
+        Adicionar combo
+      </div>
+    </div>
+  </div>
+
+  <!-- PAINEL: ITENS MONTE O SEU -->
+  <div class="panel" id="panel-itens">
+    <div class="toolbar-row">
+      <button class="btn-primary" onclick="abrirModalItem()"><i class="ti ti-plus"></i>Novo item</button>
+    </div>
+
+    <div class="categoria-block">
+      <div class="categoria-header"><h3>Pães</h3></div>
+      <div class="table-card">
+        <table>
+          <thead><tr><th>Item</th><th>Preço unitário</th><th>Disponível</th><th></th></tr></thead>
+          <tbody id="tbody-paes">
+            <tr>
+              <td>Pão francês</td><td>R$ 0,80</td>
+              <td><span class="status-toggle" onclick="toggleStatus(this)"><span class="status-dot"></span>Ativo</span></td>
+              <td class="row-actions">
+                <div class="icon-btn" onclick="abrirModalItem(this)"><i class="ti ti-edit"></i></div>
+                <div class="icon-btn danger" onclick="excluirItem(this)"><i class="ti ti-trash"></i></div>
+              </td>
+            </tr>
+            <tr>
+              <td>Pão integral</td><td>R$ 1,20</td>
+              <td><span class="status-toggle" onclick="toggleStatus(this)"><span class="status-dot"></span>Ativo</span></td>
+              <td class="row-actions">
+                <div class="icon-btn" onclick="abrirModalItem(this)"><i class="ti ti-edit"></i></div>
+                <div class="icon-btn danger" onclick="excluirItem(this)"><i class="ti ti-trash"></i></div>
+              </td>
+            </tr>
+            <tr>
+              <td>Pão de forma artesanal</td><td>R$ 9,90</td>
+              <td><span class="status-toggle" onclick="toggleStatus(this)"><span class="status-dot"></span>Ativo</span></td>
+              <td class="row-actions">
+                <div class="icon-btn" onclick="abrirModalItem(this)"><i class="ti ti-edit"></i></div>
+                <div class="icon-btn danger" onclick="excluirItem(this)"><i class="ti ti-trash"></i></div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="categoria-block">
+      <div class="categoria-header"><h3>Complementos</h3></div>
+      <div class="table-card">
+        <table>
+          <thead><tr><th>Item</th><th>Preço unitário</th><th>Disponível</th><th></th></tr></thead>
+          <tbody id="tbody-complementos">
+            <tr>
+              <td>Queijo branco 200g</td><td>R$ 8,50</td>
+              <td><span class="status-toggle" onclick="toggleStatus(this)"><span class="status-dot"></span>Ativo</span></td>
+              <td class="row-actions">
+                <div class="icon-btn" onclick="abrirModalItem(this)"><i class="ti ti-edit"></i></div>
+                <div class="icon-btn danger" onclick="excluirItem(this)"><i class="ti ti-trash"></i></div>
+              </td>
+            </tr>
+            <tr>
+              <td>Manteiga 200g</td><td>R$ 7,00</td>
+              <td><span class="status-toggle" onclick="toggleStatus(this)"><span class="status-dot off"></span>Pausado</span></td>
+              <td class="row-actions">
+                <div class="icon-btn" onclick="abrirModalItem(this)"><i class="ti ti-edit"></i></div>
+                <div class="icon-btn danger" onclick="excluirItem(this)"><i class="ti ti-trash"></i></div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="categoria-block">
+      <div class="categoria-header"><h3>Extras</h3></div>
+      <div class="table-card">
+        <table>
+          <thead><tr><th>Item</th><th>Preço unitário</th><th>Disponível</th><th></th></tr></thead>
+          <tbody id="tbody-extras">
+            <tr>
+              <td>Fruta da estação</td><td>R$ 2,50</td>
+              <td><span class="status-toggle" onclick="toggleStatus(this)"><span class="status-dot"></span>Ativo</span></td>
+              <td class="row-actions">
+                <div class="icon-btn" onclick="abrirModalItem(this)"><i class="ti ti-edit"></i></div>
+                <div class="icon-btn danger" onclick="excluirItem(this)"><i class="ti ti-trash"></i></div>
+              </td>
+            </tr>
+            <tr>
+              <td>Suco natural 300ml</td><td>R$ 6,00</td>
+              <td><span class="status-toggle" onclick="toggleStatus(this)"><span class="status-dot"></span>Ativo</span></td>
+              <td class="row-actions">
+                <div class="icon-btn" onclick="abrirModalItem(this)"><i class="ti ti-edit"></i></div>
+                <div class="icon-btn danger" onclick="excluirItem(this)"><i class="ti ti-trash"></i></div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL: COMBO -->
+<div class="modal-overlay" id="modal-combo">
+  <div class="modal-box">
+    <h3 id="modal-combo-titulo">Novo combo</h3>
+    <div class="field"><label>Nome do combo</label><input type="text" id="combo-nome"></div>
+    <div class="field"><label>Itens (descrição)</label><input type="text" id="combo-itens" placeholder="ex: 6 pães · queijo · fruta"></div>
+    <div class="field"><label>Preço mensal (R$)</label><input type="text" id="combo-preco" placeholder="0,00"></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="fecharModal('modal-combo')">Cancelar</button>
+      <button class="btn-primary" onclick="salvarCombo()">Salvar combo</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ITEM -->
+<div class="modal-overlay" id="modal-item">
+  <div class="modal-box">
+    <h3 id="modal-item-titulo">Novo item</h3>
+    <div class="field">
+      <label>Categoria</label>
+      <select id="item-categoria" style="width:100%;height:36px;border:0.5px solid var(--border-strong);border-radius:var(--radius);padding:0 10px;font-size:13px;font-family:inherit;background:var(--bg);">
+        <option value="paes">Pães</option>
+        <option value="complementos">Complementos</option>
+        <option value="extras">Extras</option>
+      </select>
+    </div>
+    <div class="field"><label>Nome do item</label><input type="text" id="item-nome"></div>
+    <div class="field"><label>Preço unitário (R$)</label><input type="text" id="item-preco" placeholder="0,00"></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="fecharModal('modal-item')">Cancelar</button>
+      <button class="btn-primary" onclick="salvarItem()">Salvar item</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function showPanel(name){
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+}
+
+/* ---- Combos fixos ---- */
+let comboEditando = null;
+
+function abrirModalCombo(card){
+  comboEditando = card ? card.closest('.combo-admin-card') : null;
+  document.getElementById('modal-combo-titulo').textContent = card ? 'Editar combo' : 'Novo combo';
+  document.getElementById('combo-nome').value = card ? comboEditando.querySelector('.nome').textContent : '';
+  document.getElementById('combo-itens').value = card ? comboEditando.querySelector('.itens').textContent : '';
+  document.getElementById('combo-preco').value = card ? comboEditando.querySelector('.preco').textContent.replace('R$ ','').replace('/mês','') : '';
+  document.getElementById('modal-combo').classList.add('open');
+}
+
+function salvarCombo(){
+  const nome = document.getElementById('combo-nome').value.trim() || 'Novo combo';
+  const itens = document.getElementById('combo-itens').value.trim();
+  const preco = document.getElementById('combo-preco').value.trim() || '0,00';
+
+  if (comboEditando){
+    comboEditando.querySelector('.nome').textContent = nome;
+    comboEditando.querySelector('.itens').textContent = itens;
+    comboEditando.querySelector('.preco').textContent = 'R$ ' + preco + '/mês';
+  } else {
+    const grid = document.getElementById('combo-grid');
+    const addCard = grid.querySelector('.add-card');
+    const novo = document.createElement('div');
+    novo.className = 'combo-admin-card';
+    novo.innerHTML = `
+      <div class="combo-thumb"><i class="ti ti-bread"></i></div>
+      <div class="nome">${nome}</div>
+      <div class="itens">${itens}</div>
+      <div class="preco">R$ ${preco}/mês</div>
+      <div class="combo-actions">
+        <div class="icon-btn" onclick="abrirModalCombo(this)"><i class="ti ti-edit"></i>Editar</div>
+        <div class="icon-btn danger" onclick="excluirCombo(this)"><i class="ti ti-trash"></i>Excluir</div>
+      </div>`;
+    grid.insertBefore(novo, addCard);
+  }
+  fecharModal('modal-combo');
+}
+
+function excluirCombo(btn){
+  if (confirm('Excluir este combo? Assinantes ativos nesse combo precisam ser migrados manualmente.')){
+    btn.closest('.combo-admin-card').remove();
+  }
+}
+
+/* ---- Itens Monte o seu ---- */
+let itemEditando = null;
+
+function abrirModalItem(btn){
+  itemEditando = btn ? btn.closest('tr') : null;
+  document.getElementById('modal-item-titulo').textContent = btn ? 'Editar item' : 'Novo item';
+  if (itemEditando){
+    const tds = itemEditando.querySelectorAll('td');
+    document.getElementById('item-nome').value = tds[0].textContent;
+    document.getElementById('item-preco').value = tds[1].textContent.replace('R$ ','');
+    document.getElementById('item-categoria').value = itemEditando.closest('tbody').id.replace('tbody-','');
+  } else {
+    document.getElementById('item-nome').value = '';
+    document.getElementById('item-preco').value = '';
+  }
+  document.getElementById('modal-item').classList.add('open');
+}
+
+function salvarItem(){
+  const nome = document.getElementById('item-nome').value.trim() || 'Novo item';
+  const preco = document.getElementById('item-preco').value.trim() || '0,00';
+  const categoria = document.getElementById('item-categoria').value;
+
+  if (itemEditando){
+    const tds = itemEditando.querySelectorAll('td');
+    tds[0].textContent = nome;
+    tds[1].textContent = 'R$ ' + preco;
+    const tbodyAlvo = document.getElementById('tbody-' + categoria);
+    if (itemEditando.closest('tbody') !== tbodyAlvo){
+      tbodyAlvo.appendChild(itemEditando);
+    }
+  } else {
+    const tbody = document.getElementById('tbody-' + categoria);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${nome}</td><td>R$ ${preco}</td>
+      <td><span class="status-toggle" onclick="toggleStatus(this)"><span class="status-dot"></span>Ativo</span></td>
+      <td class="row-actions">
+        <div class="icon-btn" onclick="abrirModalItem(this)"><i class="ti ti-edit"></i></div>
+        <div class="icon-btn danger" onclick="excluirItem(this)"><i class="ti ti-trash"></i></div>
+      </td>`;
+    tbody.appendChild(tr);
+  }
+  fecharModal('modal-item');
+}
+
+function excluirItem(btn){
+  if (confirm('Excluir este item? Ele deixa de aparecer no Monte o seu.')){
+    btn.closest('tr').remove();
+  }
+}
+
+function toggleStatus(el){
+  const dot = el.querySelector('.status-dot');
+  const ativo = !dot.classList.contains('off');
+  dot.classList.toggle('off', ativo);
+  el.lastChild.textContent = ativo ? 'Pausado' : 'Ativo';
+}
+
+function fecharModal(id){
+  document.getElementById(id).classList.remove('open');
+}
+</script>
+
+</body>
+</html>

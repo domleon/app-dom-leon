@@ -1,0 +1,9 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Regra temporária de desenvolvimento — ajustar antes de ir pra produção real
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dom Leon Assinatura</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/dist/tabler-icons.min.css">
+<style>
+  :root{
+    --bg:#F6F5F1;
+    --card:#FFFFFF;
+    --border:#E6E4DC;
+    --border-strong:#D3D1C7;
+    --text-primary:#2C2C2A;
+    --text-secondary:#5F5E5A;
+    --text-muted:#888780;
+    --accent:#1D9E75;
+    --accent-bg:#E1F5EE;
+    --accent-text:#085041;
+    --warn-bg:#FAEEDA;
+    --warn-text:#854F0B;
+    --radius:10px;
+    --radius-lg:16px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:'Inter',sans-serif;
+    background:var(--bg);
+    color:var(--text-primary);
+    min-height:100vh;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding:32px 16px;
+  }
+  .phone{
+    width:100%;
+    max-width:380px;
+    background:var(--card);
+    border:0.5px solid var(--border);
+    border-radius:var(--radius-lg);
+    padding:20px;
+    min-height:640px;
+    display:flex;
+    flex-direction:column;
+  }
+  .screen{display:none;flex-direction:column;flex:1;}
+  .screen.active{display:flex;}
+
+  /* Cabeçalho comum */
+  .brand{
+    text-align:center;
+    margin-bottom:20px;
+  }
+  .brand img{
+    width:72px;
+    height:72px;
+    display:block;
+    margin:0 auto 10px;
+  }
+  .brand h1{font-size:18px;font-weight:600;}
+  .brand p{font-size:12px;color:var(--text-secondary);margin-top:2px;}
+
+  .topbar{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:16px;
+  }
+  .topbar i{font-size:18px;cursor:pointer;}
+  .topbar h2{font-size:15px;font-weight:600;}
+
+  /* Login/Cadastro */
+  .field{margin-bottom:14px;}
+  .field label{font-size:12px;font-weight:500;color:var(--text-secondary);display:block;margin-bottom:6px;}
+  .field input{
+    width:100%;
+    height:40px;
+    border:0.5px solid var(--border-strong);
+    border-radius:var(--radius);
+    padding:0 12px;
+    font-size:14px;
+    font-family:inherit;
+    background:var(--bg);
+    color:var(--text-primary);
+  }
+  .field input:focus{outline:none;border-color:var(--accent);}
+
+  .btn-primary{
+    width:100%;
+    height:44px;
+    background:var(--text-primary);
+    color:#fff;
+    border:none;
+    border-radius:var(--radius);
+    font-size:14px;
+    font-weight:500;
+    font-family:inherit;
+    cursor:pointer;
+    margin-top:8px;
+  }
+  .btn-primary:active{opacity:0.9;}
+  .link-btn{
+    background:none;border:none;
+    font-family:inherit;
+    font-size:12px;
+    color:var(--text-secondary);
+    text-align:center;
+    margin-top:14px;
+    cursor:pointer;
+    width:100%;
+  }
+  .link-btn b{color:var(--accent-text);font-weight:500;}
+
+  /* Toggle Combos fixos / Monte o seu */
+  .toggle{
+    display:flex;
+    gap:4px;
+    background:var(--bg);
+    border-radius:10px;
+    padding:4px;
+    margin-bottom:16px;
+  }
+  .toggle button{
+    flex:1;
+    text-align:center;
+    padding:8px;
+    border-radius:8px;
+    border:none;
+    background:transparent;
+    font-family:inherit;
+    font-size:13px;
+    color:var(--text-secondary);
+    cursor:pointer;
+  }
+  .toggle button.active{
+    background:var(--card);
+    border:0.5px solid var(--border-strong);
+    font-weight:500;
+    color:var(--text-primary);
+  }
+
+  /* Cards de combo */
+  .combo-list{display:flex;flex-direction:column;gap:12px;overflow-y:auto;flex:1;}
+  .combo-card{
+    border:0.5px solid var(--border);
+    border-radius:12px;
+    padding:12px;
+    display:flex;
+    gap:12px;
+    align-items:center;
+    cursor:pointer;
+    transition:border-color .15s;
+  }
+  .combo-card:hover{border-color:var(--border-strong);}
+  .combo-icon{
+    width:52px;height:52px;
+    border-radius:10px;
+    flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--accent-bg);
+    color:var(--accent-text);
+    font-size:22px;
+  }
+  .combo-icon.warn{background:var(--warn-bg);color:var(--warn-text);}
+  .combo-info{flex:1;min-width:0;}
+  .combo-info .name{font-size:14px;font-weight:500;}
+  .combo-info .items{font-size:12px;color:var(--text-secondary);margin:2px 0;}
+  .combo-info .price{font-size:13px;font-weight:600;}
+
+  /* Bottom nav */
+  .bottom-nav{
+    display:flex;
+    justify-content:space-around;
+    padding-top:14px;
+    margin-top:14px;
+    border-top:0.5px solid var(--border);
+  }
+  .bottom-nav i{font-size:20px;color:var(--text-muted);}
+  .bottom-nav i.active{color:var(--text-primary);}
+
+  .hint{
+    font-size:11px;
+    color:var(--text-muted);
+    text-align:center;
+    margin-top:12px;
+  }
+
+  /* Módulo 2 — detalhe do plano / pagamento / sucesso */
+  .summary-card{
+    border:0.5px solid var(--border);
+    border-radius:12px;
+    padding:14px;
+    margin-bottom:16px;
+  }
+  .summary-card .name{font-size:14px;font-weight:600;}
+  .summary-card .items{font-size:12px;color:var(--text-secondary);margin-top:4px;}
+
+  .section-label{
+    font-size:12px;
+    font-weight:500;
+    color:var(--text-secondary);
+    margin-bottom:8px;
+  }
+  .option-row{
+    display:flex;
+    gap:8px;
+    margin-bottom:16px;
+  }
+  .option-pill{
+    flex:1;
+    text-align:center;
+    padding:10px 4px;
+    border-radius:10px;
+    border:0.5px solid var(--border-strong);
+    font-size:12px;
+    cursor:pointer;
+    background:var(--card);
+  }
+  .option-pill.selected{
+    background:var(--accent-bg);
+    border-color:var(--accent);
+    color:var(--accent-text);
+    font-weight:500;
+  }
+  .option-pill.disabled{
+    opacity:0.45;
+    cursor:not-allowed;
+  }
+  .option-pill i{display:block;font-size:18px;margin-bottom:4px;}
+
+  .total-bar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:auto;
+    padding-top:14px;
+  }
+  .total-bar .label{font-size:12px;color:var(--text-secondary);}
+  .total-bar .value{font-size:18px;font-weight:600;}
+  .btn-primary.small{width:auto;padding:0 20px;height:44px;}
+
+  .pix-box{
+    text-align:center;
+    border:0.5px solid var(--border);
+    border-radius:12px;
+    padding:24px 16px;
+    margin-bottom:16px;
+  }
+  .pix-box i{font-size:56px;color:var(--text-primary);}
+  .pix-box p{font-size:12px;color:var(--text-secondary);margin-top:10px;}
+
+  .card-form{
+    border:0.5px solid var(--border);
+    border-radius:12px;
+    padding:16px;
+    margin-bottom:16px;
+  }
+  .card-form .field{margin-bottom:12px;}
+  .card-form .field:last-of-type{margin-bottom:8px;}
+
+  .success-wrap{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .success-icon{
+    width:64px;height:64px;
+    border-radius:50%;
+    background:var(--accent-bg);
+    color:var(--accent-text);
+    display:flex;align-items:center;justify-content:center;
+    font-size:32px;
+    margin-bottom:16px;
+  }
+  .success-wrap h2{font-size:16px;font-weight:600;margin-bottom:6px;}
+  .success-wrap p{font-size:13px;color:var(--text-secondary);max-width:260px;}
+</style>
+</head>
+<body>
+<div class="phone">
+
+<div class="screen active" id="screen-plano">
+    <div class="topbar">
+      <i class="ti ti-arrow-left" onclick="window.location.href='mod1-cad-catalogo.html'"></i>
+      <h2>Confirmar assinatura</h2>
+    </div>
+
+    <div class="summary-card">
+      <div class="name" id="plano-nome">—</div>
+      <div class="items" id="plano-itens">—</div>
+    </div>
+
+    <div class="section-label">Frequência</div>
+    <div class="option-row" id="freq-row">
+      <div class="option-pill selected" onclick="selecionar(this,'freq-row')">Diária</div>
+      <div class="option-pill" onclick="selecionar(this,'freq-row')">3x/semana</div>
+      <div class="option-pill" onclick="selecionar(this,'freq-row')">Fim de semana</div>
+    </div>
+
+    <div class="section-label">Como você quer receber</div>
+    <div class="option-row" id="modo-row">
+      <div class="option-pill selected" onclick="selecionar(this,'modo-row')"><i class="ti ti-building-store"></i>Retirada</div>
+      <div class="option-pill" onclick="selecionar(this,'modo-row')"><i class="ti ti-truck-delivery"></i>Entrega</div>
+    </div>
+
+    <div class="total-bar">
+      <div>
+        <div class="label">Total/mês</div>
+        <div class="value" id="plano-preco">—</div>
+      </div>
+      <button class="btn-primary small" onclick="showScreen('pagamento')">Continuar</button>
+    </div>
+  </div>
+
+  <!-- TELA: PAGAMENTO -->
+
+<div class="screen" id="screen-pagamento">
+    <div class="topbar">
+      <i class="ti ti-arrow-left" onclick="showScreen('plano')"></i>
+      <h2>Pagamento</h2>
+    </div>
+
+    <div class="section-label">Forma de pagamento</div>
+    <div class="option-row" id="pagamento-row">
+      <div class="option-pill selected" onclick="selecionarPagamento(this,'pix')"><i class="ti ti-qrcode"></i>Pix</div>
+      <div class="option-pill" onclick="selecionarPagamento(this,'cartao')"><i class="ti ti-credit-card"></i>Cartão</div>
+    </div>
+
+    <div class="pix-box" id="pix-box">
+      <i class="ti ti-qrcode"></i>
+      <p>Escaneie o QR code no app do seu banco<br>para ativar a cobrança recorrente via Pix</p>
+    </div>
+
+    <div class="card-form" id="card-form" style="display:none;">
+      <div class="field">
+        <label>Número do cartão</label>
+        <input type="text" inputmode="numeric" placeholder="0000 0000 0000 0000" maxlength="19">
+      </div>
+      <div class="field">
+        <label>Nome impresso no cartão</label>
+        <input type="text" placeholder="Como está no cartão">
+      </div>
+      <div style="display:flex;gap:10px;">
+        <div class="field" style="flex:1;">
+          <label>Validade</label>
+          <input type="text" placeholder="MM/AA" maxlength="5">
+        </div>
+        <div class="field" style="flex:1;">
+          <label>CVV</label>
+          <input type="text" inputmode="numeric" placeholder="123" maxlength="4">
+        </div>
+      </div>
+      <div class="hint" style="text-align:left;margin-top:0;">
+        <i class="ti ti-lock" style="margin-right:4px;"></i>Cobrança recorrente mensal automática no cartão.
+      </div>
+    </div>
+
+    <div class="total-bar">
+      <div>
+        <div class="label">Total/mês</div>
+        <div class="value" id="pagamento-preco">—</div>
+      </div>
+      <button class="btn-primary small" onclick="showScreen('sucesso')">Confirmar</button>
+    </div>
+  </div>
+
+  <!-- TELA: SUCESSO -->
+
+<div class="screen" id="screen-sucesso">
+    <div class="success-wrap">
+      <div class="success-icon"><i class="ti ti-check"></i></div>
+      <h2>Assinatura ativada!</h2>
+      <p id="sucesso-texto">Seu plano já está confirmado. Você vai receber uma notificação quando o pedido estiver pronto.</p>
+      <button class="btn-primary" style="margin-top:24px;" onclick="window.location.href='mod1-cad-catalogo.html'">Voltar ao início</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function showScreen(name){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+}
+function selecionar(el, grupoId){
+  document.querySelectorAll('#' + grupoId + ' .option-pill').forEach(p => p.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function selecionarPagamento(el, tipo){
+  document.querySelectorAll('#pagamento-row .option-pill').forEach(p => p.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('pix-box').style.display = tipo === 'pix' ? 'block' : 'none';
+  document.getElementById('card-form').style.display = tipo === 'cartao' ? 'block' : 'none';
+}
+
+// Preenche dados do plano a partir da URL (vindo do catálogo)
+(function preencherPlano(){
+  const params = new URLSearchParams(window.location.search);
+  const nome = params.get('nome') || 'Plano selecionado';
+  const itens = params.get('itens') || '';
+  const preco = parseFloat(params.get('preco') || '0');
+  const precoFormatado = 'R$ ' + preco.toFixed(2).replace('.', ',') + '/mês';
+
+  document.getElementById('plano-nome').textContent = nome;
+  document.getElementById('plano-itens').textContent = itens;
+  document.getElementById('plano-preco').textContent = precoFormatado;
+  document.getElementById('pagamento-preco').textContent = precoFormatado;
+  document.getElementById('sucesso-texto').textContent =
+    'Seu plano "' + nome + '" já está confirmado. Você vai receber uma notificação quando o pedido estiver pronto.';
+})();
+
+// Botão "Continuar" no plano leva para a tela de pagamento (mesma página)
+document.addEventListener('DOMContentLoaded', function() {
+  const btnContinuar = document.querySelector('#screen-plano .btn-primary.small');
+  if (btnContinuar) btnContinuar.onclick = function() { showScreen('pagamento'); };
+  const btnConfirmar = document.querySelector('#screen-pagamento .btn-primary.small');
+  if (btnConfirmar) btnConfirmar.onclick = function() { showScreen('sucesso'); };
+});
+</script>
+
+</body>
+</html>

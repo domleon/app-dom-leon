@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dom Leon Assinatura — Relatórios</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/dist/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#F6F5F1;--card:#FFFFFF;--border:#E6E4DC;--border-strong:#D3D1C7;
+    --text-primary:#2C2C2A;--text-secondary:#5F5E5A;--text-muted:#888780;
+    --accent:#1D9E75;--accent-bg:#E1F5EE;--accent-text:#085041;
+    --warn-bg:#FAEEDA;--warn-text:#854F0B;
+    --radius:10px;--radius-lg:16px;--sidebar-w:220px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text-primary);min-height:100vh;display:flex;}
+
+  .sidebar{
+    width:var(--sidebar-w);flex-shrink:0;background:var(--card);
+    border-right:0.5px solid var(--border);padding:20px 14px;height:100vh;position:sticky;top:0;
+  }
+  .sidebar-brand{display:flex;align-items:center;gap:10px;padding:6px 8px 20px;border-bottom:0.5px solid var(--border);margin-bottom:16px;}
+  .sidebar-brand span{font-size:14px;font-weight:600;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius);font-size:13px;color:var(--text-secondary);cursor:pointer;margin-bottom:2px;}
+  .nav-item i{font-size:18px;}
+  .nav-item.active{background:var(--accent-bg);color:var(--accent-text);font-weight:500;}
+  .nav-item:hover:not(.active){background:var(--bg);}
+
+  .main{flex:1;padding:28px 32px;max-width:1200px;}
+  .page-header{margin-bottom:16px;}
+  .page-header h1{font-size:20px;font-weight:600;}
+  .page-header p{font-size:13px;color:var(--text-secondary);margin-top:2px;}
+
+  .tabs{display:flex;gap:4px;background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:4px;margin-bottom:20px;width:fit-content;}
+  .tab-btn{padding:8px 16px;border-radius:8px;font-size:13px;border:none;background:transparent;color:var(--text-secondary);cursor:pointer;font-family:inherit;}
+  .tab-btn.active{background:var(--bg);border:0.5px solid var(--border-strong);font-weight:500;color:var(--text-primary);}
+
+  .panel{display:none;}
+  .panel.active{display:block;}
+
+  .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+  .kpi-card{background:var(--card);border:0.5px solid var(--border);border-radius:12px;padding:16px;}
+  .kpi-card .label{font-size:12px;color:var(--text-secondary);margin-bottom:6px;}
+  .kpi-card .value{font-size:22px;font-weight:600;}
+  .kpi-card .sub{font-size:11px;color:var(--text-muted);margin-top:4px;}
+
+  .chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .chart-card{background:var(--card);border:0.5px solid var(--border);border-radius:12px;padding:16px;}
+  .chart-card h3{font-size:14px;font-weight:600;margin-bottom:12px;}
+  .chart-wrap{position:relative;height:220px;}
+
+  /* Notificações */
+  .notif-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:16px;}
+  .side-card{background:var(--card);border:0.5px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;}
+  .side-card h3{font-size:14px;font-weight:600;margin-bottom:12px;}
+  .template-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:0.5px solid var(--border);font-size:13px;cursor:pointer;}
+  .template-row:last-child{border-bottom:none;}
+  .template-row.active{color:var(--accent-text);font-weight:500;}
+  .template-row .tag{font-size:11px;color:var(--text-muted);}
+  .template-row .tag.auto{color:var(--accent-text);}
+
+  .compose-card{background:var(--card);border:0.5px solid var(--border);border-radius:12px;padding:16px;}
+  .field{margin-bottom:14px;}
+  .field label{font-size:12px;font-weight:500;color:var(--text-secondary);display:block;margin-bottom:6px;}
+  .field input, .field select, .field textarea{
+    width:100%;border:0.5px solid var(--border-strong);border-radius:var(--radius);
+    padding:8px 12px;font-size:13px;font-family:inherit;background:var(--bg);
+  }
+  .field textarea{min-height:90px;resize:vertical;}
+  .toggle-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;font-size:13px;}
+  .btn-primary{background:var(--text-primary);color:#fff;border:none;padding:10px 18px;border-radius:var(--radius);font-size:13px;font-family:inherit;cursor:pointer;}
+
+  /* Checklist */
+  .checklist-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+  .checklist-toolbar input{
+    height:34px;width:240px;border:0.5px solid var(--border-strong);border-radius:var(--radius);
+    padding:0 12px;font-size:13px;font-family:inherit;background:var(--card);
+  }
+  .checklist-card{background:var(--card);border:0.5px solid var(--border);border-radius:12px;overflow:hidden;}
+  .check-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:0.5px solid var(--border);font-size:13px;}
+  .check-row:last-child{border-bottom:none;}
+  .check-row.done{opacity:0.5;}
+  .check-row.done .nome{text-decoration:line-through;}
+  .checkbox{
+    width:20px;height:20px;border-radius:6px;border:1.5px solid var(--border-strong);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;
+  }
+  .checkbox.checked{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .check-info{flex:1;}
+  .check-info .nome{font-weight:500;}
+  .check-info .plano{font-size:12px;color:var(--text-secondary);}
+  .check-time{font-size:12px;color:var(--text-muted);width:70px;flex-shrink:0;}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="sidebar-brand">
+    <i class="ti ti-bread" style="font-size:20px;color:var(--accent-text);"></i>
+    <span>Dom Leon Admin</span>
+  </div>
+  <div class="nav-item"><i class="ti ti-layout-dashboard"></i>Dashboard</div>
+  <div class="nav-item" onclick="window.location.href='mod3-admin-assinantes.html'"><i class="ti ti-users"></i>Assinantes</div>
+  <div class="nav-item" onclick="window.location.href='mod3-admin-assinantes.html?tab=producao'"><i class="ti ti-clipboard-list"></i>Produção do dia</div>
+  <div class="nav-item" onclick="window.location.href='mod8-planos.html'"><i class="ti ti-package"></i>Planos</div>
+  <div class="nav-item" onclick="window.location.href='mod5-entrega.html'"><i class="ti ti-truck-delivery"></i>Logística</div>
+  <div class="nav-item" onclick="showPanel('checklist')"><i class="ti ti-checklist"></i>Checklist retirada</div>
+  <div class="nav-item"><i class="ti ti-cash"></i>Financeiro</div>
+  <div class="nav-item active" onclick="showPanel('relatorios')"><i class="ti ti-chart-bar"></i>Relatórios</div>
+</div>
+
+<div class="main">
+
+  <div class="page-header">
+    <h1>Relatórios &amp; Operação</h1>
+    <p>Churn, ticket médio, disparo de notificações e checklist de retirada</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showPanel('relatorios')">Relatórios</button>
+    <button class="tab-btn" onclick="showPanel('notificacoes')">Notificações</button>
+    <button class="tab-btn" onclick="showPanel('checklist')">Checklist de retirada</button>
+  </div>
+
+  <!-- PAINEL: RELATÓRIOS -->
+  <div class="panel active" id="panel-relatorios">
+    <div class="kpi-row">
+      <div class="kpi-card">
+        <div class="label">Churn (mês)</div>
+        <div class="value">3,2%</div>
+        <div class="sub">5 cancelamentos</div>
+      </div>
+      <div class="kpi-card">
+        <div class="label">Ticket médio</div>
+        <div class="value">R$ 87,80</div>
+        <div class="sub">por assinante ativo</div>
+      </div>
+      <div class="kpi-card">
+        <div class="label">Produto mais assinado</div>
+        <div class="value" style="font-size:16px;">Café da manhã completo</div>
+        <div class="sub">38% dos assinantes</div>
+      </div>
+      <div class="kpi-card">
+        <div class="label">Retirada x Entrega</div>
+        <div class="value">69% / 31%</div>
+        <div class="sub">proporção de pedidos</div>
+      </div>
+    </div>
+
+    <div class="chart-grid">
+      <div class="chart-card">
+        <h3>Produtos mais assinados</h3>
+        <div class="chart-wrap"><canvas id="ch-produtos"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>Churn nos últimos 6 meses</h3>
+        <div class="chart-wrap"><canvas id="ch-churn"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAINEL: NOTIFICAÇÕES -->
+  <div class="panel" id="panel-notificacoes">
+    <div class="notif-grid">
+      <div>
+        <div class="side-card">
+          <h3>Templates</h3>
+          <div class="template-row active" onclick="selecionarTemplate(this)">
+            <span>Pedido pronto para retirada</span>
+            <span class="tag auto">automático</span>
+          </div>
+          <div class="template-row" onclick="selecionarTemplate(this)">
+            <span>Saiu para entrega</span>
+            <span class="tag auto">automático</span>
+          </div>
+          <div class="template-row" onclick="selecionarTemplate(this)">
+            <span>Cobrança processada</span>
+            <span class="tag auto">automático</span>
+          </div>
+          <div class="template-row" onclick="selecionarTemplate(this)">
+            <span>Renovação em 3 dias</span>
+            <span class="tag auto">automático</span>
+          </div>
+          <div class="template-row" onclick="selecionarTemplate(this)">
+            <span>Aviso manual</span>
+            <span class="tag">manual</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="compose-card">
+        <h3 style="font-size:14px;font-weight:600;margin-bottom:14px;" id="compose-title">Pedido pronto para retirada</h3>
+        <div class="field">
+          <label>Disparo</label>
+          <select id="disparo-tipo">
+            <option>Automático (por status do pedido)</option>
+            <option>Manual (selecionar destinatários)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Mensagem</label>
+          <textarea id="mensagem-texto">Seu pedido está pronto para retirada na Dom Leon! Pode vir buscar quando quiser 🥖</textarea>
+        </div>
+        <div class="toggle-row">
+          <div class="checkbox checked" onclick="this.classList.toggle('checked')"><i class="ti ti-check" style="font-size:12px;"></i></div>
+          <span>Ativo</span>
+        </div>
+        <button class="btn-primary">Salvar template</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAINEL: CHECKLIST DE RETIRADA -->
+  <div class="panel" id="panel-checklist">
+    <div class="checklist-toolbar">
+      <input type="text" placeholder="Buscar assinante...">
+      <span style="font-size:13px;color:var(--text-secondary);">18 de 27 retiradas confirmadas hoje</span>
+    </div>
+    <div class="checklist-card" id="checklist-list">
+      <div class="check-row done">
+        <div class="checkbox checked" onclick="toggleCheck(this)"><i class="ti ti-check" style="font-size:13px;"></i></div>
+        <div class="check-info"><div class="nome">Maria Clara Souza</div><div class="plano">Café da manhã completo</div></div>
+        <div class="check-time">08:12</div>
+      </div>
+      <div class="check-row">
+        <div class="checkbox" onclick="toggleCheck(this)"></div>
+        <div class="check-info"><div class="nome">Ana Lúcia Prado</div><div class="plano">Doce lar</div></div>
+        <div class="check-time">—</div>
+      </div>
+      <div class="check-row">
+        <div class="checkbox" onclick="toggleCheck(this)"></div>
+        <div class="check-info"><div class="nome">Carlos Silveira</div><div class="plano">Café da manhã completo</div></div>
+        <div class="check-time">—</div>
+      </div>
+      <div class="check-row done">
+        <div class="checkbox checked" onclick="toggleCheck(this)"><i class="ti ti-check" style="font-size:13px;"></i></div>
+        <div class="check-info"><div class="nome">Paulo Henrique Lima</div><div class="plano">Dom Leon fit</div></div>
+        <div class="check-time">07:45</div>
+      </div>
+      <div class="check-row">
+        <div class="checkbox" onclick="toggleCheck(this)"></div>
+        <div class="check-info"><div class="nome">Beatriz Nogueira</div><div class="plano">Monte o seu</div></div>
+        <div class="check-time">—</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function showPanel(name){
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  [...document.querySelectorAll('.tab-btn')].find(b => b.textContent.toLowerCase().includes(
+    name === 'relatorios' ? 'relat' : name === 'notificacoes' ? 'notif' : 'checklist'
+  ))?.classList.add('active');
+  const navEl = document.querySelector(`.nav-item[onclick*="showPanel('${name}')"]`);
+  if (navEl) navEl.classList.add('active');
+
+  if (name === 'relatorios' && !window.chartsRendered) {
+    renderCharts();
+    window.chartsRendered = true;
+  }
+}
+
+// Abre direto na aba indicada por ?tab= (vindo de outro módulo)
+(function(){
+  const tab = new URLSearchParams(window.location.search).get('tab');
+  if (tab === 'checklist') showPanel('checklist');
+})();
+
+function selecionarTemplate(el){
+  document.querySelectorAll('.template-row').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('compose-title').textContent = el.querySelector('span').textContent;
+}
+
+function toggleCheck(el){
+  el.classList.toggle('checked');
+  const row = el.closest('.check-row');
+  const timeEl = row.querySelector('.check-time');
+  if (el.classList.contains('checked')) {
+    el.innerHTML = '<i class="ti ti-check" style="font-size:13px;"></i>';
+    row.classList.add('done');
+    const now = new Date();
+    timeEl.textContent = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+  } else {
+    el.innerHTML = '';
+    row.classList.remove('done');
+    timeEl.textContent = '—';
+  }
+}
+
+function renderCharts(){
+  const gray = '#888780';
+  Chart.defaults.font.family = 'Inter';
+  Chart.defaults.color = gray;
+
+  new Chart(document.getElementById('ch-produtos'), {
+    type: 'bar',
+    data: {
+      labels: ['Café completo', 'Dom Leon fit', 'Monte o seu', 'Doce lar'],
+      datasets: [{
+        data: [38, 24, 22, 16],
+        backgroundColor: '#1D9E75',
+        borderRadius: 6,
+        maxBarThickness: 32
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { callback: v => v + '%' } },
+        y: { grid: { display: false } }
+      }
+    }
+  });
+
+  new Chart(document.getElementById('ch-churn'), {
+    type: 'line',
+    data: {
+      labels: ['Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago'],
+      datasets: [{
+        data: [4.1, 3.8, 4.5, 3.0, 2.7, 3.2],
+        borderColor: '#D85A30',
+        backgroundColor: 'rgba(216,90,48,0.08)',
+        fill: true,
+        tension: 0.35,
+        pointRadius: 3
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { grid: { color: '#E6E4DC' }, ticks: { callback: v => v + '%' } },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+}
+
+renderCharts();
+window.chartsRendered = true;
+</script>
+
+</body>
+</html>

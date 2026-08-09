@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dom Leon Assinatura — Monte o seu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/dist/tabler-icons.min.css">
+<style>
+  :root{
+    --bg:#F6F5F1;
+    --card:#FFFFFF;
+    --border:#E6E4DC;
+    --border-strong:#D3D1C7;
+    --text-primary:#2C2C2A;
+    --text-secondary:#5F5E5A;
+    --text-muted:#888780;
+    --accent:#1D9E75;
+    --accent-bg:#E1F5EE;
+    --accent-text:#085041;
+    --radius:10px;
+    --radius-lg:16px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:'Inter',sans-serif;
+    background:var(--bg);
+    color:var(--text-primary);
+    min-height:100vh;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding:32px 16px;
+  }
+  .phone{
+    width:100%;
+    max-width:380px;
+    background:var(--card);
+    border:0.5px solid var(--border);
+    border-radius:var(--radius-lg);
+    padding:20px;
+    min-height:640px;
+    display:flex;
+    flex-direction:column;
+  }
+  .topbar{display:flex;align-items:center;gap:8px;margin-bottom:16px;}
+  .topbar i{font-size:18px;cursor:pointer;}
+  .topbar h2{font-size:15px;font-weight:600;}
+  .hint-box{
+    font-size:12px;color:var(--text-secondary);
+    background:var(--accent-bg);color:var(--accent-text);
+    border-radius:10px;padding:10px 12px;margin-bottom:16px;
+  }
+
+  .categoria{margin-bottom:18px;}
+  .categoria-titulo{
+    font-size:13px;font-weight:500;color:var(--text-secondary);
+    margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;
+  }
+  .categoria-titulo span.contador{
+    font-size:11px;color:var(--text-muted);font-weight:400;
+  }
+  .item-row{
+    display:flex;justify-content:space-between;align-items:center;
+    border:0.5px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;
+  }
+  .item-info .nome{font-size:13px;}
+  .item-info .preco-un{font-size:11px;color:var(--text-muted);margin-top:2px;}
+  .stepper{display:flex;align-items:center;gap:10px;}
+  .stepper button{
+    width:26px;height:26px;border-radius:50%;border:0.5px solid var(--border-strong);
+    background:var(--bg);font-size:14px;cursor:pointer;color:var(--text-primary);
+  }
+  .stepper button:active{background:var(--border);}
+  .stepper .qtd{font-size:13px;font-weight:500;min-width:16px;text-align:center;}
+
+  .total-bar{
+    display:flex;justify-content:space-between;align-items:center;
+    margin-top:auto;padding-top:14px;border-top:0.5px solid var(--border);
+  }
+  .total-bar .label{font-size:12px;color:var(--text-secondary);}
+  .total-bar .value{font-size:18px;font-weight:600;}
+  .btn-primary{
+    background:var(--text-primary);color:#fff;border:none;
+    padding:0 20px;height:44px;border-radius:var(--radius);font-size:14px;
+    font-family:inherit;cursor:pointer;
+  }
+  .btn-primary:disabled{opacity:0.4;cursor:not-allowed;}
+
+  .save-row{margin-top:12px;}
+  .save-row input{
+    width:100%;height:38px;border:0.5px solid var(--border-strong);border-radius:var(--radius);
+    padding:0 12px;font-size:13px;font-family:inherit;background:var(--bg);margin-bottom:10px;
+  }
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="topbar">
+    <i class="ti ti-arrow-left" onclick="window.location.href='mod1-cad-catalogo.html'"></i>
+    <h2>Monte o seu</h2>
+  </div>
+
+  <div class="hint-box">
+    <i class="ti ti-info-circle" style="margin-right:6px;"></i>
+    Sem limite de itens por categoria. Você pode trocar os itens toda semana, a qualquer momento — mudanças valem até o corte diário das 18h.
+  </div>
+
+  <div class="categoria">
+    <div class="categoria-titulo">Pães <span class="contador">escolha à vontade</span></div>
+    <div class="item-row">
+      <div class="item-info">
+        <div class="nome">Pão francês</div>
+        <div class="preco-un">R$ 0,80/un</div>
+      </div>
+      <div class="stepper">
+        <button onclick="alterar('pao-frances', -1)">−</button>
+        <span class="qtd" id="qtd-pao-frances">6</span>
+        <button onclick="alterar('pao-frances', 1)">+</button>
+      </div>
+    </div>
+    <div class="item-row">
+      <div class="item-info">
+        <div class="nome">Pão integral</div>
+        <div class="preco-un">R$ 1,20/un</div>
+      </div>
+      <div class="stepper">
+        <button onclick="alterar('pao-integral', -1)">−</button>
+        <span class="qtd" id="qtd-pao-integral">0</span>
+        <button onclick="alterar('pao-integral', 1)">+</button>
+      </div>
+    </div>
+    <div class="item-row">
+      <div class="item-info">
+        <div class="nome">Pão de forma artesanal</div>
+        <div class="preco-un">R$ 9,90/un</div>
+      </div>
+      <div class="stepper">
+        <button onclick="alterar('pao-forma', -1)">−</button>
+        <span class="qtd" id="qtd-pao-forma">0</span>
+        <button onclick="alterar('pao-forma', 1)">+</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="categoria">
+    <div class="categoria-titulo">Complementos <span class="contador">escolha à vontade</span></div>
+    <div class="item-row">
+      <div class="item-info">
+        <div class="nome">Queijo branco 200g</div>
+        <div class="preco-un">R$ 8,50/un</div>
+      </div>
+      <div class="stepper">
+        <button onclick="alterar('queijo', -1)">−</button>
+        <span class="qtd" id="qtd-queijo">1</span>
+        <button onclick="alterar('queijo', 1)">+</button>
+      </div>
+    </div>
+    <div class="item-row">
+      <div class="item-info">
+        <div class="nome">Manteiga 200g</div>
+        <div class="preco-un">R$ 7,00/un</div>
+      </div>
+      <div class="stepper">
+        <button onclick="alterar('manteiga', -1)">−</button>
+        <span class="qtd" id="qtd-manteiga">0</span>
+        <button onclick="alterar('manteiga', 1)">+</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="categoria">
+    <div class="categoria-titulo">Extras <span class="contador">escolha à vontade</span></div>
+    <div class="item-row">
+      <div class="item-info">
+        <div class="nome">Fruta da estação</div>
+        <div class="preco-un">R$ 2,50/un</div>
+      </div>
+      <div class="stepper">
+        <button onclick="alterar('fruta', -1)">−</button>
+        <span class="qtd" id="qtd-fruta">2</span>
+        <button onclick="alterar('fruta', 1)">+</button>
+      </div>
+    </div>
+    <div class="item-row">
+      <div class="item-info">
+        <div class="nome">Suco natural 300ml</div>
+        <div class="preco-un">R$ 6,00/un</div>
+      </div>
+      <div class="stepper">
+        <button onclick="alterar('suco', -1)">−</button>
+        <span class="qtd" id="qtd-suco">0</span>
+        <button onclick="alterar('suco', 1)">+</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="save-row">
+    <input type="text" id="nome-combo" placeholder="Nome do seu combo (ex: Meu café da manhã)">
+  </div>
+
+  <div class="total-bar">
+    <div>
+      <div class="label">Total/mês</div>
+      <div class="value" id="total-valor">R$ 0,00</div>
+    </div>
+    <button class="btn-primary" id="btn-salvar" onclick="salvarCombo()">Salvar meu combo</button>
+  </div>
+</div>
+
+<script>
+const PRECOS = {
+  'pao-frances': 0.80,
+  'pao-integral': 1.20,
+  'pao-forma': 9.90,
+  'queijo': 8.50,
+  'manteiga': 7.00,
+  'fruta': 2.50,
+  'suco': 6.00
+};
+const NOMES = {
+  'pao-frances': 'pão francês',
+  'pao-integral': 'pão integral',
+  'pao-forma': 'pão de forma artesanal',
+  'queijo': 'queijo branco',
+  'manteiga': 'manteiga',
+  'fruta': 'fruta da estação',
+  'suco': 'suco natural'
+};
+
+function getQtd(id){
+  return parseInt(document.getElementById('qtd-' + id).textContent, 10);
+}
+
+function alterar(id, delta){
+  const el = document.getElementById('qtd-' + id);
+  let qtd = getQtd(id) + delta;
+  if (qtd < 0) qtd = 0;
+  el.textContent = qtd;
+  atualizarTotal();
+}
+
+function atualizarTotal(){
+  let total = 0;
+  for (const id in PRECOS){
+    total += getQtd(id) * PRECOS[id];
+  }
+  document.getElementById('total-valor').textContent =
+    'R$ ' + total.toFixed(2).replace('.', ',');
+
+  const btn = document.getElementById('btn-salvar');
+  btn.disabled = total === 0;
+}
+
+function montarDescricaoItens(){
+  const partes = [];
+  for (const id in PRECOS){
+    const qtd = getQtd(id);
+    if (qtd > 0) partes.push(qtd + ' ' + NOMES[id]);
+  }
+  return partes.join(' · ');
+}
+
+function calcularTotal(){
+  let total = 0;
+  for (const id in PRECOS){
+    total += getQtd(id) * PRECOS[id];
+  }
+  return total;
+}
+
+function salvarCombo(){
+  const nome = document.getElementById('nome-combo').value.trim() || 'Meu combo';
+  const itens = montarDescricaoItens();
+  const total = calcularTotal();
+  window.location.href = 'mod2-app-ass.html?nome=' + encodeURIComponent(nome) +
+    '&itens=' + encodeURIComponent(itens) + '&preco=' + total.toFixed(2);
+}
+
+atualizarTotal();
+</script>
+
+</body>
+</html>
