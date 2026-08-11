@@ -331,44 +331,44 @@
     </div>
 
     <div class="toggle">
-      <button class="active" id="tab-fixos" onclick="showTab('fixos')">Combos fixos</button>
-      <button id="tab-monte" onclick="showTab('monte')">Monte o seu</button>
+      <button class="active" id="tab-monte" onclick="showTab('monte')">Monte o seu</button>
+      <button id="tab-fixos" onclick="showTab('fixos')">Combos prontos</button>
     </div>
 
-    <div class="combo-list" id="lista-fixos">
-      <div class="combo-card" onclick="window.location.href='mod2-app-ass.html?nome=' + encodeURIComponent('Café da manhã completo') + '&itens=' + encodeURIComponent('6 pães · queijo · fruta') + '&preco=89.90'">
-        <div class="combo-icon"><i class="ti ti-bread"></i></div>
-        <div class="combo-info">
-          <div class="name">Café da manhã completo</div>
-          <div class="items">6 pães · queijo · fruta</div>
-          <div class="price">R$ 89,90/mês</div>
-        </div>
-      </div>
-      <div class="combo-card" onclick="window.location.href='mod2-app-ass.html?nome=' + encodeURIComponent('Dom Leon fit') + '&itens=' + encodeURIComponent('integral · queijo branco · fruta') + '&preco=79.90'">
-        <div class="combo-icon"><i class="ti ti-salad"></i></div>
-        <div class="combo-info">
-          <div class="name">Dom Leon fit</div>
-          <div class="items">integral · queijo branco · fruta</div>
-          <div class="price">R$ 79,90/mês</div>
-        </div>
-      </div>
-      <div class="combo-card" onclick="window.location.href='mod2-app-ass.html?nome=' + encodeURIComponent('Doce lar') + '&itens=' + encodeURIComponent('sortido doce · sáb e dom') + '&preco=49.90'">
-        <div class="combo-icon warn"><i class="ti ti-cookie"></i></div>
-        <div class="combo-info">
-          <div class="name">Doce lar</div>
-          <div class="items">sortido doce · sáb e dom</div>
-          <div class="price">R$ 49,90/mês</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="combo-list" id="lista-monte" style="display:none;">
+    <div class="combo-list" id="lista-monte">
       <div class="combo-card" onclick="window.location.href='mod4-monte-o-seu.html'">
         <div class="combo-icon"><i class="ti ti-adjustments"></i></div>
         <div class="combo-info">
-          <div class="name">Monte o seu</div>
-          <div class="items">escolha pães, complementos e extras</div>
+          <div class="name">Monte do zero</div>
+          <div class="items">escolha os dias da semana e os itens de cada dia</div>
           <div class="price">preço soma conforme você escolhe</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="combo-list" id="lista-fixos" style="display:none;">
+      <div class="combo-card" onclick="window.location.href='mod4-monte-o-seu.html?base=cafe'">
+        <div class="combo-icon"><i class="ti ti-bread"></i></div>
+        <div class="combo-info">
+          <div class="name">Café da manhã completo</div>
+          <div class="items">seg · qua · sex — editável</div>
+          <div class="price">preço calculado no seu ciclo</div>
+        </div>
+      </div>
+      <div class="combo-card" onclick="window.location.href='mod4-monte-o-seu.html?base=fit'">
+        <div class="combo-icon"><i class="ti ti-salad"></i></div>
+        <div class="combo-info">
+          <div class="name">Dom Leon fit</div>
+          <div class="items">seg a sex — editável</div>
+          <div class="price">preço calculado no seu ciclo</div>
+        </div>
+      </div>
+      <div class="combo-card" onclick="window.location.href='mod4-monte-o-seu.html?base=doce'">
+        <div class="combo-icon warn"><i class="ti ti-cookie"></i></div>
+        <div class="combo-info">
+          <div class="name">Doce lar</div>
+          <div class="items">sáb · dom — editável</div>
+          <div class="price">preço calculado no seu ciclo</div>
         </div>
       </div>
     </div>
