@@ -156,62 +156,34 @@
   </div>
 </div>
 
+<script src="catalogo.js"></script>
 <script>
-/* ---------- Catálogo de itens (compartilhado entre todos os dias) ---------- */
-const PRECOS = {
-  'pao-frances': 0.80,
-  'pao-integral': 1.20,
-  'pao-forma': 9.90,
-  'leite': 5.80,
-  'torrada': 5.90,
-  'laranjas-kit6': 10.00,
-  'morango-cx': 12.00,
-  'queijo': 8.50,
-  'manteiga': 7.00,
-  'fruta': 2.50,
-  'suco': 6.00
-};
-const NOMES = {
-  'pao-frances': 'Pão francês',
-  'pao-integral': 'Pão integral',
-  'pao-forma': 'Pão de forma artesanal',
-  'leite': 'Leite',
-  'torrada': 'Torrada',
-  'laranjas-kit6': 'Laranjas (kit c/ 6)',
-  'morango-cx': 'Caixa de morango',
-  'queijo': 'Queijo branco 200g',
-  'manteiga': 'Manteiga 200g',
-  'fruta': 'Fruta da estação',
-  'suco': 'Suco natural 300ml'
-};
-const CATEGORIAS = {
-  'Pães': ['pao-frances', 'pao-integral', 'pao-forma'],
-  'Laticínios & Padaria': ['leite', 'torrada', 'queijo', 'manteiga'],
-  'Frutas & Extras': ['fruta', 'laranjas-kit6', 'morango-cx', 'suco']
-};
+/* ---------- Catálogo de itens (compartilhado via catalogo.js / localStorage) ---------- */
+const CATALOGO = carregarCatalogo();
+
+// Deriva PRECOS, NOMES e CATEGORIAS a partir do catálogo, considerando só itens ativos
+const PRECOS = {};
+const NOMES = {};
+const CATEGORIAS = {};
+CATALOGO.categorias.forEach(cat => { CATEGORIAS[cat] = []; });
+CATALOGO.itens.filter(i => i.ativo).forEach(item => {
+  PRECOS[item.id] = item.preco;
+  NOMES[item.id] = item.nome;
+  if (!CATEGORIAS[item.categoria]) CATEGORIAS[item.categoria] = [];
+  CATEGORIAS[item.categoria].push(item.id);
+});
+// Remove categorias que ficaram sem nenhum item ativo
+Object.keys(CATEGORIAS).forEach(cat => { if (CATEGORIAS[cat].length === 0) delete CATEGORIAS[cat]; });
 
 const DIAS_ORDEM = ['seg','ter','qua','qui','sex','sab','dom'];
 const DIA_LABEL = {seg:'Segunda', ter:'Terça', qua:'Quarta', qui:'Quinta', sex:'Sexta', sab:'Sábado', dom:'Domingo'};
 const DIA_JS = {dom:0, seg:1, ter:2, qua:3, qui:4, sex:5, sab:6}; // getDay() do JS
 
-/* ---------- Combos fixos pré-definidos (usados quando vem ?base=) ---------- */
-const BASE_COMBOS = {
-  cafe: {
-    nome: 'Café da manhã completo',
-    dias: ['seg', 'qua', 'sex'],
-    itensPadrao: { 'pao-frances': 2, 'leite': 1, 'torrada': 1 }
-  },
-  fit: {
-    nome: 'Dom Leon fit',
-    dias: ['seg', 'ter', 'qua', 'qui', 'sex'],
-    itensPadrao: { 'pao-integral': 2, 'queijo': 1, 'fruta': 1 }
-  },
-  doce: {
-    nome: 'Doce lar',
-    dias: ['sab', 'dom'],
-    itensPadrao: { 'pao-forma': 1, 'fruta': 1 }
-  }
-};
+/* ---------- Combos fixos (vêm do catálogo cadastrado no admin, usados quando vem ?base=) ---------- */
+const BASE_COMBOS = {};
+CATALOGO.combos.forEach(combo => {
+  BASE_COMBOS[combo.id] = { nome: combo.nome, dias: combo.dias, itensPadrao: combo.itensPadrao };
+});
 
 /* ---------- Estado ---------- */
 let diasSelecionados = [];       // ex: ['seg','qua','sex']
@@ -228,8 +200,14 @@ let diaAtivoTab = null;
     document.getElementById('nome-combo').value = combo.nome;
     combo.dias.forEach(dia => {
       diasSelecionados.push(dia);
-      itensPorDia[dia] = Object.assign({}, combo.itensPadrao);
-      document.querySelector('.dia-chip[data-dia="' + dia + '"]').classList.add('selected');
+      // só carrega quantidades de itens que ainda existem e estão ativos
+      const itensValidos = {};
+      Object.keys(combo.itensPadrao).forEach(id => {
+        if (PRECOS[id] !== undefined) itensValidos[id] = combo.itensPadrao[id];
+      });
+      itensPorDia[dia] = itensValidos;
+      const chip = document.querySelector('.dia-chip[data-dia="' + dia + '"]');
+      if (chip) chip.classList.add('selected');
     });
     renderizarEditorDias();
   }

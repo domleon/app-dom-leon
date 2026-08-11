@@ -164,7 +164,9 @@
     background:var(--accent-bg);
     color:var(--accent-text);
     font-size:22px;
+    overflow:hidden;
   }
+  .combo-icon img{width:100%;height:100%;object-fit:cover;}
   .combo-icon.warn{background:var(--warn-bg);color:var(--warn-text);}
   .combo-info{flex:1;min-width:0;}
   .combo-info .name{font-size:14px;font-weight:500;}
@@ -346,32 +348,7 @@
       </div>
     </div>
 
-    <div class="combo-list" id="lista-fixos" style="display:none;">
-      <div class="combo-card" onclick="window.location.href='mod4-monte-o-seu.html?base=cafe'">
-        <div class="combo-icon"><i class="ti ti-bread"></i></div>
-        <div class="combo-info">
-          <div class="name">Café da manhã completo</div>
-          <div class="items">seg · qua · sex — editável</div>
-          <div class="price">preço calculado no seu ciclo</div>
-        </div>
-      </div>
-      <div class="combo-card" onclick="window.location.href='mod4-monte-o-seu.html?base=fit'">
-        <div class="combo-icon"><i class="ti ti-salad"></i></div>
-        <div class="combo-info">
-          <div class="name">Dom Leon fit</div>
-          <div class="items">seg a sex — editável</div>
-          <div class="price">preço calculado no seu ciclo</div>
-        </div>
-      </div>
-      <div class="combo-card" onclick="window.location.href='mod4-monte-o-seu.html?base=doce'">
-        <div class="combo-icon warn"><i class="ti ti-cookie"></i></div>
-        <div class="combo-info">
-          <div class="name">Doce lar</div>
-          <div class="items">sáb · dom — editável</div>
-          <div class="price">preço calculado no seu ciclo</div>
-        </div>
-      </div>
-    </div>
+    <div class="combo-list" id="lista-fixos" style="display:none;"></div>
 
     <div class="bottom-nav">
       <i class="ti ti-home active"></i>
@@ -385,7 +362,41 @@
 
 </div>
 
+<script src="catalogo.js"></script>
 <script>
+const DIA_LABEL_MOD1 = {seg:'seg', ter:'ter', qua:'qua', qui:'qui', sex:'sex', sab:'sáb', dom:'dom'};
+
+function renderizarCombosProntos(){
+  const catalogo = carregarCatalogo();
+  const container = document.getElementById('lista-fixos');
+  container.innerHTML = '';
+
+  if (catalogo.combos.length === 0){
+    container.innerHTML = '<div class="hint" style="margin-top:40px;">Nenhum combo pronto cadastrado ainda.</div>';
+    return;
+  }
+
+  catalogo.combos.forEach(combo => {
+    const diasTxt = combo.dias.map(d => DIA_LABEL_MOD1[d] || d).join(' · ');
+    const thumb = combo.imagem
+      ? `<img src="${combo.imagem}" alt="${combo.nome}">`
+      : `<i class="ti ti-bread"></i>`;
+
+    const card = document.createElement('div');
+    card.className = 'combo-card';
+    card.onclick = () => { window.location.href = 'mod4-monte-o-seu.html?base=' + combo.id; };
+    card.innerHTML = `
+      <div class="combo-icon">${thumb}</div>
+      <div class="combo-info">
+        <div class="name">${combo.nome}</div>
+        <div class="items">${diasTxt || 'dias a definir'} — editável</div>
+        <div class="price">preço calculado no seu ciclo</div>
+      </div>`;
+    container.appendChild(card);
+  });
+}
+renderizarCombosProntos();
+
 function showScreen(name){
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-' + name).classList.add('active');
