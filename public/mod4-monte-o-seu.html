@@ -10,90 +10,95 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/dist/tabler-icons.min.css">
 <style>
   :root{
-    --bg:#F6F5F1;
-    --card:#FFFFFF;
-    --border:#E6E4DC;
-    --border-strong:#D3D1C7;
-    --text-primary:#2C2C2A;
-    --text-secondary:#5F5E5A;
-    --text-muted:#888780;
-    --accent:#1D9E75;
-    --accent-bg:#E1F5EE;
-    --accent-text:#085041;
-    --radius:10px;
-    --radius-lg:16px;
+    --bg:#F6F5F1;--card:#FFFFFF;--border:#E6E4DC;--border-strong:#D3D1C7;
+    --text-primary:#2C2C2A;--text-secondary:#5F5E5A;--text-muted:#888780;
+    --accent:#1D9E75;--accent-bg:#E1F5EE;--accent-text:#085041;
+    --radius:10px;--radius-lg:16px;
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   body{
-    font-family:'Inter',sans-serif;
-    background:var(--bg);
-    color:var(--text-primary);
-    min-height:100vh;
-    display:flex;
-    align-items:flex-start;
-    justify-content:center;
-    padding:32px 16px;
+    font-family:'Inter',sans-serif;background:var(--bg);color:var(--text-primary);
+    min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:32px 16px;
   }
   .phone{
-    width:100%;
-    max-width:380px;
-    background:var(--card);
-    border:0.5px solid var(--border);
-    border-radius:var(--radius-lg);
-    padding:20px;
-    min-height:640px;
-    display:flex;
-    flex-direction:column;
+    width:100%;max-width:380px;background:var(--card);border:0.5px solid var(--border);
+    border-radius:var(--radius-lg);padding:20px;min-height:640px;display:flex;flex-direction:column;
   }
-  .topbar{display:flex;align-items:center;gap:8px;margin-bottom:16px;}
+  .topbar{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
   .topbar i{font-size:18px;cursor:pointer;}
   .topbar h2{font-size:15px;font-weight:600;}
+
   .hint-box{
-    font-size:12px;color:var(--text-secondary);
-    background:var(--accent-bg);color:var(--accent-text);
-    border-radius:10px;padding:10px 12px;margin-bottom:16px;
+    font-size:12px;color:var(--accent-text);background:var(--accent-bg);
+    border-radius:10px;padding:10px 12px;margin-bottom:16px;line-height:1.5;
   }
 
-  .categoria{margin-bottom:18px;}
-  .categoria-titulo{
-    font-size:13px;font-weight:500;color:var(--text-secondary);
-    margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;
+  .section-label{font-size:13px;font-weight:500;color:var(--text-secondary);margin-bottom:8px;}
+
+  /* Chips de dias da semana */
+  .dias-row{display:flex;gap:6px;margin-bottom:18px;}
+  .dia-chip{
+    flex:1;text-align:center;padding:10px 0;border-radius:10px;border:0.5px solid var(--border-strong);
+    font-size:12px;font-weight:500;cursor:pointer;background:var(--card);color:var(--text-secondary);
   }
-  .categoria-titulo span.contador{
-    font-size:11px;color:var(--text-muted);font-weight:400;
+  .dia-chip.selected{background:var(--accent);border-color:var(--accent);color:#fff;}
+
+  /* Tabs dos dias selecionados */
+  .day-tabs{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px;}
+  .day-tab{
+    flex-shrink:0;padding:7px 14px;border-radius:20px;font-size:12px;cursor:pointer;
+    border:0.5px solid var(--border-strong);color:var(--text-secondary);background:var(--card);
   }
+  .day-tab.active{background:var(--text-primary);color:#fff;border-color:var(--text-primary);}
+
+  .copy-row{display:flex;justify-content:flex-end;margin-bottom:10px;}
+  .copy-row select{
+    font-size:11px;border:0.5px solid var(--border-strong);border-radius:8px;padding:4px 8px;
+    font-family:inherit;background:var(--bg);color:var(--text-secondary);
+  }
+
+  .categoria{margin-bottom:14px;}
+  .categoria-titulo{font-size:12px;font-weight:500;color:var(--text-secondary);margin-bottom:6px;}
   .item-row{
     display:flex;justify-content:space-between;align-items:center;
-    border:0.5px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;
+    border:0.5px solid var(--border);border-radius:10px;padding:9px 12px;margin-bottom:6px;
   }
-  .item-info .nome{font-size:13px;}
-  .item-info .preco-un{font-size:11px;color:var(--text-muted);margin-top:2px;}
-  .stepper{display:flex;align-items:center;gap:10px;}
+  .item-info .nome{font-size:12.5px;}
+  .item-info .preco-un{font-size:10.5px;color:var(--text-muted);margin-top:1px;}
+  .stepper{display:flex;align-items:center;gap:8px;}
   .stepper button{
-    width:26px;height:26px;border-radius:50%;border:0.5px solid var(--border-strong);
-    background:var(--bg);font-size:14px;cursor:pointer;color:var(--text-primary);
+    width:24px;height:24px;border-radius:50%;border:0.5px solid var(--border-strong);
+    background:var(--bg);font-size:13px;cursor:pointer;color:var(--text-primary);
   }
-  .stepper button:active{background:var(--border);}
-  .stepper .qtd{font-size:13px;font-weight:500;min-width:16px;text-align:center;}
+  .stepper .qtd{font-size:12.5px;font-weight:500;min-width:14px;text-align:center;}
 
-  .total-bar{
-    display:flex;justify-content:space-between;align-items:center;
-    margin-top:auto;padding-top:14px;border-top:0.5px solid var(--border);
+  .day-empty{
+    text-align:center;font-size:12px;color:var(--text-muted);padding:24px 0;
   }
-  .total-bar .label{font-size:12px;color:var(--text-secondary);}
-  .total-bar .value{font-size:18px;font-weight:600;}
-  .btn-primary{
-    background:var(--text-primary);color:#fff;border:none;
-    padding:0 20px;height:44px;border-radius:var(--radius);font-size:14px;
-    font-family:inherit;cursor:pointer;
-  }
-  .btn-primary:disabled{opacity:0.4;cursor:not-allowed;}
 
-  .save-row{margin-top:12px;}
+  .resumo-card{
+    border:0.5px solid var(--border);border-radius:12px;padding:12px 14px;margin:6px 0 14px;
+    font-size:12px;color:var(--text-secondary);line-height:1.7;
+  }
+  .resumo-card b{color:var(--text-primary);}
+  .resumo-linha{display:flex;justify-content:space-between;}
+
+  .save-row{margin-top:auto;padding-top:12px;}
   .save-row input{
     width:100%;height:38px;border:0.5px solid var(--border-strong);border-radius:var(--radius);
     padding:0 12px;font-size:13px;font-family:inherit;background:var(--bg);margin-bottom:10px;
   }
+  .total-bar{
+    display:flex;justify-content:space-between;align-items:center;
+    padding-top:12px;border-top:0.5px solid var(--border);
+  }
+  .total-bar .label{font-size:11px;color:var(--text-secondary);}
+  .total-bar .value{font-size:17px;font-weight:600;}
+  .btn-primary{
+    background:var(--text-primary);color:#fff;border:none;padding:0 18px;height:42px;
+    border-radius:var(--radius);font-size:13px;font-family:inherit;cursor:pointer;
+  }
+  .btn-primary:disabled{opacity:0.4;cursor:not-allowed;}
 </style>
 </head>
 <body>
@@ -101,186 +106,367 @@
 <div class="phone">
   <div class="topbar">
     <i class="ti ti-arrow-left" onclick="window.location.href='mod1-cad-catalogo.html'"></i>
-    <h2>Monte o seu</h2>
+    <h2 id="titulo-tela">Monte o seu</h2>
   </div>
 
   <div class="hint-box">
     <i class="ti ti-info-circle" style="margin-right:6px;"></i>
-    Sem limite de itens por categoria. Você pode trocar os itens toda semana, a qualquer momento — mudanças valem até o corte diário das 18h.
+    Escolha os dias da semana da sua assinatura e os itens de cada dia — sem limite de quantidade. Você pode trocar os itens toda semana, a qualquer momento, até o corte diário das 18h.
   </div>
 
-  <div class="categoria">
-    <div class="categoria-titulo">Pães <span class="contador">escolha à vontade</span></div>
-    <div class="item-row">
-      <div class="item-info">
-        <div class="nome">Pão francês</div>
-        <div class="preco-un">R$ 0,80/un</div>
-      </div>
-      <div class="stepper">
-        <button onclick="alterar('pao-frances', -1)">−</button>
-        <span class="qtd" id="qtd-pao-frances">6</span>
-        <button onclick="alterar('pao-frances', 1)">+</button>
-      </div>
-    </div>
-    <div class="item-row">
-      <div class="item-info">
-        <div class="nome">Pão integral</div>
-        <div class="preco-un">R$ 1,20/un</div>
-      </div>
-      <div class="stepper">
-        <button onclick="alterar('pao-integral', -1)">−</button>
-        <span class="qtd" id="qtd-pao-integral">0</span>
-        <button onclick="alterar('pao-integral', 1)">+</button>
-      </div>
-    </div>
-    <div class="item-row">
-      <div class="item-info">
-        <div class="nome">Pão de forma artesanal</div>
-        <div class="preco-un">R$ 9,90/un</div>
-      </div>
-      <div class="stepper">
-        <button onclick="alterar('pao-forma', -1)">−</button>
-        <span class="qtd" id="qtd-pao-forma">0</span>
-        <button onclick="alterar('pao-forma', 1)">+</button>
-      </div>
-    </div>
+  <div class="section-label">Dias da semana</div>
+  <div class="dias-row" id="dias-row">
+    <div class="dia-chip" data-dia="seg" onclick="toggleDia('seg')">Seg</div>
+    <div class="dia-chip" data-dia="ter" onclick="toggleDia('ter')">Ter</div>
+    <div class="dia-chip" data-dia="qua" onclick="toggleDia('qua')">Qua</div>
+    <div class="dia-chip" data-dia="qui" onclick="toggleDia('qui')">Qui</div>
+    <div class="dia-chip" data-dia="sex" onclick="toggleDia('sex')">Sex</div>
+    <div class="dia-chip" data-dia="sab" onclick="toggleDia('sab')">Sáb</div>
+    <div class="dia-chip" data-dia="dom" onclick="toggleDia('dom')">Dom</div>
   </div>
 
-  <div class="categoria">
-    <div class="categoria-titulo">Complementos <span class="contador">escolha à vontade</span></div>
-    <div class="item-row">
-      <div class="item-info">
-        <div class="nome">Queijo branco 200g</div>
-        <div class="preco-un">R$ 8,50/un</div>
-      </div>
-      <div class="stepper">
-        <button onclick="alterar('queijo', -1)">−</button>
-        <span class="qtd" id="qtd-queijo">1</span>
-        <button onclick="alterar('queijo', 1)">+</button>
-      </div>
+  <div id="dia-empty-msg" class="day-empty">Selecione ao menos um dia da semana para montar os itens.</div>
+
+  <div id="day-editor" style="display:none;">
+    <div class="day-tabs" id="day-tabs"></div>
+    <div class="copy-row" id="copy-row" style="display:none;">
+      <select id="copy-select" onchange="copiarDeOutroDia(this.value)">
+        <option value="">Copiar itens de...</option>
+      </select>
     </div>
-    <div class="item-row">
-      <div class="item-info">
-        <div class="nome">Manteiga 200g</div>
-        <div class="preco-un">R$ 7,00/un</div>
-      </div>
-      <div class="stepper">
-        <button onclick="alterar('manteiga', -1)">−</button>
-        <span class="qtd" id="qtd-manteiga">0</span>
-        <button onclick="alterar('manteiga', 1)">+</button>
-      </div>
-    </div>
+
+    <div id="categorias-container"></div>
   </div>
 
-  <div class="categoria">
-    <div class="categoria-titulo">Extras <span class="contador">escolha à vontade</span></div>
-    <div class="item-row">
-      <div class="item-info">
-        <div class="nome">Fruta da estação</div>
-        <div class="preco-un">R$ 2,50/un</div>
-      </div>
-      <div class="stepper">
-        <button onclick="alterar('fruta', -1)">−</button>
-        <span class="qtd" id="qtd-fruta">2</span>
-        <button onclick="alterar('fruta', 1)">+</button>
-      </div>
-    </div>
-    <div class="item-row">
-      <div class="item-info">
-        <div class="nome">Suco natural 300ml</div>
-        <div class="preco-un">R$ 6,00/un</div>
-      </div>
-      <div class="stepper">
-        <button onclick="alterar('suco', -1)">−</button>
-        <span class="qtd" id="qtd-suco">0</span>
-        <button onclick="alterar('suco', 1)">+</button>
-      </div>
-    </div>
+  <div class="resumo-card" id="resumo-card" style="display:none;">
+    <div class="resumo-linha"><span>Ciclo de entrega</span><b id="resumo-periodo">—</b></div>
+    <div class="resumo-linha"><span>Total de entregas</span><b id="resumo-entregas">—</b></div>
+    <div class="resumo-linha"><span>Próximo ciclo inicia</span><b id="resumo-proximo">—</b></div>
   </div>
 
   <div class="save-row">
     <input type="text" id="nome-combo" placeholder="Nome do seu combo (ex: Meu café da manhã)">
-  </div>
-
-  <div class="total-bar">
-    <div>
-      <div class="label">Total/mês</div>
-      <div class="value" id="total-valor">R$ 0,00</div>
+    <div class="total-bar">
+      <div>
+        <div class="label">Total do ciclo (30 dias)</div>
+        <div class="value" id="total-valor">R$ 0,00</div>
+      </div>
+      <button class="btn-primary" id="btn-salvar" onclick="salvarCombo()" disabled>Salvar e continuar</button>
     </div>
-    <button class="btn-primary" id="btn-salvar" onclick="salvarCombo()">Salvar meu combo</button>
   </div>
 </div>
 
 <script>
+/* ---------- Catálogo de itens (compartilhado entre todos os dias) ---------- */
 const PRECOS = {
   'pao-frances': 0.80,
   'pao-integral': 1.20,
   'pao-forma': 9.90,
+  'leite': 5.80,
+  'torrada': 5.90,
+  'laranjas-kit6': 10.00,
+  'morango-cx': 12.00,
   'queijo': 8.50,
   'manteiga': 7.00,
   'fruta': 2.50,
   'suco': 6.00
 };
 const NOMES = {
-  'pao-frances': 'pão francês',
-  'pao-integral': 'pão integral',
-  'pao-forma': 'pão de forma artesanal',
-  'queijo': 'queijo branco',
-  'manteiga': 'manteiga',
-  'fruta': 'fruta da estação',
-  'suco': 'suco natural'
+  'pao-frances': 'Pão francês',
+  'pao-integral': 'Pão integral',
+  'pao-forma': 'Pão de forma artesanal',
+  'leite': 'Leite',
+  'torrada': 'Torrada',
+  'laranjas-kit6': 'Laranjas (kit c/ 6)',
+  'morango-cx': 'Caixa de morango',
+  'queijo': 'Queijo branco 200g',
+  'manteiga': 'Manteiga 200g',
+  'fruta': 'Fruta da estação',
+  'suco': 'Suco natural 300ml'
+};
+const CATEGORIAS = {
+  'Pães': ['pao-frances', 'pao-integral', 'pao-forma'],
+  'Laticínios & Padaria': ['leite', 'torrada', 'queijo', 'manteiga'],
+  'Frutas & Extras': ['fruta', 'laranjas-kit6', 'morango-cx', 'suco']
 };
 
-function getQtd(id){
-  return parseInt(document.getElementById('qtd-' + id).textContent, 10);
-}
+const DIAS_ORDEM = ['seg','ter','qua','qui','sex','sab','dom'];
+const DIA_LABEL = {seg:'Segunda', ter:'Terça', qua:'Quarta', qui:'Quinta', sex:'Sexta', sab:'Sábado', dom:'Domingo'};
+const DIA_JS = {dom:0, seg:1, ter:2, qua:3, qui:4, sex:5, sab:6}; // getDay() do JS
 
-function alterar(id, delta){
-  const el = document.getElementById('qtd-' + id);
-  let qtd = getQtd(id) + delta;
-  if (qtd < 0) qtd = 0;
-  el.textContent = qtd;
-  atualizarTotal();
-}
-
-function atualizarTotal(){
-  let total = 0;
-  for (const id in PRECOS){
-    total += getQtd(id) * PRECOS[id];
+/* ---------- Combos fixos pré-definidos (usados quando vem ?base=) ---------- */
+const BASE_COMBOS = {
+  cafe: {
+    nome: 'Café da manhã completo',
+    dias: ['seg', 'qua', 'sex'],
+    itensPadrao: { 'pao-frances': 2, 'leite': 1, 'torrada': 1 }
+  },
+  fit: {
+    nome: 'Dom Leon fit',
+    dias: ['seg', 'ter', 'qua', 'qui', 'sex'],
+    itensPadrao: { 'pao-integral': 2, 'queijo': 1, 'fruta': 1 }
+  },
+  doce: {
+    nome: 'Doce lar',
+    dias: ['sab', 'dom'],
+    itensPadrao: { 'pao-forma': 1, 'fruta': 1 }
   }
-  document.getElementById('total-valor').textContent =
-    'R$ ' + total.toFixed(2).replace('.', ',');
+};
 
-  const btn = document.getElementById('btn-salvar');
-  btn.disabled = total === 0;
-}
+/* ---------- Estado ---------- */
+let diasSelecionados = [];       // ex: ['seg','qua','sex']
+let itensPorDia = {};            // { seg: { 'pao-frances': 2, ... }, qua: {...} }
+let diaAtivoTab = null;
 
-function montarDescricaoItens(){
-  const partes = [];
-  for (const id in PRECOS){
-    const qtd = getQtd(id);
-    if (qtd > 0) partes.push(qtd + ' ' + NOMES[id]);
+/* ---------- Inicialização a partir da URL (?base=cafe) ---------- */
+(function init(){
+  const params = new URLSearchParams(window.location.search);
+  const base = params.get('base');
+  if (base && BASE_COMBOS[base]) {
+    const combo = BASE_COMBOS[base];
+    document.getElementById('titulo-tela').textContent = 'Editar: ' + combo.nome;
+    document.getElementById('nome-combo').value = combo.nome;
+    combo.dias.forEach(dia => {
+      diasSelecionados.push(dia);
+      itensPorDia[dia] = Object.assign({}, combo.itensPadrao);
+      document.querySelector('.dia-chip[data-dia="' + dia + '"]').classList.add('selected');
+    });
+    renderizarEditorDias();
   }
-  return partes.join(' · ');
+  atualizarTudo();
+})();
+
+/* ---------- Seleção de dias ---------- */
+function toggleDia(dia){
+  const idx = diasSelecionados.indexOf(dia);
+  const chip = document.querySelector('.dia-chip[data-dia="' + dia + '"]');
+  if (idx >= 0){
+    diasSelecionados.splice(idx, 1);
+    delete itensPorDia[dia];
+    chip.classList.remove('selected');
+  } else {
+    diasSelecionados.push(dia);
+    itensPorDia[dia] = {};
+    chip.classList.add('selected');
+  }
+  // mantém a ordem correta (seg..dom)
+  diasSelecionados.sort((a, b) => DIAS_ORDEM.indexOf(a) - DIAS_ORDEM.indexOf(b));
+  renderizarEditorDias();
+  atualizarTudo();
 }
 
-function calcularTotal(){
+function renderizarEditorDias(){
+  const editor = document.getElementById('day-editor');
+  const emptyMsg = document.getElementById('dia-empty-msg');
+
+  if (diasSelecionados.length === 0){
+    editor.style.display = 'none';
+    emptyMsg.style.display = 'block';
+    document.getElementById('resumo-card').style.display = 'none';
+    return;
+  }
+  emptyMsg.style.display = 'none';
+  editor.style.display = 'block';
+
+  if (!diasSelecionados.includes(diaAtivoTab)) {
+    diaAtivoTab = diasSelecionados[0];
+  }
+
+  // tabs
+  const tabsEl = document.getElementById('day-tabs');
+  tabsEl.innerHTML = '';
+  diasSelecionados.forEach(dia => {
+    const tab = document.createElement('div');
+    tab.className = 'day-tab' + (dia === diaAtivoTab ? ' active' : '');
+    tab.textContent = DIA_LABEL[dia];
+    tab.onclick = () => { diaAtivoTab = dia; renderizarEditorDias(); };
+    tabsEl.appendChild(tab);
+  });
+
+  // seletor de "copiar de outro dia"
+  const copyRow = document.getElementById('copy-row');
+  const copySelect = document.getElementById('copy-select');
+  if (diasSelecionados.length > 1){
+    copyRow.style.display = 'flex';
+    copySelect.innerHTML = '<option value="">Copiar itens de...</option>' +
+      diasSelecionados.filter(d => d !== diaAtivoTab)
+        .map(d => `<option value="${d}">${DIA_LABEL[d]}</option>`).join('');
+  } else {
+    copyRow.style.display = 'none';
+  }
+
+  // categorias e itens do dia ativo
+  const container = document.getElementById('categorias-container');
+  container.innerHTML = '';
+  const itensDoDia = itensPorDia[diaAtivoTab] || {};
+
+  Object.keys(CATEGORIAS).forEach(catNome => {
+    const bloco = document.createElement('div');
+    bloco.className = 'categoria';
+    const titulo = document.createElement('div');
+    titulo.className = 'categoria-titulo';
+    titulo.textContent = catNome;
+    bloco.appendChild(titulo);
+
+    CATEGORIAS[catNome].forEach(itemId => {
+      const qtd = itensDoDia[itemId] || 0;
+      const row = document.createElement('div');
+      row.className = 'item-row';
+      row.innerHTML = `
+        <div class="item-info">
+          <div class="nome">${NOMES[itemId]}</div>
+          <div class="preco-un">R$ ${PRECOS[itemId].toFixed(2).replace('.', ',')}/un</div>
+        </div>
+        <div class="stepper">
+          <button onclick="alterarItem('${itemId}', -1)">−</button>
+          <span class="qtd" id="qtd-${itemId}">${qtd}</span>
+          <button onclick="alterarItem('${itemId}', 1)">+</button>
+        </div>`;
+      bloco.appendChild(row);
+    });
+    container.appendChild(bloco);
+  });
+}
+
+function alterarItem(itemId, delta){
+  if (!diaAtivoTab) return;
+  const atual = itensPorDia[diaAtivoTab][itemId] || 0;
+  let novo = atual + delta;
+  if (novo < 0) novo = 0;
+  itensPorDia[diaAtivoTab][itemId] = novo;
+  document.getElementById('qtd-' + itemId).textContent = novo;
+  atualizarTudo();
+}
+
+function copiarDeOutroDia(diaOrigem){
+  if (!diaOrigem || !diaAtivoTab) return;
+  itensPorDia[diaAtivoTab] = Object.assign({}, itensPorDia[diaOrigem]);
+  renderizarEditorDias();
+  atualizarTudo();
+  document.getElementById('copy-select').value = '';
+}
+
+/* ---------- Cálculo do ciclo de 30 dias ---------- */
+function proximoDiaValido(dataBase, diasNums){
+  const d = new Date(dataBase);
+  d.setDate(d.getDate() + 1); // começa no dia seguinte
+  while (!diasNums.includes(d.getDay())){
+    d.setDate(d.getDate() + 1);
+  }
+  return d;
+}
+
+function calcularCiclo(diasSelec){
+  if (diasSelec.length === 0) return null;
+  const diasNums = diasSelec.map(d => DIA_JS[d]);
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+
+  const inicio = proximoDiaValido(hoje, diasNums);
+  const fim = new Date(inicio);
+  fim.setDate(fim.getDate() + 29); // 30 dias corridos, incluindo o início
+
+  const contagem = {};
+  diasSelec.forEach(d => contagem[d] = 0);
+
+  let cursor = new Date(inicio);
+  while (cursor <= fim){
+    const diaSemanaJs = cursor.getDay();
+    const diaKey = Object.keys(DIA_JS).find(k => DIA_JS[k] === diaSemanaJs);
+    if (diasSelec.includes(diaKey)) contagem[diaKey]++;
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  const proximoInicio = proximoDiaValido(fim, diasNums);
+
+  return { inicio, fim, contagem, proximoInicio };
+}
+
+function formatarData(d){
+  return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0');
+}
+
+/* ---------- Totais e resumo ---------- */
+function calcularValorDia(dia){
+  const itens = itensPorDia[dia] || {};
   let total = 0;
-  for (const id in PRECOS){
-    total += getQtd(id) * PRECOS[id];
+  for (const itemId in itens){
+    total += (itens[itemId] || 0) * PRECOS[itemId];
   }
   return total;
 }
 
-function salvarCombo(){
-  const nome = document.getElementById('nome-combo').value.trim() || 'Meu combo';
-  const itens = montarDescricaoItens();
-  const total = calcularTotal();
-  window.location.href = 'mod2-app-ass.html?nome=' + encodeURIComponent(nome) +
-    '&itens=' + encodeURIComponent(itens) + '&preco=' + total.toFixed(2);
+function atualizarTudo(){
+  const ciclo = calcularCiclo(diasSelecionados);
+  const resumoCard = document.getElementById('resumo-card');
+  const btn = document.getElementById('btn-salvar');
+
+  if (!ciclo){
+    resumoCard.style.display = 'none';
+    document.getElementById('total-valor').textContent = 'R$ 0,00';
+    btn.disabled = true;
+    return;
+  }
+
+  let totalCiclo = 0;
+  let totalEntregas = 0;
+  diasSelecionados.forEach(dia => {
+    const valorDia = calcularValorDia(dia);
+    const ocorrencias = ciclo.contagem[dia] || 0;
+    totalCiclo += valorDia * ocorrencias;
+    totalEntregas += ocorrencias;
+  });
+
+  document.getElementById('total-valor').textContent =
+    'R$ ' + totalCiclo.toFixed(2).replace('.', ',');
+
+  resumoCard.style.display = 'block';
+  document.getElementById('resumo-periodo').textContent =
+    formatarData(ciclo.inicio) + ' a ' + formatarData(ciclo.fim);
+  document.getElementById('resumo-entregas').textContent = totalEntregas + ' entregas';
+  document.getElementById('resumo-proximo').textContent = formatarData(ciclo.proximoInicio);
+
+  btn.disabled = totalCiclo === 0;
 }
 
-atualizarTotal();
+/* ---------- Salvar e seguir para pagamento ---------- */
+function montarDescricaoItens(){
+  const partes = [];
+  diasSelecionados.forEach(dia => {
+    const itens = itensPorDia[dia] || {};
+    const itensTxt = Object.keys(itens)
+      .filter(id => itens[id] > 0)
+      .map(id => itens[id] + ' ' + NOMES[id])
+      .join(', ');
+    if (itensTxt) partes.push(DIA_LABEL[dia] + ': ' + itensTxt);
+  });
+  return partes.join(' · ');
+}
+
+function salvarCombo(){
+  const ciclo = calcularCiclo(diasSelecionados);
+  if (!ciclo) return;
+
+  const nome = document.getElementById('nome-combo').value.trim() || 'Meu combo';
+  const itensDesc = montarDescricaoItens();
+  const diasResumo = diasSelecionados.map(d => DIA_LABEL[d]).join(', ');
+
+  let totalCiclo = 0;
+  diasSelecionados.forEach(dia => {
+    totalCiclo += calcularValorDia(dia) * (ciclo.contagem[dia] || 0);
+  });
+
+  const params = new URLSearchParams();
+  params.set('nome', nome);
+  params.set('itens', itensDesc);
+  params.set('preco', totalCiclo.toFixed(2));
+  params.set('dias', diasResumo);
+  params.set('inicio', formatarData(ciclo.inicio));
+  params.set('fim', formatarData(ciclo.fim));
+  params.set('proximo', formatarData(ciclo.proximoInicio));
+
+  window.location.href = 'mod2-app-ass.html?' + params.toString();
+}
 </script>
 
 </body>

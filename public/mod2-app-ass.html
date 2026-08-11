@@ -297,11 +297,11 @@
       <div class="items" id="plano-itens">—</div>
     </div>
 
-    <div class="section-label">Frequência</div>
-    <div class="option-row" id="freq-row">
-      <div class="option-pill selected" onclick="selecionar(this,'freq-row')">Diária</div>
-      <div class="option-pill" onclick="selecionar(this,'freq-row')">3x/semana</div>
-      <div class="option-pill" onclick="selecionar(this,'freq-row')">Fim de semana</div>
+    <div class="section-label">Ciclo de entrega</div>
+    <div class="summary-card" id="ciclo-card">
+      <div class="items"><i class="ti ti-calendar" style="margin-right:4px;"></i>Dias: <b id="ciclo-dias">—</b></div>
+      <div class="items"><i class="ti ti-calendar-event" style="margin-right:4px;"></i>Período: <b id="ciclo-periodo">—</b></div>
+      <div class="items"><i class="ti ti-refresh" style="margin-right:4px;"></i>Próximo ciclo: <b id="ciclo-proximo">—</b></div>
     </div>
 
     <div class="section-label">Como você quer receber</div>
@@ -312,7 +312,7 @@
 
     <div class="total-bar">
       <div>
-        <div class="label">Total/mês</div>
+        <div class="label">Total do ciclo (30 dias)</div>
         <div class="value" id="plano-preco">—</div>
       </div>
       <button class="btn-primary small" onclick="showScreen('pagamento')">Continuar</button>
@@ -407,12 +407,21 @@ function selecionarPagamento(el, tipo){
   const nome = params.get('nome') || 'Plano selecionado';
   const itens = params.get('itens') || '';
   const preco = parseFloat(params.get('preco') || '0');
-  const precoFormatado = 'R$ ' + preco.toFixed(2).replace('.', ',') + '/mês';
+  const precoFormatado = 'R$ ' + preco.toFixed(2).replace('.', ',');
+
+  const dias = params.get('dias') || '—';
+  const inicio = params.get('inicio');
+  const fim = params.get('fim');
+  const proximo = params.get('proximo') || '—';
+  const periodo = (inicio && fim) ? (inicio + ' a ' + fim) : '—';
 
   document.getElementById('plano-nome').textContent = nome;
   document.getElementById('plano-itens').textContent = itens;
   document.getElementById('plano-preco').textContent = precoFormatado;
   document.getElementById('pagamento-preco').textContent = precoFormatado;
+  document.getElementById('ciclo-dias').textContent = dias;
+  document.getElementById('ciclo-periodo').textContent = periodo;
+  document.getElementById('ciclo-proximo').textContent = proximo;
   document.getElementById('sucesso-texto').textContent =
     'Seu plano "' + nome + '" já está confirmado. Você vai receber uma notificação quando o pedido estiver pronto.';
 })();
