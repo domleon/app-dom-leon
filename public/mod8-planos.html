@@ -6,13 +6,13 @@
 <title>Dom Leon Assinatura — Planos</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/dist/tabler-icons.min.css">
 <style>
   :root{
-    --bg:#F6F5F1;--card:#FFFFFF;--border:#E6E4DC;--border-strong:#D3D1C7;
-    --text-primary:#2C2C2A;--text-secondary:#5F5E5A;--text-muted:#888780;
-    --accent:#1D9E75;--accent-bg:#E1F5EE;--accent-text:#085041;
+    --bg:#F5F0E8;--card:#FFFFFF;--border:#E3D8C4;--border-strong:#C7B79A;
+    --text-primary:#3B2314;--text-secondary:#6B5B47;--text-muted:#8A7860;
+    --accent:#B8873B;--accent-bg:#FBF3E2;--accent-text:#6B4E1E;
     --danger-bg:#FCEBEB;--danger-text:#791F1F;
     --radius:10px;--radius-lg:16px;--sidebar-w:220px;
   }
@@ -27,7 +27,7 @@
     border-right:0.5px solid var(--border);padding:20px 14px;height:100vh;position:sticky;top:0;
   }
   .sidebar-brand{display:flex;align-items:center;gap:10px;padding:6px 8px 20px;border-bottom:0.5px solid var(--border);margin-bottom:16px;}
-  .sidebar-brand span{font-size:14px;font-weight:600;}
+  .sidebar-brand span{font-size:15px;font-weight:600;font-family:'Fraunces',serif;}
   .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius);font-size:13px;color:var(--text-secondary);cursor:pointer;margin-bottom:2px;}
   .nav-item i{font-size:18px;}
   .nav-item.active{background:var(--accent-bg);color:var(--accent-text);font-weight:500;}
@@ -35,7 +35,7 @@
 
   .main{flex:1;padding:28px 32px;max-width:1200px;}
   .page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
-  .page-header h1{font-size:20px;font-weight:600;}
+  .page-header h1{font-size:21px;font-weight:600;font-family:'Fraunces',serif;}
   .page-header p{font-size:13px;color:var(--text-secondary);margin-top:2px;}
 
   .tabs{display:flex;gap:4px;background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:4px;margin-bottom:20px;width:fit-content;}
@@ -64,7 +64,7 @@
     display:flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:10px;overflow:hidden;
   }
   .combo-thumb img{width:100%;height:100%;object-fit:cover;}
-  .combo-admin-card .nome{font-size:14px;font-weight:600;}
+  .combo-admin-card .nome{font-size:15px;font-weight:600;font-family:'Fraunces',serif;}
   .combo-admin-card .itens{font-size:12px;color:var(--text-secondary);margin:4px 0 8px;}
   .combo-admin-card .dias{font-size:11px;color:var(--accent-text);font-weight:500;margin-bottom:6px;}
   .combo-actions{display:flex;gap:8px;}
@@ -116,7 +116,7 @@
   .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);align-items:center;justify-content:center;z-index:10;overflow-y:auto;padding:24px 0;}
   .modal-overlay.open{display:flex;}
   .modal-box{background:var(--card);border-radius:14px;padding:22px;width:420px;max-width:90vw;max-height:90vh;overflow-y:auto;}
-  .modal-box h3{font-size:15px;font-weight:600;margin-bottom:16px;}
+  .modal-box h3{font-size:16px;font-weight:600;margin-bottom:16px;font-family:'Fraunces',serif;}
   .field{margin-bottom:12px;}
   .field label{font-size:12px;font-weight:500;color:var(--text-secondary);display:block;margin-bottom:6px;}
   .field input, .field select{
@@ -136,12 +136,21 @@
   .img-upload-btns{display:flex;flex-direction:column;gap:6px;}
   .img-upload-btns input[type="file"]{display:none;}
 
-  .dias-row-modal{display:flex;gap:5px;margin-bottom:12px;}
-  .dia-chip-mini{
-    flex:1;text-align:center;padding:7px 0;border-radius:8px;border:0.5px solid var(--border-strong);
-    font-size:11px;font-weight:500;cursor:pointer;background:var(--card);color:var(--text-secondary);
+  .dias-lista-modal{margin-bottom:12px;border:0.5px solid var(--border);border-radius:10px;overflow:hidden;}
+  .dia-linha-mini{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:9px 12px;border-bottom:0.5px solid var(--border);cursor:pointer;font-size:12.5px;color:var(--text-primary);
   }
-  .dia-chip-mini.selected{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .dia-linha-mini:last-child{border-bottom:none;}
+  .dia-linha-mini.selected{font-weight:600;}
+  .toggle-switch-mini{
+    width:32px;height:18px;border-radius:9px;background:var(--border-strong);position:relative;transition:background .15s;flex-shrink:0;
+  }
+  .dia-linha-mini.selected .toggle-switch-mini{background:var(--accent);}
+  .toggle-knob-mini{
+    width:14px;height:14px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;transition:left .15s;
+  }
+  .dia-linha-mini.selected .toggle-knob-mini{left:16px;}
 
   .itens-combo-modal{max-height:220px;overflow-y:auto;border:0.5px solid var(--border);border-radius:10px;padding:10px;margin-bottom:12px;}
   .itens-combo-cat{font-size:11px;font-weight:500;color:var(--text-secondary);margin:8px 0 4px;}
@@ -229,14 +238,28 @@
 
     <div class="field">
       <label>Dias da semana</label>
-      <div class="dias-row-modal" id="combo-dias-row">
-        <div class="dia-chip-mini" data-dia="seg" onclick="toggleComboDia('seg')">Seg</div>
-        <div class="dia-chip-mini" data-dia="ter" onclick="toggleComboDia('ter')">Ter</div>
-        <div class="dia-chip-mini" data-dia="qua" onclick="toggleComboDia('qua')">Qua</div>
-        <div class="dia-chip-mini" data-dia="qui" onclick="toggleComboDia('qui')">Qui</div>
-        <div class="dia-chip-mini" data-dia="sex" onclick="toggleComboDia('sex')">Sex</div>
-        <div class="dia-chip-mini" data-dia="sab" onclick="toggleComboDia('sab')">Sáb</div>
-        <div class="dia-chip-mini" data-dia="dom" onclick="toggleComboDia('dom')">Dom</div>
+      <div class="dias-lista-modal" id="combo-dias-row">
+        <div class="dia-linha-mini" data-dia="seg" onclick="toggleComboDia('seg')">
+          <span>Segunda-feira</span><div class="toggle-switch-mini"><div class="toggle-knob-mini"></div></div>
+        </div>
+        <div class="dia-linha-mini" data-dia="ter" onclick="toggleComboDia('ter')">
+          <span>Terça-feira</span><div class="toggle-switch-mini"><div class="toggle-knob-mini"></div></div>
+        </div>
+        <div class="dia-linha-mini" data-dia="qua" onclick="toggleComboDia('qua')">
+          <span>Quarta-feira</span><div class="toggle-switch-mini"><div class="toggle-knob-mini"></div></div>
+        </div>
+        <div class="dia-linha-mini" data-dia="qui" onclick="toggleComboDia('qui')">
+          <span>Quinta-feira</span><div class="toggle-switch-mini"><div class="toggle-knob-mini"></div></div>
+        </div>
+        <div class="dia-linha-mini" data-dia="sex" onclick="toggleComboDia('sex')">
+          <span>Sexta-feira</span><div class="toggle-switch-mini"><div class="toggle-knob-mini"></div></div>
+        </div>
+        <div class="dia-linha-mini" data-dia="sab" onclick="toggleComboDia('sab')">
+          <span>Sábado</span><div class="toggle-switch-mini"><div class="toggle-knob-mini"></div></div>
+        </div>
+        <div class="dia-linha-mini" data-dia="dom" onclick="toggleComboDia('dom')">
+          <span>Domingo</span><div class="toggle-switch-mini"><div class="toggle-knob-mini"></div></div>
+        </div>
       </div>
     </div>
 
@@ -369,7 +392,7 @@ function abrirModalCombo(comboId){
   comboDiasSelecionados = combo ? [...combo.dias] : [];
   comboItensSelecionados = combo ? Object.assign({}, combo.itensPadrao) : {};
 
-  document.querySelectorAll('#combo-dias-row .dia-chip-mini').forEach(chip => {
+  document.querySelectorAll('#combo-dias-row .dia-linha-mini').forEach(chip => {
     chip.classList.toggle('selected', comboDiasSelecionados.includes(chip.dataset.dia));
   });
 
@@ -386,7 +409,7 @@ function toggleComboDia(dia){
   const idx = comboDiasSelecionados.indexOf(dia);
   if (idx >= 0) comboDiasSelecionados.splice(idx, 1);
   else comboDiasSelecionados.push(dia);
-  document.querySelector('#combo-dias-row .dia-chip-mini[data-dia="' + dia + '"]').classList.toggle('selected');
+  document.querySelector('#combo-dias-row .dia-linha-mini[data-dia="' + dia + '"]').classList.toggle('selected');
 }
 
 function renderizarItensComboModal(){
