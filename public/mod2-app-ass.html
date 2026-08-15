@@ -306,8 +306,13 @@
 
     <div class="section-label">Como você quer receber</div>
     <div class="option-row" id="modo-row">
-      <div class="option-pill selected" onclick="selecionar(this,'modo-row')"><i class="ti ti-building-store"></i>Retirada</div>
-      <div class="option-pill" onclick="selecionar(this,'modo-row')"><i class="ti ti-truck-delivery"></i>Entrega</div>
+      <div class="option-pill selected" onclick="selecionarModo(this,'retirada')"><i class="ti ti-building-store"></i>Retirada</div>
+      <div class="option-pill" onclick="selecionarModo(this,'entrega')"><i class="ti ti-truck-delivery"></i>Entrega</div>
+    </div>
+
+    <div class="items" id="taxa-entrega-info" style="display:none;margin-bottom:10px;">
+      <i class="ti ti-info-circle" style="margin-right:4px;"></i>
+      Taxa de entrega: <b>R$ 2,99</b> por entrega × <b id="taxa-entregas-qtd">0</b> entregas no ciclo = <b id="taxa-entrega-total">R$ 0,00</b>
     </div>
 
     <div class="total-bar">
@@ -385,6 +390,11 @@
 </div>
 
 <script>
+const TAXA_ENTREGA_ASSINATURA = 2.99;
+let PRECO_BASE_ITENS = 0;
+let TOTAL_ENTREGAS_CICLO = 0;
+let MODO_ATUAL = 'retirada';
+
 function showScreen(name){
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-' + name).classList.add('active');
@@ -392,6 +402,31 @@ function showScreen(name){
 function selecionar(el, grupoId){
   document.querySelectorAll('#' + grupoId + ' .option-pill').forEach(p => p.classList.remove('selected'));
   el.classList.add('selected');
+}
+
+function selecionarModo(el, modo){
+  selecionar(el, 'modo-row');
+  MODO_ATUAL = modo;
+  atualizarTotalComTaxa();
+}
+
+function atualizarTotalComTaxa(){
+  const taxaInfo = document.getElementById('taxa-entrega-info');
+  let total = PRECO_BASE_ITENS;
+
+  if (MODO_ATUAL === 'entrega' && TOTAL_ENTREGAS_CICLO > 0){
+    const taxaTotal = TAXA_ENTREGA_ASSINATURA * TOTAL_ENTREGAS_CICLO;
+    total += taxaTotal;
+    document.getElementById('taxa-entregas-qtd').textContent = TOTAL_ENTREGAS_CICLO;
+    document.getElementById('taxa-entrega-total').textContent = 'R$ ' + taxaTotal.toFixed(2).replace('.', ',');
+    taxaInfo.style.display = 'block';
+  } else {
+    taxaInfo.style.display = 'none';
+  }
+
+  const totalFormatado = 'R$ ' + total.toFixed(2).replace('.', ',');
+  document.getElementById('plano-preco').textContent = totalFormatado;
+  document.getElementById('pagamento-preco').textContent = totalFormatado;
 }
 
 function selecionarPagamento(el, tipo){
@@ -406,8 +441,8 @@ function selecionarPagamento(el, tipo){
   const params = new URLSearchParams(window.location.search);
   const nome = params.get('nome') || 'Plano selecionado';
   const itens = params.get('itens') || '';
-  const preco = parseFloat(params.get('preco') || '0');
-  const precoFormatado = 'R$ ' + preco.toFixed(2).replace('.', ',');
+  PRECO_BASE_ITENS = parseFloat(params.get('preco') || '0');
+  TOTAL_ENTREGAS_CICLO = parseInt(params.get('entregas') || '0', 10);
 
   const dias = params.get('dias') || '—';
   const inicio = params.get('inicio');
@@ -417,13 +452,13 @@ function selecionarPagamento(el, tipo){
 
   document.getElementById('plano-nome').textContent = nome;
   document.getElementById('plano-itens').textContent = itens;
-  document.getElementById('plano-preco').textContent = precoFormatado;
-  document.getElementById('pagamento-preco').textContent = precoFormatado;
   document.getElementById('ciclo-dias').textContent = dias;
   document.getElementById('ciclo-periodo').textContent = periodo;
   document.getElementById('ciclo-proximo').textContent = proximo;
   document.getElementById('sucesso-texto').textContent =
     'Seu plano "' + nome + '" já está confirmado. Você vai receber uma notificação quando o pedido estiver pronto.';
+
+  atualizarTotalComTaxa();
 })();
 
 // Botão "Continuar" no plano leva para a tela de pagamento (mesma página)

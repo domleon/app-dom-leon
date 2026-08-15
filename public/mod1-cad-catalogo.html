@@ -22,10 +22,36 @@
     --accent-text:#6B4E1E;
     --warn-bg:#FAEEDA;
     --warn-text:#854F0B;
+    --danger-bg:#FCEBEB;
+    --danger-text:#791F1F;
     --radius:10px;
     --radius-lg:16px;
   }
   *{box-sizing:border-box;margin:0;padding:0;}
+  .opcao-card{
+    border:0.5px solid var(--border);border-radius:14px;padding:24px 16px;
+    text-align:center;margin-bottom:14px;cursor:pointer;
+  }
+  .opcao-card:hover{border-color:var(--border-strong);}
+  .opcao-icone{
+    width:56px;height:56px;border-radius:50%;background:var(--accent-bg);
+    display:flex;align-items:center;justify-content:center;margin:0 auto 14px;
+  }
+  .opcao-icone i{font-size:26px;color:var(--accent-text);}
+  .opcao-titulo{font-family:'Fraunces',serif;font-weight:600;font-size:15px;color:var(--text-primary);}
+  .modal-overlay{
+    display:none;position:fixed;inset:0;background:rgba(59,35,20,0.5);
+    align-items:center;justify-content:center;z-index:20;padding:20px;
+  }
+  .modal-overlay.open{display:flex;}
+  .modal-box{
+    background:var(--card);border-radius:16px;padding:24px 20px;width:100%;max-width:300px;
+  }
+  .modal-box h3{font-family:'Fraunces',serif;font-weight:600;font-size:15px;color:var(--text-primary);}
+  .btn-secondary{
+    background:var(--card);color:var(--text-secondary);border:0.5px solid var(--border-strong);
+    height:40px;border-radius:10px;font-size:12.5px;font-family:inherit;cursor:pointer;
+  }
   body{
     font-family:'Inter',sans-serif;
     background:var(--bg);
@@ -76,7 +102,7 @@
   /* Login/Cadastro */
   .field{margin-bottom:14px;}
   .field label{font-size:12px;font-weight:500;color:var(--text-secondary);display:block;margin-bottom:6px;}
-  .field input{
+  .field input, .field select{
     width:100%;
     height:40px;
     border:0.5px solid var(--border-strong);
@@ -87,7 +113,7 @@
     background:var(--bg);
     color:var(--text-primary);
   }
-  .field input:focus{outline:none;border-color:var(--accent);}
+  .field input:focus, .field select:focus{outline:none;border-color:var(--accent);}
 
   .btn-primary{
     width:100%;
@@ -293,7 +319,7 @@
       <label>Senha</label>
       <input type="password" placeholder="••••••">
     </div>
-    <button class="btn-primary" onclick="showScreen('catalogo')">Entrar</button>
+    <button class="btn-primary" onclick="showScreen('escolha')">Entrar</button>
     <button class="link-btn" onclick="showScreen('cadastro')">Não tem conta? <b>Criar cadastro</b></button>
   </div>
 
@@ -320,8 +346,63 @@
       <label>Senha</label>
       <input type="password" placeholder="Crie uma senha">
     </div>
-    <button class="btn-primary" onclick="showScreen('catalogo')">Criar conta</button>
+    <button class="btn-primary" onclick="showScreen('escolha')">Criar conta</button>
   </div>
+
+  <!-- TELA: ESCOLHA (AVULSO / ASSINATURA) -->
+<div class="screen" id="screen-escolha">
+    <div class="brand" style="margin-top:20px;">
+      <p style="font-family:'Fraunces',serif;font-weight:600;font-size:16px;color:var(--text-primary);text-align:center;margin:20px 0 28px;">Como você quer comprar hoje?</p>
+    </div>
+
+    <div class="opcao-card" onclick="abrirEscolhaBairro()">
+      <div class="opcao-icone"><i class="ti ti-shopping-cart"></i></div>
+      <p class="opcao-titulo">Escolha seus produtos</p>
+    </div>
+
+    <div class="opcao-card" onclick="showScreen('catalogo')">
+      <div class="opcao-icone"><i class="ti ti-calendar"></i></div>
+      <p class="opcao-titulo">Assinatura mensal</p>
+    </div>
+</div>
+
+  <!-- TELA: ESCOLHA DE BAIRRO (AVULSO) -->
+<div class="screen" id="screen-bairro">
+    <div class="topbar">
+      <i class="ti ti-arrow-left" onclick="showScreen('escolha')"></i>
+      <h2>Onde entregamos?</h2>
+    </div>
+
+    <div style="text-align:center;margin-bottom:20px;">
+      <i class="ti ti-map-pin" style="font-size:36px;color:var(--accent);"></i>
+      <p style="font-family:'Fraunces',serif;font-weight:600;font-size:15px;color:var(--text-primary);margin-top:10px;">Escolha seu bairro</p>
+      <p style="font-size:12px;color:var(--text-muted);margin-top:4px;">pra já mostrar a taxa de entrega certa</p>
+    </div>
+
+    <div class="field">
+      <label>Bairro</label>
+      <select id="select-bairro" onchange="atualizarBotaoBairro()">
+        <option value="">Selecione seu bairro...</option>
+      </select>
+    </div>
+
+    <div style="margin-top:auto;">
+      <button class="btn-primary" id="btn-continuar-bairro" onclick="confirmarBairro()" disabled>Continuar</button>
+    </div>
+</div>
+
+  <!-- POPUP: BAIRRO NÃO ATENDIDO -->
+<div class="modal-overlay" id="modal-bairro-bloqueado">
+  <div class="modal-box" style="text-align:center;">
+    <div style="width:52px;height:52px;border-radius:50%;background:var(--danger-bg);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
+      <i class="ti ti-map-pin-off" style="font-size:24px;color:var(--danger-text);"></i>
+    </div>
+    <h3 style="margin-bottom:6px;">Ainda não entregamos aí</h3>
+    <p style="font-size:12.5px;color:var(--text-secondary);line-height:1.5;margin-bottom:18px;">No momento não atendemos esse bairro. Mas você pode retirar seu pedido direto na loja!</p>
+    <button class="btn-primary" style="width:100%;margin-bottom:8px;" onclick="irParaAvulsoComoRetirada()">Retirar na Loja</button>
+    <button class="btn-secondary" style="width:100%;" onclick="fecharModal('modal-bairro-bloqueado')">Voltar ao início</button>
+  </div>
+</div>
 
   <!-- TELA: CATÁLOGO -->
 
@@ -400,12 +481,74 @@ renderizarCombosProntos();
 function showScreen(name){
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-' + name).classList.add('active');
+  if (name === 'bairro') popularSelectBairros();
 }
 function showTab(name){
   document.getElementById('tab-fixos').classList.toggle('active', name === 'fixos');
   document.getElementById('tab-monte').classList.toggle('active', name === 'monte');
   document.getElementById('lista-fixos').style.display = name === 'fixos' ? 'flex' : 'none';
   document.getElementById('lista-monte').style.display = name === 'monte' ? 'flex' : 'none';
+}
+
+/* ---------- Escolha de bairro (pedido avulso) ---------- */
+function abrirEscolhaBairro(){
+  showScreen('bairro');
+}
+
+function popularSelectBairros(){
+  const catalogo = carregarCatalogo();
+  const select = document.getElementById('select-bairro');
+  const atendidos = catalogo.bairros.filter(b => b.atendido).sort((a, b) => a.nome.localeCompare(b.nome));
+  select.innerHTML = '<option value="">Selecione seu bairro...</option>' +
+    atendidos.map(b => `<option value="${b.nome}">${b.nome}</option>`).join('') +
+    '<option value="__outro__">Meu bairro não está na lista</option>';
+}
+
+function atualizarBotaoBairro(){
+  const valor = document.getElementById('select-bairro').value;
+  document.getElementById('btn-continuar-bairro').disabled = !valor;
+}
+
+function confirmarBairro(){
+  const valor = document.getElementById('select-bairro').value;
+  if (!valor) return;
+
+  if (valor === '__outro__'){
+    abrirModal('modal-bairro-bloqueado');
+    return;
+  }
+
+  const catalogo = carregarCatalogo();
+  const bairro = catalogo.bairros.find(b => b.nome === valor);
+  if (!bairro || !bairro.atendido){
+    abrirModal('modal-bairro-bloqueado');
+    return;
+  }
+
+  irParaAvulso(bairro.nome, bairro.frete, bairro.minimo, false);
+}
+
+function irParaAvulsoComoRetirada(){
+  irParaAvulso('', 0, 0, true);
+}
+
+function irParaAvulso(nomeBairro, frete, minimo, retirada){
+  const carrinhoInfo = {
+    bairro: nomeBairro,
+    frete: frete || 0,
+    minimo: minimo || 0,
+    retirada: !!retirada
+  };
+  localStorage.setItem('domleon_avulso_bairro', JSON.stringify(carrinhoInfo));
+  window.location.href = 'mod9-catalogo-avulso.html';
+}
+
+/* ---------- Modais genéricos ---------- */
+function abrirModal(id){
+  document.getElementById(id).classList.add('open');
+}
+function fecharModal(id){
+  document.getElementById(id).classList.remove('open');
 }
 </script>
 

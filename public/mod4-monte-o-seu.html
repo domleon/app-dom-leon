@@ -625,8 +625,11 @@ function salvarCombo(){
   const diasResumo = diasSelecionados.map(d => DIA_LABEL[d]).join(', ');
 
   let totalCiclo = 0;
+  let totalEntregas = 0;
   diasSelecionados.forEach(dia => {
-    totalCiclo += calcularValorDia(dia) * (ciclo.contagem[dia] || 0);
+    const ocorrencias = ciclo.contagem[dia] || 0;
+    totalCiclo += calcularValorDia(dia) * ocorrencias;
+    totalEntregas += ocorrencias;
   });
 
   const params = new URLSearchParams();
@@ -637,6 +640,7 @@ function salvarCombo(){
   params.set('inicio', formatarData(ciclo.inicio));
   params.set('fim', formatarData(ciclo.fim));
   params.set('proximo', formatarData(ciclo.proximoInicio));
+  params.set('entregas', totalEntregas);
 
   window.location.href = 'mod2-app-ass.html?' + params.toString();
 }

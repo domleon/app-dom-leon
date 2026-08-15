@@ -190,6 +190,7 @@
     <button class="tab-btn active" onclick="showPanel('combos')">Combos fixos</button>
     <button class="tab-btn" onclick="showPanel('itens')">Itens do Monte o seu</button>
     <button class="tab-btn" onclick="showPanel('categorias')">Categorias</button>
+    <button class="tab-btn" onclick="showPanel('bairros')">Bairros</button>
   </div>
 
   <!-- PAINEL: COMBOS FIXOS -->
@@ -216,6 +217,54 @@
     <div class="cat-list" id="cat-list"></div>
   </div>
 
+  <!-- PAINEL: BAIRROS -->
+  <div class="panel" id="panel-bairros">
+    <div class="toolbar-row" style="justify-content:space-between;">
+      <div style="display:flex;align-items:center;gap:8px;border:0.5px solid var(--border-strong);border-radius:8px;padding:8px 12px;width:240px;">
+        <i class="ti ti-search" style="font-size:14px;color:var(--text-muted);"></i>
+        <input type="text" id="busca-bairro" placeholder="Buscar bairro..." oninput="renderizarBairros()"
+          style="border:none;outline:none;background:transparent;font-size:12px;font-family:inherit;color:var(--text-primary);flex:1;">
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary);cursor:pointer;">
+          <input type="checkbox" id="filtro-atendidos" onchange="renderizarBairros()"> Só atendidos
+        </label>
+        <span id="contagem-bairros" style="font-size:12px;color:var(--text-secondary);"></span>
+      </div>
+    </div>
+    <div class="table-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Bairro</th><th>Status</th><th>Frete</th><th>Pedido mínimo</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="tbody-bairros"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL: BAIRRO -->
+<div class="modal-overlay" id="modal-bairro">
+  <div class="modal-box">
+    <h3 id="modal-bairro-titulo">Editar bairro</h3>
+    <div class="field"><label>Bairro</label><input type="text" id="bairro-nome" disabled style="background:var(--bg);"></div>
+    <div class="field">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+        <input type="checkbox" id="bairro-atendido" onchange="toggleCamposBairro()"> Atendido (entrega disponível)
+      </label>
+    </div>
+    <div id="campos-bairro-atendido">
+      <div class="field"><label>Frete (R$)</label><input type="text" id="bairro-frete" placeholder="0,00"></div>
+      <div class="field"><label>Pedido mínimo (R$)</label><input type="text" id="bairro-minimo" placeholder="0,00"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="fecharModal('modal-bairro')">Cancelar</button>
+      <button class="btn-primary" onclick="salvarBairro()">Salvar</button>
+    </div>
+  </div>
 </div>
 
 <!-- MODAL: COMBO -->
@@ -341,6 +390,7 @@ function renderizarTudo(){
   renderizarCombos();
   renderizarItens();
   renderizarCategorias();
+  renderizarBairros();
 }
 
 /* ---------- COMBOS FIXOS ---------- */
@@ -686,6 +736,80 @@ function removerImagem(previewId, inputId){
 /* ---------- Modais genéricos ---------- */
 function fecharModal(id){
   document.getElementById(id).classList.remove('open');
+}
+
+/* ---------- BAIRROS ---------- */
+let bairroEditandoNome = null;
+
+function renderizarBairros(){
+  const tbody = document.getElementById('tbody-bairros');
+  if (!tbody) return; // painel ainda não existe no DOM na 1ª chamada de init
+
+  const busca = document.getElementById('busca-bairro').value.trim();
+  const soAtendidos = document.getElementById('filtro-atendidos').checked;
+  const filtro = removerAcentos(busca);
+
+  let bairros = CATALOGO.bairros.filter(b => {
+    if (soAtendidos && !b.atendido) return false;
+    if (filtro && !removerAcentos(b.nome).includes(filtro)) return false;
+    return true;
+  }).sort((a, b) => a.nome.localeCompare(b.nome));
+
+  const totalAtendidos = CATALOGO.bairros.filter(b => b.atendido).length;
+  document.getElementById('contagem-bairros').textContent =
+    totalAtendidos + ' de ' + CATALOGO.bairros.length + ' bairros atendidos';
+
+  tbody.innerHTML = bairros.map(b => `
+    <tr>
+      <td>${b.nome}</td>
+      <td>
+        <span class="status-toggle">
+          <span class="status-dot ${b.atendido ? '' : 'off'}"></span>${b.atendido ? 'Atendido' : 'Não atendido'}
+        </span>
+      </td>
+      <td>${b.atendido ? 'R$ ' + b.frete.toFixed(2).replace('.', ',') : '—'}</td>
+      <td>${b.atendido ? 'R$ ' + b.minimo.toFixed(2).replace('.', ',') : '—'}</td>
+      <td class="row-actions">
+        <div class="icon-btn" onclick="abrirModalBairro('${b.nome.replace(/'/g, "\\'")}')"><i class="ti ti-edit"></i></div>
+      </td>
+    </tr>`).join('');
+}
+
+function abrirModalBairro(nome){
+  const bairro = CATALOGO.bairros.find(b => b.nome === nome);
+  if (!bairro) return;
+  bairroEditandoNome = nome;
+
+  document.getElementById('modal-bairro-titulo').textContent = 'Editar bairro';
+  document.getElementById('bairro-nome').value = bairro.nome;
+  document.getElementById('bairro-atendido').checked = bairro.atendido;
+  document.getElementById('bairro-frete').value = bairro.atendido ? bairro.frete.toFixed(2).replace('.', ',') : '';
+  document.getElementById('bairro-minimo').value = bairro.atendido ? bairro.minimo.toFixed(2).replace('.', ',') : '';
+  toggleCamposBairro();
+  document.getElementById('modal-bairro').classList.add('open');
+}
+
+function toggleCamposBairro(){
+  const atendido = document.getElementById('bairro-atendido').checked;
+  document.getElementById('campos-bairro-atendido').style.display = atendido ? 'block' : 'none';
+}
+
+function salvarBairro(){
+  const bairro = CATALOGO.bairros.find(b => b.nome === bairroEditandoNome);
+  if (!bairro) return;
+
+  const atendido = document.getElementById('bairro-atendido').checked;
+  bairro.atendido = atendido;
+  if (atendido){
+    bairro.frete = parseFloat(document.getElementById('bairro-frete').value.replace(',', '.')) || 0;
+    bairro.minimo = parseFloat(document.getElementById('bairro-minimo').value.replace(',', '.')) || 0;
+  } else {
+    bairro.frete = null;
+    bairro.minimo = null;
+  }
+  persistir();
+  renderizarBairros();
+  fecharModal('modal-bairro');
 }
 
 /* ---------- Inicialização ---------- */

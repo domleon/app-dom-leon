@@ -159,6 +159,7 @@
   </div>
   <div class="nav-item"><i class="ti ti-layout-dashboard"></i>Dashboard</div>
   <div class="nav-item active" onclick="showPanel('assinantes')"><i class="ti ti-users"></i>Assinantes</div>
+  <div class="nav-item" onclick="showPanel('avulsos')"><i class="ti ti-shopping-cart"></i>Pedidos avulsos</div>
   <div class="nav-item" onclick="showPanel('producao')"><i class="ti ti-clipboard-list"></i>Produção do dia</div>
   <div class="nav-item" onclick="window.location.href='mod8-planos.html'"><i class="ti ti-package"></i>Planos</div>
   <div class="nav-item" onclick="window.location.href='mod5-entrega.html'"><i class="ti ti-truck-delivery"></i>Logística</div>
@@ -277,6 +278,99 @@
     </div>
   </div>
 
+  <!-- PAINEL: PEDIDOS AVULSOS -->
+  <div class="panel" id="panel-avulsos">
+    <div class="kpi-row">
+      <div class="kpi-card">
+        <div class="label">Pedidos hoje</div>
+        <div class="value">14</div>
+        <div class="sub">9 entregas · 5 retiradas</div>
+      </div>
+      <div class="kpi-card">
+        <div class="label">Faturamento avulso hoje</div>
+        <div class="value">R$ 412,80</div>
+        <div class="sub">itens + taxas de entrega</div>
+      </div>
+      <div class="kpi-card">
+        <div class="label">Aguardando pagamento</div>
+        <div class="value">2</div>
+        <div class="sub">pagamento na entrega</div>
+      </div>
+      <div class="kpi-card">
+        <div class="label">Ticket médio</div>
+        <div class="value">R$ 29,49</div>
+        <div class="sub">por pedido avulso</div>
+      </div>
+    </div>
+
+    <div class="table-card">
+      <div class="table-toolbar">
+        <input type="text" placeholder="Buscar pedido ou cliente..." id="busca-pedido-avulso">
+        <div class="filter-pills">
+          <div class="filter-pill active">Todos<span class="badge-count">14</span></div>
+          <div class="filter-pill">Aguardando</div>
+          <div class="filter-pill">Preparando</div>
+          <div class="filter-pill">A caminho</div>
+          <div class="filter-pill">Entregue</div>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Pedido</th>
+            <th>Cliente</th>
+            <th>Bairro</th>
+            <th>Pagamento</th>
+            <th>Status</th>
+            <th style="text-align:right;">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>#59870</td>
+            <td><span class="avatar">MC</span>Maria Clara Souza</td>
+            <td>Centro</td>
+            <td>Pix</td>
+            <td><span class="status-pill status-ativo">Pago</span></td>
+            <td style="text-align:right;">R$ 25,20</td>
+          </tr>
+          <tr>
+            <td>#59869</td>
+            <td><span class="avatar">JP</span>João Pedro Alves</td>
+            <td>Jardim Avenida</td>
+            <td>Na entrega (dinheiro)</td>
+            <td><span class="status-pill status-pausado">A caminho</span></td>
+            <td style="text-align:right;">R$ 32,00</td>
+          </tr>
+          <tr>
+            <td>#59868</td>
+            <td><span class="avatar">RF</span>Regina Ferreira</td>
+            <td>Campo Largo</td>
+            <td>Cartão</td>
+            <td><span class="status-pill status-cancelado">Entregue</span></td>
+            <td style="text-align:right;">R$ 18,60</td>
+          </tr>
+          <tr>
+            <td>#59867</td>
+            <td><span class="avatar">CS</span>Carlos Silveira</td>
+            <td>Retirada na loja</td>
+            <td>Pix</td>
+            <td><span class="status-pill status-ativo">Pago</span></td>
+            <td style="text-align:right;">R$ 14,10</td>
+          </tr>
+          <tr>
+            <td>#59866</td>
+            <td><span class="avatar">AL</span>Ana Lúcia Prado</td>
+            <td>Centro</td>
+            <td>Na entrega (cartão)</td>
+            <td><span class="status-pill status-inadimplente">Aguardando</span></td>
+            <td style="text-align:right;">R$ 41,30</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
   <!-- PAINEL: PRODUÇÃO DO DIA -->
   <div class="panel" id="panel-producao">
     <div class="prod-grid">
@@ -339,6 +433,7 @@ function showPanel(name){
 
   const titles = {
     assinantes: ['Assinantes', 'Gerencie os assinantes ativos, pausados e pendentes'],
+    avulsos: ['Pedidos avulsos', 'Pedidos únicos, fora da assinatura'],
     producao: ['Produção do dia', 'Consolidado automático de tudo que precisa ser separado hoje']
   };
   document.getElementById('page-title').textContent = titles[name][0];

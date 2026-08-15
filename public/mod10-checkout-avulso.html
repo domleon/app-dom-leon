@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dom Leon Assinatura — Finalizar pedido</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/dist/tabler-icons.min.css">
+<style>
+  :root{
+    --bg:#F5F0E8;--card:#FFFFFF;--border:#E3D8C4;--border-strong:#C7B79A;
+    --text-primary:#3B2314;--text-secondary:#6B5B47;--text-muted:#8A7860;
+    --accent:#B8873B;--accent-bg:#FBF3E2;--accent-text:#6B4E1E;
+    --danger-bg:#FCEBEB;--danger-text:#791F1F;
+    --radius:10px;--radius-lg:16px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:'Inter',sans-serif;background:var(--bg);color:var(--text-primary);
+    min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:32px 16px;
+  }
+  .phone{
+    width:100%;max-width:380px;background:var(--card);border:0.5px solid var(--border);
+    border-radius:var(--radius-lg);padding:20px;min-height:640px;display:flex;flex-direction:column;
+  }
+  .topbar{display:flex;align-items:center;gap:8px;margin-bottom:16px;}
+  .topbar i{font-size:18px;cursor:pointer;}
+  .topbar h2{font-size:16px;font-weight:600;font-family:'Fraunces',serif;}
+
+  .screen{display:none;flex-direction:column;flex:1;}
+  .screen.active{display:flex;}
+
+  .field{margin-bottom:14px;}
+  .field label{font-size:12px;font-weight:500;color:var(--text-secondary);display:block;margin-bottom:6px;}
+  .field input, .field select{
+    width:100%;height:38px;border:0.5px solid var(--border-strong);border-radius:var(--radius);
+    padding:0 12px;font-size:13px;font-family:inherit;background:var(--bg);color:var(--text-primary);
+  }
+
+  .item-linha{border-bottom:0.5px solid var(--border);padding:10px 2px;}
+  .item-linha:last-child{border-bottom:none;}
+  .item-linha .linha1{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+  .item-linha .nome{font-size:13px;color:var(--text-primary);}
+  .item-linha .stepper{display:flex;align-items:center;gap:8px;}
+  .item-linha .stepper button{
+    width:22px;height:22px;border-radius:50%;border:0.5px solid var(--border-strong);
+    background:var(--bg);font-size:12px;cursor:pointer;color:var(--text-primary);
+  }
+  .item-linha .stepper .qtd{font-size:12px;min-width:10px;text-align:center;}
+  .item-linha .linha2{display:flex;justify-content:space-between;}
+  .item-linha .preco-un{font-size:11px;color:var(--text-muted);}
+  .item-linha .preco-total{font-size:13px;font-weight:600;color:var(--text-primary);}
+
+  .resumo-card{border:0.5px solid var(--border);border-radius:10px;padding:12px;margin-bottom:16px;}
+  .resumo-card .linha{display:flex;justify-content:space-between;margin-bottom:4px;font-size:12px;color:var(--text-secondary);}
+  .resumo-card .linha:last-child{margin-bottom:0;}
+  .resumo-card .linha b{color:var(--text-primary);}
+
+  .nav-footer{margin-top:auto;padding-top:14px;display:flex;justify-content:space-between;align-items:flex-end;}
+  .btn-secondary{
+    background:var(--card);color:var(--text-secondary);border:0.5px solid var(--border-strong);
+    padding:0 18px;height:44px;border-radius:var(--radius);font-size:12.5px;font-family:inherit;cursor:pointer;flex:1;margin-right:10px;
+  }
+  .btn-primary{
+    background:var(--text-primary);color:#fff;border:none;padding:0 18px;height:44px;
+    border-radius:var(--radius);font-size:12.5px;font-family:inherit;cursor:pointer;flex:1;
+  }
+  .btn-primary:disabled{opacity:0.4;cursor:not-allowed;}
+  .total-final{text-align:right;}
+  .total-final .label{font-size:11px;color:var(--text-secondary);}
+  .total-final .value{font-size:16px;font-weight:600;margin-bottom:6px;}
+
+  .bairro-fixo{
+    display:flex;align-items:center;justify-content:space-between;
+    border:0.5px solid var(--border-strong);border-radius:10px;padding:10px 12px;margin-bottom:12px;background:var(--bg);
+  }
+  .bairro-fixo span{font-size:13px;}
+
+  .metodo-pag{border:0.5px solid var(--border-strong);border-radius:10px;padding:11px 12px;margin-bottom:8px;display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12.5px;color:var(--text-secondary);}
+  .metodo-pag.selecionado{border-color:var(--accent);background:var(--accent-bg);color:var(--accent-text);font-weight:500;}
+  .metodo-pag i{font-size:15px;}
+  .entrega-opcoes{display:flex;gap:12px;margin:10px 0 10px 4px;}
+  .entrega-opcoes label{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--accent-text);}
+  .pix-box{text-align:center;border:0.5px solid var(--border);border-radius:12px;padding:20px 16px;margin-bottom:12px;}
+  .pix-box i{font-size:48px;color:var(--text-primary);}
+  .pix-box p{font-size:12px;color:var(--text-secondary);margin-top:10px;}
+  .pix-copia{display:flex;align-items:center;gap:8px;border:0.5px solid var(--border-strong);border-radius:10px;padding:10px 12px;margin-bottom:12px;}
+  .pix-copia span{font-size:11px;color:var(--text-secondary);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .pix-copia button{display:flex;align-items:center;gap:4px;background:var(--text-primary);color:#fff;border:none;padding:7px 12px;border-radius:8px;font-size:11.5px;flex-shrink:0;cursor:pointer;font-family:inherit;}
+
+  .sucesso-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;}
+  .sucesso-icone{width:64px;height:64px;border-radius:50%;background:var(--accent-bg);display:flex;align-items:center;justify-content:center;margin-bottom:16px;}
+  .sucesso-icone i{font-size:32px;color:var(--accent-text);}
+  .sucesso-wrap h2{font-family:'Fraunces',serif;font-weight:600;font-size:18px;margin-bottom:6px;}
+  .sucesso-wrap p{font-size:13px;color:var(--text-secondary);max-width:240px;line-height:1.5;margin-bottom:20px;}
+
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(59,35,20,0.5);align-items:center;justify-content:center;z-index:20;padding:20px;}
+  .modal-overlay.open{display:flex;}
+  .modal-box{background:var(--card);border-radius:16px;padding:24px 20px;width:100%;max-width:300px;text-align:center;}
+  .modal-box h3{font-family:'Fraunces',serif;font-weight:600;font-size:15px;color:var(--text-primary);margin-bottom:6px;}
+</style>
+</head>
+<body>
+
+<div class="phone">
+
+  <div class="screen active" id="screen-carrinho">
+    <div class="topbar">
+      <i class="ti ti-arrow-left" onclick="voltarParaCatalogo()"></i>
+      <h2>Carrinho</h2>
+    </div>
+    <div id="itens-carrinho" style="overflow-y:auto;flex:1;"></div>
+    <div class="resumo-card" style="margin-top:14px;">
+      <div class="linha"><span>Subtotal (<span id="qtd-itens-carrinho">0</span> itens)</span><b id="subtotal-carrinho">R$ 0,00</b></div>
+      <div class="linha"><span>Taxa de entrega</span><span id="taxa-info-carrinho">calculada no próximo passo</span></div>
+    </div>
+    <div class="nav-footer">
+      <button class="btn-secondary" onclick="voltarParaCatalogo()">Continuar comprando</button>
+      <button class="btn-primary" onclick="clicouPagar()">Pagar</button>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-endereco">
+    <div class="topbar">
+      <i class="ti ti-arrow-left" onclick="showScreen('carrinho')"></i>
+      <h2>Endereço de entrega</h2>
+    </div>
+
+    <div class="bairro-fixo">
+      <span>Bairro: <b id="bairro-nome-fixo">—</b></span>
+      <a href="mod1-cad-catalogo.html" style="font-size:11px;color:var(--accent-text);">trocar</a>
+    </div>
+
+    <div class="field"><label>Rua e número</label><input type="text" id="end-rua" placeholder="Ex: Rua das Palmeiras, 210"></div>
+    <div class="field"><label>Complemento (opcional)</label><input type="text" id="end-complemento" placeholder="Apto, bloco, referência..."></div>
+
+    <div class="resumo-card">
+      <div class="linha"><span>Taxa de entrega — <span id="bairro-nome-taxa">—</span></span><b id="taxa-valor">R$ 0,00</b></div>
+    </div>
+
+    <div class="nav-footer">
+      <button class="btn-secondary" onclick="showScreen('carrinho')">Voltar</button>
+      <button class="btn-primary" onclick="confirmarEndereco()">Continuar para pagamento</button>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-pagamento">
+    <div class="topbar">
+      <i class="ti ti-arrow-left" onclick="voltarDePagamento()"></i>
+      <h2>Pagamento</h2>
+    </div>
+
+    <div class="resumo-card">
+      <div class="linha"><span>Subtotal</span><b id="pag-subtotal">R$ 0,00</b></div>
+      <div class="linha" id="pag-linha-taxa"><span>Entrega</span><b id="pag-taxa">R$ 0,00</b></div>
+    </div>
+
+    <div class="metodo-pag selecionado" id="metodo-pix" onclick="selecionarMetodo('pix')">
+      <i class="ti ti-qrcode"></i><span>Pix</span>
+    </div>
+    <div class="metodo-pag" id="metodo-cartao" onclick="selecionarMetodo('cartao')">
+      <i class="ti ti-credit-card"></i><span>Cartão online</span>
+    </div>
+    <div class="metodo-pag" id="metodo-entrega" onclick="selecionarMetodo('entrega')">
+      <i class="ti ti-cash"></i><span>Pagar na entrega</span>
+    </div>
+
+    <div id="opcoes-entrega" style="display:none;margin:-4px 0 14px 4px;">
+      <div class="entrega-opcoes">
+        <label><input type="radio" name="tipo-entrega" value="dinheiro" checked onchange="atualizarTipoEntrega()"> Dinheiro</label>
+        <label><input type="radio" name="tipo-entrega" value="cartao" onchange="atualizarTipoEntrega()"> Cartão (maquininha)</label>
+      </div>
+      <input type="text" id="troco-input" placeholder="Troco para quanto? (opcional)" style="height:34px;border:0.5px solid var(--border-strong);border-radius:8px;padding:0 10px;font-size:12px;width:100%;font-family:inherit;">
+    </div>
+
+    <div id="pix-conteudo">
+      <div class="pix-box">
+        <i class="ti ti-qrcode"></i>
+        <p>Escaneie o QR code no app do seu banco</p>
+      </div>
+      <div class="pix-copia">
+        <span id="pix-codigo">00020126580014BR.GOV.BCB.PIX...5204</span>
+        <button onclick="copiarCodigoPix()"><i class="ti ti-copy"></i>Copiar</button>
+      </div>
+    </div>
+
+    <p style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:auto;">Pagamento único — não é assinatura</p>
+
+    <div class="nav-footer">
+      <button class="btn-secondary" onclick="voltarDePagamento()">Voltar</button>
+      <div class="total-final">
+        <div class="label">Total do pedido</div>
+        <div class="value" id="pag-total">R$ 0,00</div>
+        <button class="btn-primary" id="btn-confirmar-pag" onclick="confirmarPagamento()">Confirmar pagamento</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-sucesso">
+    <div class="sucesso-wrap">
+      <div class="sucesso-icone"><i class="ti ti-check"></i></div>
+      <h2>Pedido confirmado!</h2>
+      <p id="sucesso-texto">Seu pedido está sendo preparado e chega no endereço informado em breve.</p>
+      <div class="resumo-card" style="width:100%;text-align:left;margin-bottom:20px;">
+        <div class="linha"><span>Pedido</span><b id="sucesso-numero">#00000</b></div>
+        <div class="linha"><span id="sucesso-label-destino">Entrega em</span><b id="sucesso-destino" style="text-align:right;max-width:200px;">—</b></div>
+        <div class="linha"><span>Total</span><b id="sucesso-total">R$ 0,00</b></div>
+      </div>
+      <button class="btn-primary" style="width:100%;" onclick="window.location.href='mod1-cad-catalogo.html'">Voltar ao início</button>
+    </div>
+  </div>
+
+</div>
+
+<div class="modal-overlay" id="modal-pedido-minimo">
+  <div class="modal-box">
+    <div style="width:52px;height:52px;border-radius:50%;background:var(--accent-bg);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
+      <i class="ti ti-shopping-cart-exclamation" style="font-size:24px;color:var(--accent-text);"></i>
+    </div>
+    <h3>Falta pouco!</h3>
+    <p style="font-size:12.5px;color:var(--text-secondary);line-height:1.5;margin-bottom:8px;">O pedido mínimo para o bairro <b id="minimo-bairro-nome"></b> é <b id="minimo-valor"></b>.</p>
+    <p style="font-size:12.5px;color:var(--text-secondary);margin-bottom:18px;">Seu carrinho está em <b id="minimo-atual" style="color:var(--danger-text);"></b> — faltam <b id="minimo-faltam"></b>.</p>
+    <button class="btn-primary" style="width:100%;" onclick="fecharModal('modal-pedido-minimo')">Adicionar mais itens</button>
+  </div>
+</div>
+
+<script src="catalogo.js"></script>
+<script>
+const CATALOGO = carregarCatalogo();
+const ITENS = {};
+CATALOGO.itens.forEach(i => { ITENS[i.id] = i; });
+
+let INFO_ENTREGA = { bairro: '', frete: 0, minimo: 0, retirada: false };
+try {
+  const raw = localStorage.getItem('domleon_avulso_bairro');
+  if (raw) INFO_ENTREGA = JSON.parse(raw);
+} catch (e) { console.error(e); }
+
+let CARRINHO = {};
+try {
+  const raw = localStorage.getItem('domleon_carrinho_avulso');
+  if (raw) CARRINHO = JSON.parse(raw);
+} catch (e) { console.error(e); }
+
+function salvarCarrinho(){
+  localStorage.setItem('domleon_carrinho_avulso', JSON.stringify(CARRINHO));
+}
+
+function calcularSubtotal(){
+  let total = 0;
+  for (const id in CARRINHO){
+    if (ITENS[id]) total += CARRINHO[id] * ITENS[id].preco;
+  }
+  return total;
+}
+
+function contarItens(){
+  return Object.values(CARRINHO).reduce((a, b) => a + b, 0);
+}
+
+function calcularTaxa(){
+  return INFO_ENTREGA.retirada ? 0 : (INFO_ENTREGA.frete || 0);
+}
+
+function fmt(v){
+  return 'R$ ' + v.toFixed(2).replace('.', ',');
+}
+
+function showScreen(name){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+}
+
+function voltarParaCatalogo(){
+  window.location.href = 'mod9-catalogo-avulso.html';
+}
+
+function renderizarCarrinho(){
+  const container = document.getElementById('itens-carrinho');
+  container.innerHTML = '';
+  const ids = Object.keys(CARRINHO).filter(id => CARRINHO[id] > 0 && ITENS[id]);
+
+  if (ids.length === 0){
+    container.innerHTML = '<p style="text-align:center;color:var(--text-muted);font-size:12.5px;padding:30px 0;">Seu carrinho está vazio.</p>';
+  }
+
+  ids.forEach(id => {
+    const item = ITENS[id];
+    const qtd = CARRINHO[id];
+    const div = document.createElement('div');
+    div.className = 'item-linha';
+    div.innerHTML = `
+      <div class="linha1">
+        <span class="nome">${item.nome}</span>
+        <div class="stepper">
+          <button onclick="alterarQtdCarrinho('${id}', -1)">−</button>
+          <span class="qtd" id="carr-qtd-${id}">${qtd}</span>
+          <button onclick="alterarQtdCarrinho('${id}', 1)">+</button>
+        </div>
+      </div>
+      <div class="linha2">
+        <span class="preco-un">${fmt(item.preco)}/un</span>
+        <span class="preco-total" id="carr-total-${id}">${fmt(item.preco * qtd)}</span>
+      </div>`;
+    container.appendChild(div);
+  });
+
+  atualizarResumoCarrinho();
+}
+
+function alterarQtdCarrinho(id, delta){
+  const atual = CARRINHO[id] || 0;
+  const novo = Math.max(0, atual + delta);
+  if (novo === 0) delete CARRINHO[id];
+  else CARRINHO[id] = novo;
+  salvarCarrinho();
+  renderizarCarrinho();
+}
+
+function atualizarResumoCarrinho(){
+  const subtotal = calcularSubtotal();
+  document.getElementById('qtd-itens-carrinho').textContent = contarItens();
+  document.getElementById('subtotal-carrinho').textContent = fmt(subtotal);
+  document.getElementById('taxa-info-carrinho').textContent =
+    INFO_ENTREGA.retirada ? 'grátis (retirada)' : 'calculada no próximo passo';
+}
+
+function clicouPagar(){
+  const subtotal = calcularSubtotal();
+  if (!INFO_ENTREGA.retirada && INFO_ENTREGA.minimo && subtotal < INFO_ENTREGA.minimo){
+    document.getElementById('minimo-bairro-nome').textContent = INFO_ENTREGA.bairro;
+    document.getElementById('minimo-valor').textContent = fmt(INFO_ENTREGA.minimo);
+    document.getElementById('minimo-atual').textContent = fmt(subtotal);
+    document.getElementById('minimo-faltam').textContent = fmt(INFO_ENTREGA.minimo - subtotal);
+    document.getElementById('modal-pedido-minimo').classList.add('open');
+    return;
+  }
+  if (INFO_ENTREGA.retirada){
+    irParaPagamento();
+  } else {
+    irParaEndereco();
+  }
+}
+
+function fecharModal(id){
+  document.getElementById(id).classList.remove('open');
+}
+
+function irParaEndereco(){
+  document.getElementById('bairro-nome-fixo').textContent = INFO_ENTREGA.bairro || '—';
+  document.getElementById('bairro-nome-taxa').textContent = INFO_ENTREGA.bairro || '—';
+  document.getElementById('taxa-valor').textContent = fmt(calcularTaxa());
+  showScreen('endereco');
+}
+
+function confirmarEndereco(){
+  irParaPagamento();
+}
+
+let metodoSelecionado = 'pix';
+let tipoEntregaSelecionado = 'dinheiro';
+
+function irParaPagamento(){
+  const subtotal = calcularSubtotal();
+  const taxa = calcularTaxa();
+  document.getElementById('pag-subtotal').textContent = fmt(subtotal);
+  document.getElementById('pag-taxa').textContent = fmt(taxa);
+  document.getElementById('pag-linha-taxa').style.display = INFO_ENTREGA.retirada ? 'none' : 'flex';
+  document.getElementById('pag-total').textContent = fmt(subtotal + taxa);
+  selecionarMetodo('pix');
+  showScreen('pagamento');
+}
+
+function voltarDePagamento(){
+  if (INFO_ENTREGA.retirada) showScreen('carrinho');
+  else showScreen('endereco');
+}
+
+function selecionarMetodo(metodo){
+  metodoSelecionado = metodo;
+  document.querySelectorAll('.metodo-pag').forEach(el => el.classList.remove('selecionado'));
+  document.getElementById('metodo-' + metodo).classList.add('selecionado');
+
+  document.getElementById('pix-conteudo').style.display = metodo === 'pix' ? 'block' : 'none';
+  document.getElementById('opcoes-entrega').style.display = metodo === 'entrega' ? 'block' : 'none';
+
+  const btn = document.getElementById('btn-confirmar-pag');
+  btn.textContent = metodo === 'entrega' ? 'Confirmar pedido' : 'Confirmar pagamento';
+}
+
+function atualizarTipoEntrega(){
+  const radios = document.getElementsByName('tipo-entrega');
+  for (const r of radios){ if (r.checked) tipoEntregaSelecionado = r.value; }
+  document.getElementById('troco-input').style.display = tipoEntregaSelecionado === 'dinheiro' ? 'block' : 'none';
+}
+
+function copiarCodigoPix(){
+  const codigo = document.getElementById('pix-codigo').textContent;
+  if (navigator.clipboard) navigator.clipboard.writeText(codigo).catch(() => {});
+}
+
+function confirmarPagamento(){
+  const subtotal = calcularSubtotal();
+  const taxa = calcularTaxa();
+  const numero = '#' + String(Math.floor(10000 + Math.random() * 89999));
+
+  document.getElementById('sucesso-numero').textContent = numero;
+  document.getElementById('sucesso-total').textContent = fmt(subtotal + taxa);
+
+  if (INFO_ENTREGA.retirada){
+    document.getElementById('sucesso-label-destino').textContent = 'Retirada em';
+    document.getElementById('sucesso-destino').textContent = 'Padaria Dom Leon';
+    document.getElementById('sucesso-texto').textContent = 'Seu pedido está sendo preparado. Buscar direto na loja!';
+  } else {
+    const rua = document.getElementById('end-rua').value.trim() || 'Endereço informado';
+    document.getElementById('sucesso-label-destino').textContent = 'Entrega em';
+    document.getElementById('sucesso-destino').textContent = rua + ' — ' + INFO_ENTREGA.bairro;
+    document.getElementById('sucesso-texto').textContent = 'Seu pedido está sendo preparado e chega no endereço informado em breve.';
+  }
+
+  localStorage.removeItem('domleon_carrinho_avulso');
+  localStorage.removeItem('domleon_avulso_bairro');
+  showScreen('sucesso');
+}
+
+renderizarCarrinho();
+</script>
+
+</body>
+</html>
