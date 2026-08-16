@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dom Leon Assinatura — Escolha seus produtos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/dist/tabler-icons.min.css">
+<style>
+  :root{
+    --bg:#F5F0E8;--card:#FFFFFF;--border:#E3D8C4;--border-strong:#C7B79A;
+    --text-primary:#3B2314;--text-secondary:#6B5B47;--text-muted:#8A7860;
+    --accent:#B8873B;--accent-bg:#FBF3E2;--accent-text:#6B4E1E;
+    --radius:10px;--radius-lg:16px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:'Inter',sans-serif;background:var(--bg);color:var(--text-primary);
+    min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:32px 16px;
+  }
+  .phone{
+    width:100%;max-width:380px;background:var(--card);border:0.5px solid var(--border);
+    border-radius:var(--radius-lg);padding:20px;min-height:640px;display:flex;flex-direction:column;
+  }
+  .topbar{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+  .topbar i{font-size:18px;cursor:pointer;}
+  .topbar h2{font-size:16px;font-weight:600;font-family:'Fraunces',serif;}
+  .subtotal-label{font-size:12px;color:var(--text-secondary);margin-bottom:10px;}
+  .subtotal-label b{color:var(--text-primary);}
+
+  .busca-box{
+    display:flex;align-items:center;gap:8px;border:0.5px solid var(--border-strong);border-radius:10px;
+    padding:9px 12px;margin-bottom:14px;
+  }
+  .busca-box input{
+    border:none;outline:none;background:transparent;font-size:13px;font-family:inherit;
+    color:var(--text-primary);flex:1;
+  }
+  .busca-box i{font-size:15px;color:var(--text-muted);}
+  .busca-box .limpar{cursor:pointer;display:none;}
+
+  .categoria{margin-bottom:10px;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;}
+  .categoria-titulo{
+    display:flex;justify-content:space-between;align-items:center;
+    font-size:13px;font-weight:500;color:var(--text-primary);padding:12px 14px;cursor:pointer;
+    font-family:'Fraunces',serif;
+  }
+  .categoria-titulo i{font-size:16px;color:var(--text-muted);transition:transform .15s;font-family:'tabler-icons'!important;}
+  .categoria.aberta .categoria-titulo i{transform:rotate(180deg);}
+  .categoria-itens{display:none;padding:0 10px 10px;}
+  .categoria.aberta .categoria-itens{display:block;}
+  .categoria.oculta{display:none;}
+
+  .item-row{display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:0.5px solid var(--border);}
+  .item-row:last-child{border-bottom:none;}
+  .item-thumb{
+    width:40px;height:40px;border-radius:8px;background:var(--bg);flex-shrink:0;overflow:hidden;
+    display:flex;align-items:center;justify-content:center;color:var(--text-muted);
+  }
+  .item-thumb img{width:100%;height:100%;object-fit:cover;}
+  .item-info{flex:1;min-width:0;}
+  .item-info .nome{font-size:12.5px;}
+  .item-info .preco-un{font-size:10.5px;color:var(--text-muted);margin-top:1px;}
+  .item-info mark{background:var(--accent-bg);color:var(--accent-text);}
+  .stepper{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+  .stepper button{
+    width:24px;height:24px;border-radius:50%;border:0.5px solid var(--border-strong);
+    background:var(--bg);font-size:13px;cursor:pointer;color:var(--text-primary);
+  }
+  .stepper .qtd{font-size:12.5px;font-weight:500;min-width:14px;text-align:center;}
+
+  .sem-resultado{text-align:center;padding:30px 0;color:var(--text-muted);font-size:12.5px;}
+
+  .carrinho-bar{
+    margin-top:auto;padding-top:14px;background:var(--accent-bg);border-radius:10px;
+    padding:12px 14px;display:flex;justify-content:space-between;align-items:center;
+  }
+  .carrinho-bar .qtd-total{font-size:11px;color:var(--accent-text);}
+  .carrinho-bar .valor-total{font-size:15px;font-weight:600;color:var(--text-primary);}
+  .btn-primary{
+    background:var(--text-primary);color:#fff;border:none;padding:0 18px;height:40px;
+    border-radius:var(--radius);font-size:12.5px;font-family:inherit;cursor:pointer;
+  }
+  .btn-primary:disabled{background:var(--border-strong);cursor:not-allowed;}
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="topbar">
+    <i class="ti ti-arrow-left" onclick="voltarParaEscolha()"></i>
+    <h2>Escolha seus produtos</h2>
+  </div>
+  <div class="subtotal-label">Total do pedido: <b id="total-pedido">R$ 0,00</b></div>
+
+  <div class="busca-box">
+    <i class="ti ti-search"></i>
+    <input type="text" id="busca-input" placeholder="Buscar produto..." oninput="filtrarItens()">
+    <i class="ti ti-x limpar" id="busca-limpar" onclick="limparBusca()"></i>
+  </div>
+
+  <div id="categorias-container" style="overflow-y:auto;flex:1;"></div>
+  <div class="sem-resultado" id="sem-resultado" style="display:none;">Nenhum produto encontrado.</div>
+
+  <div class="carrinho-bar">
+    <div>
+      <div class="qtd-total" id="carrinho-qtd">0 itens</div>
+      <div class="valor-total" id="carrinho-valor">R$ 0,00</div>
+    </div>
+    <button class="btn-primary" id="btn-ver-carrinho" onclick="verCarrinho()" disabled>Ver carrinho</button>
+  </div>
+</div>
+
+<script src="catalogo.js"></script>
+<script>
+const CATALOGO = carregarCatalogo();
+
+const ITENS = {};      // id -> {nome, preco, categoria, imagem}
+const CATEGORIAS = {}; // categoria -> [itemId,...]
+CATALOGO.categorias.forEach(cat => { CATEGORIAS[cat] = []; });
+CATALOGO.itens.filter(i => i.ativo).forEach(item => {
+  ITENS[item.id] = item;
+  if (!CATEGORIAS[item.categoria]) CATEGORIAS[item.categoria] = [];
+  CATEGORIAS[item.categoria].push(item.id);
+});
+Object.keys(CATEGORIAS).forEach(cat => { if (CATEGORIAS[cat].length === 0) delete CATEGORIAS[cat]; });
+
+/* ---------- Info do bairro/retirada vinda do mod1 ---------- */
+let INFO_ENTREGA = { bairro: '', frete: 0, minimo: 0, retirada: false };
+try {
+  const raw = localStorage.getItem('domleon_avulso_bairro');
+  if (raw) INFO_ENTREGA = JSON.parse(raw);
+} catch (e) { console.error(e); }
+
+/* ---------- Carrinho (persistido em localStorage entre mod9 e mod10) ---------- */
+let CARRINHO = {}; // itemId -> qtd
+try {
+  const raw = localStorage.getItem('domleon_carrinho_avulso');
+  if (raw) CARRINHO = JSON.parse(raw);
+} catch (e) { console.error(e); }
+
+function salvarCarrinho(){
+  localStorage.setItem('domleon_carrinho_avulso', JSON.stringify(CARRINHO));
+}
+
+/* ---------- Render das categorias/itens ---------- */
+function renderizarCategorias(filtroTexto){
+  const container = document.getElementById('categorias-container');
+  container.innerHTML = '';
+  const filtro = filtroTexto ? removerAcentos(filtroTexto.trim()) : '';
+  let algumResultado = false;
+
+  Object.keys(CATEGORIAS).forEach((catNome, idx) => {
+    const idsCategoria = CATEGORIAS[catNome].filter(id => {
+      if (!filtro) return true;
+      return removerAcentos(ITENS[id].nome).includes(filtro);
+    });
+    if (idsCategoria.length === 0) return; // categoria sem resultado some inteira
+    algumResultado = true;
+
+    const bloco = document.createElement('div');
+    bloco.className = 'categoria' + (filtro ? ' aberta' : '');
+
+    const titulo = document.createElement('div');
+    titulo.className = 'categoria-titulo';
+    titulo.onclick = () => bloco.classList.toggle('aberta');
+    titulo.innerHTML = `<span>${catNome}</span><i class="ti ti-chevron-down"></i>`;
+    bloco.appendChild(titulo);
+
+    const itensWrap = document.createElement('div');
+    itensWrap.className = 'categoria-itens';
+
+    idsCategoria.forEach(itemId => {
+      const item = ITENS[itemId];
+      const qtd = CARRINHO[itemId] || 0;
+      const thumb = item.imagem
+        ? `<img src="${item.imagem}" alt="${item.nome}">`
+        : `<i class="ti ti-photo" style="font-size:18px;"></i>`;
+      const nomeHtml = filtro ? destacarTexto(item.nome, filtroTexto) : item.nome;
+
+      const row = document.createElement('div');
+      row.className = 'item-row';
+      row.innerHTML = `
+        <div class="item-thumb">${thumb}</div>
+        <div class="item-info">
+          <div class="nome">${nomeHtml}</div>
+          <div class="preco-un">R$ ${item.preco.toFixed(2).replace('.', ',')}/un</div>
+        </div>
+        <div class="stepper">
+          <button onclick="alterarItem('${itemId}', -1)">−</button>
+          <span class="qtd" id="qtd-${itemId}">${qtd}</span>
+          <button onclick="alterarItem('${itemId}', 1)">+</button>
+        </div>`;
+      itensWrap.appendChild(row);
+    });
+    bloco.appendChild(itensWrap);
+    container.appendChild(bloco);
+  });
+
+  document.getElementById('sem-resultado').style.display = algumResultado ? 'none' : 'block';
+}
+
+function destacarTexto(texto, filtro){
+  const idx = removerAcentos(texto).indexOf(removerAcentos(filtro));
+  if (idx === -1) return texto;
+  return texto.slice(0, idx) + '<mark>' + texto.slice(idx, idx + filtro.length) + '</mark>' + texto.slice(idx + filtro.length);
+}
+
+function filtrarItens(){
+  const valor = document.getElementById('busca-input').value;
+  document.getElementById('busca-limpar').style.display = valor ? 'block' : 'none';
+  renderizarCategorias(valor);
+}
+
+function limparBusca(){
+  document.getElementById('busca-input').value = '';
+  document.getElementById('busca-limpar').style.display = 'none';
+  renderizarCategorias('');
+}
+
+/* ---------- Carrinho: alterar quantidade ---------- */
+function alterarItem(itemId, delta){
+  const atual = CARRINHO[itemId] || 0;
+  const novo = Math.max(0, atual + delta);
+  if (novo === 0) delete CARRINHO[itemId];
+  else CARRINHO[itemId] = novo;
+  document.getElementById('qtd-' + itemId).textContent = novo;
+  salvarCarrinho();
+  atualizarResumo();
+}
+
+function calcularSubtotal(){
+  let total = 0;
+  for (const itemId in CARRINHO){
+    if (ITENS[itemId]) total += CARRINHO[itemId] * ITENS[itemId].preco;
+  }
+  return total;
+}
+
+function contarItens(){
+  return Object.values(CARRINHO).reduce((a, b) => a + b, 0);
+}
+
+function atualizarResumo(){
+  const subtotal = calcularSubtotal();
+  const qtd = contarItens();
+  document.getElementById('total-pedido').textContent = 'R$ ' + subtotal.toFixed(2).replace('.', ',');
+  document.getElementById('carrinho-qtd').textContent = qtd + (qtd === 1 ? ' item' : ' itens');
+  document.getElementById('carrinho-valor').textContent = 'R$ ' + subtotal.toFixed(2).replace('.', ',');
+  document.getElementById('btn-ver-carrinho').disabled = qtd === 0;
+}
+
+/* ---------- Navegação ---------- */
+function voltarParaEscolha(){
+  window.location.href = 'mod1-cad-catalogo.html';
+}
+
+function verCarrinho(){
+  if (contarItens() === 0) return;
+  window.location.href = 'mod10-checkout-avulso.html';
+}
+
+/* ---------- Inicialização ---------- */
+renderizarCategorias('');
+atualizarResumo();
+</script>
+
+</body>
+</html>
