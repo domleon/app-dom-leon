@@ -1,4 +1,4 @@
-# Assinatura Dom Leon
+# App Dom Leon
 
 Sistema de assinatura de pães e produtos de padaria, mais compra avulsa, da **Padaria Dom Leon** (Salto de Pirapora, SP).
 
@@ -7,7 +7,7 @@ Projeto **totalmente independente** dos demais sistemas da Dom Leon (Comanda, Mo
 ## Stack
 
 - HTML / CSS / JavaScript puro (sem framework)
-- Firebase (Firestore + Auth + Hosting) — projeto próprio, ainda não conectado de verdade (ver seção "Status")
+- Firebase (Firestore + Auth + Hosting) — projeto `new-app-dom-leon`, conta natanael.leonardo@gmail.com
 - Fonte Fraunces (títulos) + Inter (corpo), ícones Tabler, Chart.js — identidade visual "Padaria Artesanal" (marrom/dourado/bege)
 
 ## Estrutura
@@ -15,7 +15,7 @@ Projeto **totalmente independente** dos demais sistemas da Dom Leon (Comanda, Mo
 ```
 public/
 ├── index.html                    # redireciona para o login
-├── catalogo.js                   # fonte única de dados (categorias, itens, combos, bairros)
+├── catalogo.js                   # fonte única de dados (categorias, itens, combos, bairros) — Firestore
 ├── mod1-cad-catalogo.html        # login/cadastro → escolha (avulso/assinatura) → bairro → catálogo
 ├── mod2-app-ass.html             # assinatura: plano, pagamento (Pix/cartão), confirmação
 ├── mod3-admin-assinantes.html    # admin: assinantes, pedidos avulsos, produção do dia
@@ -29,6 +29,12 @@ public/
 
 > Módulo 6 (cartão de crédito recorrente) está embutido no `mod2-app-ass.html`, não é arquivo separado.
 
+## Catálogo de dados — agora no Firestore
+
+`catalogo.js` lê e grava no Firestore (coleção `catalogo`, documento `dados`), não mais em `localStorage`. Isso significa que o que o admin cadastra no `mod8` (itens, combos, categorias, bairros) já aparece pra qualquer cliente, em qualquer dispositivo, sem precisar do mesmo navegador.
+
+Arquivos que usam `catalogo.js` (mod1, mod4, mod8, mod9, mod10) carregam o SDK do Firebase (`firebase-app-compat.js` + `firebase-firestore-compat.js`) antes dele.
+
 ## Fluxos
 
 ### Assinatura mensal
@@ -40,7 +46,7 @@ Login → Escolha → Assinatura mensal → Catálogo (Monte o seu / Combos pron
 
 ### Compra avulsa
 ```
-Login → Escolha → Escolha seus produtos → Bairro
+Login → Escolha → Faça seu Pedido → Bairro
   ├── atendido → mod9 (catálogo + busca + carrinho) → mod10 (endereço → pagamento → sucesso)
   └── não atendido → popup → Retirar na Loja (pula endereço) ou Voltar ao início
 ```
@@ -51,23 +57,23 @@ Login → Escolha → Escolha seus produtos → Bairro
 
 | Página | URL |
 |---|---|
-| Início (redireciona pro login) | https://assinatura-dom-leon.web.app |
-| Login / Escolha / Bairro / Catálogo | https://assinatura-dom-leon.web.app/mod1-cad-catalogo.html |
-| Assinatura — Plano/Pagamento | https://assinatura-dom-leon.web.app/mod2-app-ass.html |
-| Admin — Assinantes / Pedidos avulsos / Produção | https://assinatura-dom-leon.web.app/mod3-admin-assinantes.html |
-| Monte o seu (wizard) | https://assinatura-dom-leon.web.app/mod4-monte-o-seu.html |
-| Admin — Logística | https://assinatura-dom-leon.web.app/mod5-entrega.html |
-| Admin — Relatórios / Notificações / Checklist | https://assinatura-dom-leon.web.app/mod7-relatorios.html |
-| Admin — Planos / Itens / Categorias / Bairros | https://assinatura-dom-leon.web.app/mod8-planos.html |
-| Catálogo avulso | https://assinatura-dom-leon.web.app/mod9-catalogo-avulso.html |
-| Checkout avulso | https://assinatura-dom-leon.web.app/mod10-checkout-avulso.html |
+| Início (redireciona pro login) | https://new-app-dom-leon.web.app |
+| Login / Escolha / Bairro / Catálogo | https://new-app-dom-leon.web.app/mod1-cad-catalogo.html |
+| Assinatura — Plano/Pagamento | https://new-app-dom-leon.web.app/mod2-app-ass.html |
+| Admin — Assinantes / Pedidos avulsos / Produção | https://new-app-dom-leon.web.app/mod3-admin-assinantes.html |
+| Monte o seu (wizard) | https://new-app-dom-leon.web.app/mod4-monte-o-seu.html |
+| Admin — Logística | https://new-app-dom-leon.web.app/mod5-entrega.html |
+| Admin — Relatórios / Notificações / Checklist | https://new-app-dom-leon.web.app/mod7-relatorios.html |
+| Admin — Planos / Itens / Categorias / Bairros | https://new-app-dom-leon.web.app/mod8-planos.html |
+| Catálogo avulso | https://new-app-dom-leon.web.app/mod9-catalogo-avulso.html |
+| Checkout avulso | https://new-app-dom-leon.web.app/mod10-checkout-avulso.html |
 
 ### Painéis de gestão
 
 | O quê | URL |
 |---|---|
-| Repositório GitHub | https://github.com/domleon/assinatura-dom-leon |
-| Console do projeto Firebase | https://console.firebase.google.com/project/assinatura-dom-leon/overview |
+| Repositório GitHub | https://github.com/domleon/app-dom-leon |
+| Console do projeto Firebase | https://console.firebase.google.com/project/new-app-dom-leon/overview |
 
 ## Regras de negócio principais
 
@@ -79,11 +85,16 @@ Login → Escolha → Escolha seus produtos → Bairro
 
 ## Deploy
 
-Fluxo atual: upload manual dos arquivos pela página web do GitHub, direto na pasta `public/` do repositório. O GitHub Actions já está configurado (`firebase init hosting:github`) e publica automaticamente no Firebase Hosting a cada commit na branch `main` — não é necessário rodar `firebase deploy` manualmente.
+Fluxo atual: upload manual dos arquivos pela página web do GitHub, direto na pasta `public/` do repositório (**nunca** na raiz — esse foi o erro que causou a maior confusão até aqui). O GitHub Actions publica automaticamente no Firebase Hosting a cada commit na branch `main`.
+
+**Checklist antes de subir qualquer arquivo:**
+1. Confirme que está DENTRO da pasta `public/` antes de clicar em "Add file → Upload files"
+2. `firebase.json`, `.firebaserc`, `firestore.rules` vão na RAIZ (fora de `public/`)
+3. O workflow (`.github/workflows/firebase-hosting-merge.yml`) só é editado, nunca duplicado solto em outro lugar
 
 ## Status
 
 - Protótipo funcional de navegação/interface, com toda a lógica de cálculo (ciclo, taxas, pedido mínimo) implementada e testada
-- **Catálogo de dados** (categorias, itens, combos, bairros) persiste em `localStorage` do navegador — ainda **não conectado ao Firestore**, então os dados não são compartilhados entre dispositivos/usuários
+- **Catálogo de dados** (categorias, itens, combos, bairros) agora persiste no **Firestore** de verdade — compartilhado entre todos os dispositivos/usuários
 - **Pagamento** (Pix/cartão) é simulado na tela — ainda **não integrado ao Mercado Pago** (gateway já definido: pagamento simples para avulso, Assinaturas/Preapproval para recorrência)
 - Autenticação (login/cadastro) ainda não conectada ao Firebase Auth

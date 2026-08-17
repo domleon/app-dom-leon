@@ -1,7 +1,16 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Regra temporária de desenvolvimento — ajustar antes de ir pra produção real
+    // Catálogo (categorias, itens, combos, bairros): leitura pública,
+    // já que clientes navegam pelo catálogo sem estar logados de verdade ainda.
+    // Escrita liberada por enquanto (protótipo, admin ainda não autenticado de verdade
+    // via Firebase Auth) — ajustar antes de lançar pra produção real.
+    match /catalogo/{documento} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Qualquer outra coleção futura (pedidos, assinantes etc.) fica protegida por padrão.
     match /{document=**} {
       allow read, write: if request.auth != null;
     }
