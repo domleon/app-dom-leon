@@ -1,8 +1,21 @@
 /* catalogo.js — fonte única de dados de categorias, itens, combos e bairros.
    Compartilhado entre mod1, mod4, mod8, mod9 e mod10.
-   Persistência via localStorage (chave 'domleon_catalogo') até a conexão real com Firestore. */
+   Persistência via Firestore (projeto new-app-dom-leon), coleção 'catalogo', documento 'dados'. */
 
-const CATALOGO_STORAGE_KEY = 'domleon_catalogo';
+const firebaseConfig = {
+  apiKey: "AIzaSyDnePAezAoipNWXgq298EKT8ugLnPYll4",
+  authDomain: "new-app-dom-leon.firebaseapp.com",
+  projectId: "new-app-dom-leon",
+  storageBucket: "new-app-dom-leon.firebasestorage.app",
+  messagingSenderId: "397519162919",
+  appId: "1:397519162919:web:3eb60357da2f94ec134802"
+};
+
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+const db = firebase.firestore();
+const CATALOGO_DOC_REF = db.collection('catalogo').doc('dados');
 
 /* Bairros reais de Salto de Pirapora/SP (fonte: CEPs dos Correios).
    Por padrão nenhum é atendido — admin marca frete + pedido mínimo na aba Bairros do mod8.
@@ -72,32 +85,42 @@ const CATALOGO_PADRAO = {
   taxaEntregaAssinatura: 2.99
 };
 
-function carregarCatalogo(){
+/* ---------- Carregar (leitura única do documento) ---------- */
+async function carregarCatalogo(){
   try {
-    const raw = localStorage.getItem(CATALOGO_STORAGE_KEY);
-    if (!raw) {
-      salvarCatalogo(CATALOGO_PADRAO);
+    const snap = await CATALOGO_DOC_REF.get();
+    if (!snap.exists) {
+      // primeira vez: semeia o Firestore com o catálogo padrão
+      await CATALOGO_DOC_REF.set(CATALOGO_PADRAO);
       return JSON.parse(JSON.stringify(CATALOGO_PADRAO));
     }
-    const catalogo = JSON.parse(raw);
-    // migração suave: catálogos salvos antes da existência de bairros ganham a lista padrão
+    const catalogo = snap.data();
+    // migração suave: documentos salvos antes da existência de bairros ganham a lista padrão
     if (!catalogo.bairros) catalogo.bairros = montarBairrosPadrao();
     if (catalogo.taxaEntregaAssinatura === undefined) catalogo.taxaEntregaAssinatura = 2.99;
     return catalogo;
   } catch (e) {
-    console.error('Erro ao ler catálogo do localStorage, usando padrão.', e);
+    console.error('Erro ao ler catálogo do Firestore, usando padrão local (sem persistência).', e);
     return JSON.parse(JSON.stringify(CATALOGO_PADRAO));
   }
 }
 
-function salvarCatalogo(catalogo){
+/* ---------- Salvar (grava o documento inteiro) ---------- */
+async function salvarCatalogo(catalogo){
   try {
-    localStorage.setItem(CATALOGO_STORAGE_KEY, JSON.stringify(catalogo));
+    await CATALOGO_DOC_REF.set(catalogo);
     return true;
   } catch (e) {
-    console.error('Erro ao salvar catálogo no localStorage.', e);
+    console.error('Erro ao salvar catálogo no Firestore.', e);
     return false;
   }
+}
+
+/* ---------- Escuta em tempo real (opcional — usado onde quisermos refletir mudanças ao vivo) ---------- */
+function escutarCatalogo(callback){
+  return CATALOGO_DOC_REF.onSnapshot(snap => {
+    if (snap.exists) callback(snap.data());
+  }, err => console.error('Erro ao escutar catálogo em tempo real.', err));
 }
 
 function gerarIdUnico(nome, listaExistente){

@@ -443,12 +443,14 @@
 
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="catalogo.js"></script>
 <script>
 const DIA_LABEL_MOD1 = {seg:'seg', ter:'ter', qua:'qua', qui:'qui', sex:'sex', sab:'sáb', dom:'dom'};
 
-function renderizarCombosProntos(){
-  const catalogo = carregarCatalogo();
+async function renderizarCombosProntos(){
+  const catalogo = await carregarCatalogo();
   const container = document.getElementById('lista-fixos');
   container.innerHTML = '';
 
@@ -495,8 +497,8 @@ function abrirEscolhaBairro(){
   showScreen('bairro');
 }
 
-function popularSelectBairros(){
-  const catalogo = carregarCatalogo();
+async function popularSelectBairros(){
+  const catalogo = await carregarCatalogo();
   const select = document.getElementById('select-bairro');
   const atendidos = catalogo.bairros.filter(b => b.atendido).sort((a, b) => a.nome.localeCompare(b.nome));
   select.innerHTML = '<option value="">Selecione seu bairro...</option>' +
@@ -509,7 +511,7 @@ function atualizarBotaoBairro(){
   document.getElementById('btn-continuar-bairro').disabled = !valor;
 }
 
-function confirmarBairro(){
+async function confirmarBairro(){
   const valor = document.getElementById('select-bairro').value;
   if (!valor) return;
 
@@ -518,7 +520,7 @@ function confirmarBairro(){
     return;
   }
 
-  const catalogo = carregarCatalogo();
+  const catalogo = await carregarCatalogo();
   const bairro = catalogo.bairros.find(b => b.nome === valor);
   if (!bairro || !bairro.atendido){
     abrirModal('modal-bairro-bloqueado');

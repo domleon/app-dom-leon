@@ -267,33 +267,16 @@
   <div id="lightbox-content"></div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="catalogo.js"></script>
 <script>
-/* ---------- Catálogo de itens (compartilhado via catalogo.js / localStorage) ---------- */
-const CATALOGO = carregarCatalogo();
-
-const PRECOS = {};
-const NOMES = {};
-const IMAGENS = {};
-const CATEGORIAS = {};
-CATALOGO.categorias.forEach(cat => { CATEGORIAS[cat] = []; });
-CATALOGO.itens.filter(i => i.ativo).forEach(item => {
-  PRECOS[item.id] = item.preco;
-  NOMES[item.id] = item.nome;
-  IMAGENS[item.id] = item.imagem || null;
-  if (!CATEGORIAS[item.categoria]) CATEGORIAS[item.categoria] = [];
-  CATEGORIAS[item.categoria].push(item.id);
-});
-Object.keys(CATEGORIAS).forEach(cat => { if (CATEGORIAS[cat].length === 0) delete CATEGORIAS[cat]; });
+/* ---------- Catálogo de itens (compartilhado via catalogo.js / Firestore) ---------- */
+let CATALOGO, PRECOS = {}, NOMES = {}, IMAGENS = {}, CATEGORIAS = {}, BASE_COMBOS = {};
 
 const DIAS_ORDEM = ['seg','ter','qua','qui','sex','sab','dom'];
 const DIA_LABEL = {seg:'Segunda-feira', ter:'Terça-feira', qua:'Quarta-feira', qui:'Quinta-feira', sex:'Sexta-feira', sab:'Sábado', dom:'Domingo'};
 const DIA_JS = {dom:0, seg:1, ter:2, qua:3, qui:4, sex:5, sab:6};
-
-const BASE_COMBOS = {};
-CATALOGO.combos.forEach(combo => {
-  BASE_COMBOS[combo.id] = { nome: combo.nome, dias: combo.dias, itensPadrao: combo.itensPadrao };
-});
 
 /* ---------- Estado do wizard ---------- */
 let diasSelecionados = [];   // ordem seg..dom
@@ -301,8 +284,25 @@ let itensPorDia = {};        // { seg: {itemId: qtd}, ... }
 let diaAtivoTab = null;      // dia sendo editado na etapa 2
 let voltandoParaResumo = false; // true quando veio da etapa 3 clicando num dia específico
 
-/* ---------- Inicialização a partir da URL (?base=cafe) ---------- */
-(function init(){
+/* ---------- Inicialização: espera o catálogo do Firestore, depois monta tudo ---------- */
+(async function init(){
+  CATALOGO = await carregarCatalogo();
+
+  CATALOGO.categorias.forEach(cat => { CATEGORIAS[cat] = []; });
+  CATALOGO.itens.filter(i => i.ativo).forEach(item => {
+    PRECOS[item.id] = item.preco;
+    NOMES[item.id] = item.nome;
+    IMAGENS[item.id] = item.imagem || null;
+    if (!CATEGORIAS[item.categoria]) CATEGORIAS[item.categoria] = [];
+    CATEGORIAS[item.categoria].push(item.id);
+  });
+  Object.keys(CATEGORIAS).forEach(cat => { if (CATEGORIAS[cat].length === 0) delete CATEGORIAS[cat]; });
+
+  CATALOGO.combos.forEach(combo => {
+    BASE_COMBOS[combo.id] = { nome: combo.nome, dias: combo.dias, itensPadrao: combo.itensPadrao };
+  });
+
+  // ---- a partir da URL (?base=cafe), pré-carrega dias/itens de um combo fixo ----
   const params = new URLSearchParams(window.location.search);
   const base = params.get('base');
   if (base && BASE_COMBOS[base]) {

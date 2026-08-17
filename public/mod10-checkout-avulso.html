@@ -226,11 +226,11 @@
   </div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="catalogo.js"></script>
 <script>
-const CATALOGO = carregarCatalogo();
-const ITENS = {};
-CATALOGO.itens.forEach(i => { ITENS[i.id] = i; });
+let CATALOGO, ITENS = {};
 
 let INFO_ENTREGA = { bairro: '', frete: 0, minimo: 0, retirada: false };
 try {
@@ -425,7 +425,11 @@ function confirmarPagamento(){
   showScreen('sucesso');
 }
 
-renderizarCarrinho();
+(async function init(){
+  CATALOGO = await carregarCatalogo();
+  CATALOGO.itens.forEach(i => { ITENS[i.id] = i; });
+  renderizarCarrinho();
+})();
 </script>
 
 </body>

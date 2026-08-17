@@ -365,9 +365,11 @@
   </div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="catalogo.js"></script>
 <script>
-let CATALOGO = carregarCatalogo();
+let CATALOGO;
 
 const DIA_LABEL = {seg:'Seg', ter:'Ter', qua:'Qua', qui:'Qui', sex:'Sex', sab:'Sáb', dom:'Dom'};
 const DIA_LABEL_LONGO = {seg:'Segunda', ter:'Terça', qua:'Quarta', qui:'Quinta', sex:'Sexta', sab:'Sábado', dom:'Domingo'};
@@ -813,7 +815,10 @@ function salvarBairro(){
 }
 
 /* ---------- Inicialização ---------- */
-renderizarTudo();
+(async function init(){
+  CATALOGO = await carregarCatalogo();
+  renderizarTudo();
+})();
 </script>
 
 </body>
