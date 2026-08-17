@@ -1,1 +1,5 @@
-*** { "projects": { "default": "new-app-dom-leon" } } ***
+{
+  "projects": {
+    "default": "new-app-dom-leon"
+  }
+}
