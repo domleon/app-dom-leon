@@ -257,7 +257,12 @@
       </label>
     </div>
     <div id="campos-bairro-atendido">
-      <div class="field"><label>Frete (R$)</label><input type="text" id="bairro-frete" placeholder="0,00"></div>
+      <div class="field">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <input type="checkbox" id="bairro-gratis" onchange="toggleFreteGratis()"> Entrega grátis nesse bairro
+        </label>
+      </div>
+      <div class="field" id="campo-bairro-frete"><label>Frete (R$)</label><input type="text" id="bairro-frete" placeholder="0,00"></div>
       <div class="field"><label>Pedido mínimo (R$)</label><input type="text" id="bairro-minimo" placeholder="0,00"></div>
     </div>
     <div class="modal-actions">
@@ -345,7 +350,20 @@
       <select id="item-categoria"></select>
     </div>
     <div class="field"><label>Nome do item</label><input type="text" id="item-nome"></div>
-    <div class="field"><label>Preço unitário (R$)</label><input type="text" id="item-preco" placeholder="0,00"></div>
+
+    <div class="field">
+      <label>Disponível em quais modalidades?</label>
+      <div style="display:flex;gap:16px;margin-top:4px;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;">
+          <input type="checkbox" id="item-mod-avulso" onchange="toggleModalidadesItem()"> Pedido avulso
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;">
+          <input type="checkbox" id="item-mod-assinatura" onchange="toggleModalidadesItem()"> Ass. Mensal
+        </label>
+      </div>
+    </div>
+    <div class="field" id="campo-preco-avulso"><label>Preço no Pedido avulso (R$)</label><input type="text" id="item-preco-avulso" placeholder="0,00"></div>
+    <div class="field" id="campo-preco-assinatura"><label>Preço na Assinatura mensal (R$)</label><input type="text" id="item-preco-assinatura" placeholder="0,00"></div>
     <div class="modal-actions">
       <button class="btn-secondary" onclick="fecharModal('modal-item')">Cancelar</button>
       <button class="btn-primary" onclick="salvarItem()">Salvar item</button>
@@ -468,7 +486,7 @@ function renderizarItensComboModal(){
   const container = document.getElementById('combo-itens-modal');
   container.innerHTML = '';
   CATALOGO.categorias.forEach(cat => {
-    const itensCat = CATALOGO.itens.filter(i => i.categoria === cat);
+    const itensCat = CATALOGO.itens.filter(i => i.categoria === cat && (!i.modalidades || i.modalidades.assinatura));
     if (itensCat.length === 0) return;
     const titulo = document.createElement('div');
     titulo.className = 'itens-combo-cat';
@@ -552,10 +570,13 @@ function renderizarItens(){
         const thumb = item.imagem
           ? `<span class="item-thumb"><img src="${item.imagem}"></span>`
           : `<span class="item-thumb"><i class="ti ti-photo" style="font-size:12px;"></i></span>`;
+        const mods = item.modalidades || { avulso: true, assinatura: true };
+        const precoAvulsoTxt = mods.avulso ? 'R$ ' + (item.precoAvulso || 0).toFixed(2).replace('.', ',') : '—';
+        const precoAssinaturaTxt = mods.assinatura ? 'R$ ' + (item.precoAssinatura || 0).toFixed(2).replace('.', ',') : '—';
         return `
           <tr>
             <td>${thumb}${item.nome}</td>
-            <td>R$ ${item.preco.toFixed(2).replace('.', ',')}</td>
+            <td>Avulso: ${precoAvulsoTxt}<br>Assinatura: ${precoAssinaturaTxt}</td>
             <td>
               <span class="status-toggle" onclick="toggleStatusItem('${item.id}')">
                 <span class="status-dot ${item.ativo ? '' : 'off'}"></span>${item.ativo ? 'Ativo' : 'Pausado'}
@@ -573,7 +594,7 @@ function renderizarItens(){
       <div class="categoria-header"><h3>${cat}</h3></div>
       <div class="table-card">
         <table>
-          <thead><tr><th>Item</th><th>Preço unitário</th><th>Disponível</th><th></th></tr></thead>
+          <thead><tr><th>Item</th><th>Preço (avulso / assinatura)</th><th>Disponível</th><th></th></tr></thead>
           <tbody>${linhas}</tbody>
         </table>
       </div>`;
@@ -590,14 +611,26 @@ function popularSelectCategorias(selectId, valorAtual){
   ).join('');
 }
 
+function toggleModalidadesItem(){
+  document.getElementById('campo-preco-avulso').style.display =
+    document.getElementById('item-mod-avulso').checked ? 'block' : 'none';
+  document.getElementById('campo-preco-assinatura').style.display =
+    document.getElementById('item-mod-assinatura').checked ? 'block' : 'none';
+}
+
 function abrirModalItem(itemId){
   itemEditandoId = itemId || null;
   const item = itemId ? CATALOGO.itens.find(i => i.id === itemId) : null;
+  const mods = (item && item.modalidades) || { avulso: true, assinatura: true };
 
   document.getElementById('modal-item-titulo').textContent = item ? 'Editar item' : 'Novo item';
   document.getElementById('item-nome').value = item ? item.nome : '';
-  document.getElementById('item-preco').value = item ? item.preco.toFixed(2).replace('.', ',') : '';
+  document.getElementById('item-mod-avulso').checked = mods.avulso;
+  document.getElementById('item-mod-assinatura').checked = mods.assinatura;
+  document.getElementById('item-preco-avulso').value = item ? (item.precoAvulso || 0).toFixed(2).replace('.', ',') : '';
+  document.getElementById('item-preco-assinatura').value = item ? (item.precoAssinatura || 0).toFixed(2).replace('.', ',') : '';
   popularSelectCategorias('item-categoria', item ? item.categoria : CATALOGO.categorias[0]);
+  toggleModalidadesItem();
 
   const preview = document.getElementById('item-img-preview');
   preview.innerHTML = item && item.imagem ? `<img src="${item.imagem}">` : '<i class="ti ti-photo"></i>';
@@ -613,18 +646,26 @@ function salvarItem(){
     return;
   }
   const nome = document.getElementById('item-nome').value.trim() || 'Novo item';
-  const precoTxt = document.getElementById('item-preco').value.trim().replace(',', '.') || '0';
-  const preco = parseFloat(precoTxt) || 0;
+  const avulso = document.getElementById('item-mod-avulso').checked;
+  const assinatura = document.getElementById('item-mod-assinatura').checked;
+  if (!avulso && !assinatura){
+    alert('Marque ao menos uma modalidade (Pedido avulso ou Ass. Mensal).');
+    return;
+  }
+  const precoAvulso = parseFloat(document.getElementById('item-preco-avulso').value.replace(',', '.')) || 0;
+  const precoAssinatura = parseFloat(document.getElementById('item-preco-assinatura').value.replace(',', '.')) || 0;
   const categoria = document.getElementById('item-categoria').value;
   const imagem = document.getElementById('item-img-preview').dataset.imagem || null;
+  const modalidades = { avulso, assinatura };
 
   if (itemEditandoId){
     const item = CATALOGO.itens.find(i => i.id === itemEditandoId);
-    item.nome = nome; item.preco = preco; item.categoria = categoria; item.imagem = imagem;
+    item.nome = nome; item.categoria = categoria; item.imagem = imagem;
+    item.modalidades = modalidades; item.precoAvulso = precoAvulso; item.precoAssinatura = precoAssinatura;
   } else {
     CATALOGO.itens.push({
       id: gerarIdUnico(nome, CATALOGO.itens),
-      nome, categoria, preco, ativo: true, imagem
+      nome, categoria, ativo: true, imagem, modalidades, precoAvulso, precoAssinatura
     });
   }
   persistir();
@@ -769,7 +810,7 @@ function renderizarBairros(){
           <span class="status-dot ${b.atendido ? '' : 'off'}"></span>${b.atendido ? 'Atendido' : 'Não atendido'}
         </span>
       </td>
-      <td>${b.atendido ? 'R$ ' + b.frete.toFixed(2).replace('.', ',') : '—'}</td>
+      <td>${b.atendido ? (b.gratis ? '<b>Grátis</b>' : 'R$ ' + b.frete.toFixed(2).replace('.', ',')) : '—'}</td>
       <td>${b.atendido ? 'R$ ' + b.minimo.toFixed(2).replace('.', ',') : '—'}</td>
       <td class="row-actions">
         <div class="icon-btn" onclick="abrirModalBairro('${b.nome.replace(/'/g, "\\'")}')"><i class="ti ti-edit"></i></div>
@@ -785,9 +826,11 @@ function abrirModalBairro(nome){
   document.getElementById('modal-bairro-titulo').textContent = 'Editar bairro';
   document.getElementById('bairro-nome').value = bairro.nome;
   document.getElementById('bairro-atendido').checked = bairro.atendido;
-  document.getElementById('bairro-frete').value = bairro.atendido ? bairro.frete.toFixed(2).replace('.', ',') : '';
-  document.getElementById('bairro-minimo').value = bairro.atendido ? bairro.minimo.toFixed(2).replace('.', ',') : '';
+  document.getElementById('bairro-gratis').checked = !!bairro.gratis;
+  document.getElementById('bairro-frete').value = (bairro.atendido && !bairro.gratis && bairro.frete) ? bairro.frete.toFixed(2).replace('.', ',') : '';
+  document.getElementById('bairro-minimo').value = bairro.atendido ? (bairro.minimo || 0).toFixed(2).replace('.', ',') : '';
   toggleCamposBairro();
+  toggleFreteGratis();
   document.getElementById('modal-bairro').classList.add('open');
 }
 
@@ -796,14 +839,21 @@ function toggleCamposBairro(){
   document.getElementById('campos-bairro-atendido').style.display = atendido ? 'block' : 'none';
 }
 
+function toggleFreteGratis(){
+  const gratis = document.getElementById('bairro-gratis').checked;
+  document.getElementById('campo-bairro-frete').style.display = gratis ? 'none' : 'block';
+}
+
 function salvarBairro(){
   const bairro = CATALOGO.bairros.find(b => b.nome === bairroEditandoNome);
   if (!bairro) return;
 
   const atendido = document.getElementById('bairro-atendido').checked;
+  const gratis = document.getElementById('bairro-gratis').checked;
   bairro.atendido = atendido;
+  bairro.gratis = atendido ? gratis : false;
   if (atendido){
-    bairro.frete = parseFloat(document.getElementById('bairro-frete').value.replace(',', '.')) || 0;
+    bairro.frete = gratis ? 0 : (parseFloat(document.getElementById('bairro-frete').value.replace(',', '.')) || 0);
     bairro.minimo = parseFloat(document.getElementById('bairro-minimo').value.replace(',', '.')) || 0;
   } else {
     bairro.frete = null;

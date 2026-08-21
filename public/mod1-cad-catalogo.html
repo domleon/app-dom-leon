@@ -395,10 +395,18 @@
 <div class="modal-overlay" id="modal-bairro-bloqueado">
   <div class="modal-box" style="text-align:center;">
     <div style="width:52px;height:52px;border-radius:50%;background:var(--danger-bg);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
-      <i class="ti ti-map-pin-off" style="font-size:24px;color:var(--danger-text);"></i>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="var(--danger-text)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
     </div>
     <h3 style="margin-bottom:6px;">Ainda não entregamos aí</h3>
-    <p style="font-size:12.5px;color:var(--text-secondary);line-height:1.5;margin-bottom:18px;">No momento não atendemos esse bairro. Mas você pode retirar seu pedido direto na loja!</p>
+    <p style="font-size:12.5px;color:var(--text-secondary);line-height:1.5;margin-bottom:14px;">No momento não atendemos esse bairro. Mas você pode retirar seu pedido direto na loja!</p>
+
+    <div id="captura-interesse-bloco" style="text-align:left;border-top:0.5px solid var(--border);padding-top:14px;margin-bottom:14px;">
+      <p style="font-size:12px;color:var(--text-secondary);margin-bottom:8px;">Quer ser avisado quando passarmos a atender seu bairro?</p>
+      <div class="field" style="margin-bottom:8px;"><input type="text" id="interesse-bairro" placeholder="Qual o seu bairro?"></div>
+      <div class="field" style="margin-bottom:10px;"><input type="text" id="interesse-contato" placeholder="Telefone ou e-mail"></div>
+      <button class="btn-secondary" style="width:100%;" onclick="enviarInteresseBairro()">Quero ser avisado</button>
+    </div>
+
     <button class="btn-primary" style="width:100%;margin-bottom:8px;" onclick="irParaAvulsoComoRetirada()">Retirar na Loja</button>
     <button class="btn-secondary" style="width:100%;" onclick="fecharModal('modal-bairro-bloqueado')">Voltar ao início</button>
   </div>
@@ -443,12 +451,14 @@
 
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="catalogo.js"></script>
 <script>
 const DIA_LABEL_MOD1 = {seg:'seg', ter:'ter', qua:'qua', qui:'qui', sex:'sex', sab:'sáb', dom:'dom'};
 
-function renderizarCombosProntos(){
-  const catalogo = carregarCatalogo();
+async function renderizarCombosProntos(){
+  const catalogo = await carregarCatalogo();
   const container = document.getElementById('lista-fixos');
   container.innerHTML = '';
 
@@ -495,8 +505,8 @@ function abrirEscolhaBairro(){
   showScreen('bairro');
 }
 
-function popularSelectBairros(){
-  const catalogo = carregarCatalogo();
+async function popularSelectBairros(){
+  const catalogo = await carregarCatalogo();
   const select = document.getElementById('select-bairro');
   const atendidos = catalogo.bairros.filter(b => b.atendido).sort((a, b) => a.nome.localeCompare(b.nome));
   select.innerHTML = '<option value="">Selecione seu bairro...</option>' +
@@ -509,7 +519,7 @@ function atualizarBotaoBairro(){
   document.getElementById('btn-continuar-bairro').disabled = !valor;
 }
 
-function confirmarBairro(){
+async function confirmarBairro(){
   const valor = document.getElementById('select-bairro').value;
   if (!valor) return;
 
@@ -518,7 +528,7 @@ function confirmarBairro(){
     return;
   }
 
-  const catalogo = carregarCatalogo();
+  const catalogo = await carregarCatalogo();
   const bairro = catalogo.bairros.find(b => b.nome === valor);
   if (!bairro || !bairro.atendido){
     abrirModal('modal-bairro-bloqueado');
@@ -530,6 +540,20 @@ function confirmarBairro(){
 
 function irParaAvulsoComoRetirada(){
   irParaAvulso('', 0, 0, true);
+}
+
+async function enviarInteresseBairro(){
+  const bairro = document.getElementById('interesse-bairro').value.trim();
+  const contato = document.getElementById('interesse-contato').value.trim();
+  if (!bairro || !contato){
+    alert('Preencha o bairro e um telefone ou e-mail pra te avisarmos.');
+    return;
+  }
+  const ok = await registrarInteresseBairro(bairro, contato);
+  const bloco = document.getElementById('captura-interesse-bloco');
+  bloco.innerHTML = ok
+    ? '<p style="font-size:12.5px;color:var(--accent-text);text-align:center;">Anotado! Vamos te avisar assim que atendermos aí. 🎉</p>'
+    : '<p style="font-size:12.5px;color:var(--danger-text);text-align:center;">Não deu pra registrar agora, tenta de novo em instantes.</p>';
 }
 
 function irParaAvulso(nomeBairro, frete, minimo, retirada){

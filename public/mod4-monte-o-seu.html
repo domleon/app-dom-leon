@@ -289,8 +289,8 @@ let voltandoParaResumo = false; // true quando veio da etapa 3 clicando num dia 
   CATALOGO = await carregarCatalogo();
 
   CATALOGO.categorias.forEach(cat => { CATEGORIAS[cat] = []; });
-  CATALOGO.itens.filter(i => i.ativo).forEach(item => {
-    PRECOS[item.id] = item.preco;
+  CATALOGO.itens.filter(i => i.ativo && (!i.modalidades || i.modalidades.assinatura)).forEach(item => {
+    PRECOS[item.id] = item.precoAssinatura !== undefined ? item.precoAssinatura : item.preco;
     NOMES[item.id] = item.nome;
     IMAGENS[item.id] = item.imagem || null;
     if (!CATEGORIAS[item.categoria]) CATEGORIAS[item.categoria] = [];

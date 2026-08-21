@@ -251,7 +251,7 @@ function salvarCarrinho(){
 function calcularSubtotal(){
   let total = 0;
   for (const id in CARRINHO){
-    if (ITENS[id]) total += CARRINHO[id] * ITENS[id].preco;
+    if (ITENS[id]) total += CARRINHO[id] * (ITENS[id].precoAvulso !== undefined ? ITENS[id].precoAvulso : ITENS[id].preco);
   }
   return total;
 }
@@ -289,6 +289,7 @@ function renderizarCarrinho(){
   ids.forEach(id => {
     const item = ITENS[id];
     const qtd = CARRINHO[id];
+    const preco = item.precoAvulso !== undefined ? item.precoAvulso : item.preco;
     const div = document.createElement('div');
     div.className = 'item-linha';
     div.innerHTML = `
@@ -301,8 +302,8 @@ function renderizarCarrinho(){
         </div>
       </div>
       <div class="linha2">
-        <span class="preco-un">${fmt(item.preco)}/un</span>
-        <span class="preco-total" id="carr-total-${id}">${fmt(item.preco * qtd)}</span>
+        <span class="preco-un">${fmt(preco)}/un</span>
+        <span class="preco-total" id="carr-total-${id}">${fmt(preco * qtd)}</span>
       </div>`;
     container.appendChild(div);
   });
@@ -427,7 +428,7 @@ function confirmarPagamento(){
 
 (async function init(){
   CATALOGO = await carregarCatalogo();
-  CATALOGO.itens.forEach(i => { ITENS[i.id] = i; });
+  CATALOGO.itens.filter(i => i.ativo && (!i.modalidades || i.modalidades.avulso)).forEach(i => { ITENS[i.id] = i; });
   renderizarCarrinho();
 })();
 </script>
