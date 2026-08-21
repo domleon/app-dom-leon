@@ -16,6 +16,7 @@ if (!firebase.apps.length) {
 }
 const db = firebase.firestore();
 const CATALOGO_DOC_REF = db.collection('catalogo').doc('dados');
+const INTERESSES_COLLECTION = db.collection('interesses_bairro');
 
 /* Bairros reais de Salto de Pirapora/SP (fonte: CEPs dos Correios).
    Por padrão nenhum é atendido — admin marca frete + pedido mínimo na aba Bairros do mod8.
@@ -43,17 +44,17 @@ const NOMES_BAIRROS_SALTO_PIRAPORA = [
 ];
 
 const BAIRROS_ATENDIDOS_PADRAO = {
-  'Centro': { frete: 5.00, minimo: 20.00 },
-  'Jardim Avenida': { frete: 7.00, minimo: 20.00 },
-  'Campo Largo': { frete: 8.00, minimo: 25.00 }
+  'Centro': { frete: 5.00, minimo: 20.00, gratis: false },
+  'Jardim Avenida': { frete: 7.00, minimo: 20.00, gratis: false },
+  'Campo Largo': { frete: 8.00, minimo: 25.00, gratis: false }
 };
 
 function montarBairrosPadrao(){
   return NOMES_BAIRROS_SALTO_PIRAPORA.map(nome => {
     const pre = BAIRROS_ATENDIDOS_PADRAO[nome];
     return pre
-      ? { nome, atendido: true, frete: pre.frete, minimo: pre.minimo }
-      : { nome, atendido: false, frete: null, minimo: null };
+      ? { nome, atendido: true, frete: pre.frete, minimo: pre.minimo, gratis: !!pre.gratis }
+      : { nome, atendido: false, frete: null, minimo: null, gratis: false };
   });
 }
 
@@ -61,29 +62,116 @@ function removerAcentos(txt){
   return (txt || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
 
+/* Texto padrão de descrição para itens vendidos por porção de peso (obrigação legal
+   Inmetro/CDC: venda de pão precisa ter base em peso, não só em unidade). */
+function descricaoPorcao(unidadesAprox){
+  return `Aproximadamente ${unidadesAprox}. Pesado na hora! O valor do seu pedido é fixo, ` +
+    `mas o peso vem caprichado: a balança sempre entrega igual ou mais pão para você.`;
+}
+
 const CATALOGO_PADRAO = {
   categorias: ['Pães', 'Laticínios & Padaria', 'Frutas & Extras'],
   itens: [
-    { id: 'pao-frances',    nome: 'Pão francês',              categoria: 'Pães',                 preco: 0.80,  ativo: true, imagem: null },
-    { id: 'pao-integral',   nome: 'Pão integral',              categoria: 'Pães',                 preco: 1.20,  ativo: true, imagem: null },
-    { id: 'pao-forma',      nome: 'Pão de forma artesanal',    categoria: 'Pães',                 preco: 9.90,  ativo: true, imagem: null },
-    { id: 'leite',          nome: 'Leite',                     categoria: 'Laticínios & Padaria', preco: 5.80,  ativo: true, imagem: null },
-    { id: 'torrada',        nome: 'Torrada',                   categoria: 'Laticínios & Padaria', preco: 5.90,  ativo: true, imagem: null },
-    { id: 'queijo',         nome: 'Queijo branco 200g',        categoria: 'Laticínios & Padaria', preco: 8.50,  ativo: true, imagem: null },
-    { id: 'manteiga',       nome: 'Manteiga 200g',             categoria: 'Laticínios & Padaria', preco: 7.00,  ativo: true, imagem: null },
-    { id: 'fruta',          nome: 'Fruta da estação',          categoria: 'Frutas & Extras',      preco: 2.50,  ativo: true, imagem: null },
-    { id: 'laranjas-kit6',  nome: 'Laranjas (kit c/ 6)',       categoria: 'Frutas & Extras',      preco: 10.00, ativo: true, imagem: null },
-    { id: 'morango-cx',     nome: 'Caixa de morango',          categoria: 'Frutas & Extras',      preco: 12.00, ativo: true, imagem: null },
-    { id: 'suco',           nome: 'Suco natural 300ml',        categoria: 'Frutas & Extras',      preco: 6.00,  ativo: true, imagem: null }
+    // Pães — vendidos por porção de peso (100g/250g), preço fixo, R$/kg exibido como referência
+    { id: 'pao-frances-100g',  nome: 'Pão Francês 100g',          categoria: 'Pães', pesoGramas: 100, precoKg: 8.00,
+      precoAvulso: 0.80, precoAssinatura: 0.80, modalidades: { avulso: true, assinatura: true },
+      descricao: descricaoPorcao('1 a 2 unidades'), ativo: true, imagem: null },
+    { id: 'pao-frances-250g',  nome: 'Pão Francês 250g',          categoria: 'Pães', pesoGramas: 250, precoKg: 8.00,
+      precoAvulso: 2.00, precoAssinatura: 2.00, modalidades: { avulso: true, assinatura: true },
+      descricao: descricaoPorcao('4 a 5 unidades'), ativo: true, imagem: null },
+    { id: 'pao-integral-100g', nome: 'Pão Integral 100g',         categoria: 'Pães', pesoGramas: 100, precoKg: 12.00,
+      precoAvulso: 1.20, precoAssinatura: 1.20, modalidades: { avulso: true, assinatura: true },
+      descricao: descricaoPorcao('1 a 2 unidades'), ativo: true, imagem: null },
+    { id: 'pao-integral-250g', nome: 'Pão Integral 250g',         categoria: 'Pães', pesoGramas: 250, precoKg: 12.00,
+      precoAvulso: 3.00, precoAssinatura: 3.00, modalidades: { avulso: true, assinatura: true },
+      descricao: descricaoPorcao('4 a 5 unidades'), ativo: true, imagem: null },
+    { id: 'pao-forma-100g',    nome: 'Pão de Forma Artesanal 100g', categoria: 'Pães', pesoGramas: 100, precoKg: 19.80,
+      precoAvulso: 1.98, precoAssinatura: 1.98, modalidades: { avulso: true, assinatura: true },
+      descricao: descricaoPorcao('1 a 2 fatias generosas'), ativo: true, imagem: null },
+    { id: 'pao-forma-250g',    nome: 'Pão de Forma Artesanal 250g', categoria: 'Pães', pesoGramas: 250, precoKg: 19.80,
+      precoAvulso: 4.95, precoAssinatura: 4.95, modalidades: { avulso: true, assinatura: true },
+      descricao: descricaoPorcao('4 a 5 fatias generosas'), ativo: true, imagem: null },
+
+    // Laticínios & Padaria e Frutas & Extras — seguem vendidos por unidade normalmente
+    { id: 'leite',          nome: 'Leite',                     categoria: 'Laticínios & Padaria', precoAvulso: 5.80,  precoAssinatura: 5.80,  modalidades: { avulso: true, assinatura: true }, ativo: true, imagem: null },
+    { id: 'torrada',        nome: 'Torrada',                   categoria: 'Laticínios & Padaria', precoAvulso: 5.90,  precoAssinatura: 5.90,  modalidades: { avulso: true, assinatura: true }, ativo: true, imagem: null },
+    { id: 'queijo',         nome: 'Queijo branco 200g',        categoria: 'Laticínios & Padaria', precoAvulso: 8.50,  precoAssinatura: 8.50,  modalidades: { avulso: true, assinatura: true }, ativo: true, imagem: null },
+    { id: 'manteiga',       nome: 'Manteiga 200g',             categoria: 'Laticínios & Padaria', precoAvulso: 7.00,  precoAssinatura: 7.00,  modalidades: { avulso: true, assinatura: true }, ativo: true, imagem: null },
+    { id: 'fruta',          nome: 'Fruta da estação',          categoria: 'Frutas & Extras',      precoAvulso: 2.50,  precoAssinatura: 2.50,  modalidades: { avulso: true, assinatura: true }, ativo: true, imagem: null },
+    { id: 'laranjas-kit6',  nome: 'Laranjas (kit c/ 6)',       categoria: 'Frutas & Extras',      precoAvulso: 10.00, precoAssinatura: 10.00, modalidades: { avulso: true, assinatura: true }, ativo: true, imagem: null },
+    { id: 'morango-cx',     nome: 'Caixa de morango',          categoria: 'Frutas & Extras',      precoAvulso: 12.00, precoAssinatura: 12.00, modalidades: { avulso: true, assinatura: true }, ativo: true, imagem: null },
+    { id: 'suco',           nome: 'Suco natural 300ml',        categoria: 'Frutas & Extras',      precoAvulso: 6.00,  precoAssinatura: 6.00,  modalidades: { avulso: true, assinatura: true }, ativo: true, imagem: null }
   ],
   combos: [
-    { id: 'cafe', nome: 'Café da manhã completo', dias: ['seg', 'qua', 'sex'],               itensPadrao: { 'pao-frances': 2, 'leite': 1, 'torrada': 1 }, imagem: null },
-    { id: 'fit',  nome: 'Dom Leon fit',            dias: ['seg', 'ter', 'qua', 'qui', 'sex'], itensPadrao: { 'pao-integral': 2, 'queijo': 1, 'fruta': 1 }, imagem: null },
-    { id: 'doce', nome: 'Doce lar',                dias: ['sab', 'dom'],                      itensPadrao: { 'pao-forma': 1, 'fruta': 1 },                 imagem: null }
+    { id: 'cafe', nome: 'Café da manhã completo', dias: ['seg', 'qua', 'sex'],               itensPadrao: { 'pao-frances-100g': 1, 'leite': 1, 'torrada': 1 }, imagem: null },
+    { id: 'fit',  nome: 'Dom Leon fit',            dias: ['seg', 'ter', 'qua', 'qui', 'sex'], itensPadrao: { 'pao-integral-100g': 1, 'queijo': 1, 'fruta': 1 }, imagem: null },
+    { id: 'doce', nome: 'Doce lar',                dias: ['sab', 'dom'],                      itensPadrao: { 'pao-forma-100g': 1, 'fruta': 1 },                 imagem: null }
   ],
   bairros: montarBairrosPadrao(),
   taxaEntregaAssinatura: 2.99
 };
+
+/* Mapeia os ids antigos (por unidade) para os novos ids de porção equivalentes,
+   usado só na migração de catálogos salvos antes dessa mudança. */
+const MIGRACAO_IDS_PAO_ANTIGOS = {
+  'pao-frances': 'pao-frances-100g',
+  'pao-integral': 'pao-integral-100g',
+  'pao-forma': 'pao-forma-100g'
+};
+
+/* ---------- Migração suave: catálogos salvos antes de modalidade/preço duplo,
+   porção de peso ou entrega grátis ganham os campos novos automaticamente. ---------- */
+function migrarCatalogo(catalogo){
+  let precisouMigrar = false;
+
+  // bairros: garante o campo "gratis"
+  (catalogo.bairros || []).forEach(b => {
+    if (b.gratis === undefined) { b.gratis = false; precisouMigrar = true; }
+  });
+
+  // itens: garante modalidades + precoAvulso/precoAssinatura (a partir do antigo "preco", se existir)
+  (catalogo.itens || []).forEach(item => {
+    if (!item.modalidades) {
+      item.modalidades = { avulso: true, assinatura: true };
+      precisouMigrar = true;
+    }
+    if (item.precoAvulso === undefined || item.precoAssinatura === undefined) {
+      const precoBase = (item.preco !== undefined) ? item.preco : 0;
+      if (item.precoAvulso === undefined) item.precoAvulso = precoBase;
+      if (item.precoAssinatura === undefined) item.precoAssinatura = precoBase;
+      precisouMigrar = true;
+    }
+  });
+
+  // pães antigos (por unidade) → substitui pelas porções de peso padrão, se ainda existirem
+  const temPaoAntigo = (catalogo.itens || []).some(i => MIGRACAO_IDS_PAO_ANTIGOS[i.id]);
+  if (temPaoAntigo) {
+    catalogo.itens = catalogo.itens.filter(i => !MIGRACAO_IDS_PAO_ANTIGOS[i.id]);
+    const idsExistentes = new Set(catalogo.itens.map(i => i.id));
+    CATALOGO_PADRAO.itens
+      .filter(i => i.categoria === 'Pães' && !idsExistentes.has(i.id))
+      .forEach(i => catalogo.itens.push(JSON.parse(JSON.stringify(i))));
+
+    // atualiza combos que referenciavam os ids antigos
+    (catalogo.combos || []).forEach(combo => {
+      Object.keys(combo.itensPadrao || {}).forEach(idAntigo => {
+        const idNovo = MIGRACAO_IDS_PAO_ANTIGOS[idAntigo];
+        if (idNovo) {
+          combo.itensPadrao[idNovo] = combo.itensPadrao[idAntigo];
+          delete combo.itensPadrao[idAntigo];
+        }
+      });
+    });
+    precisouMigrar = true;
+  }
+
+  if (catalogo.taxaEntregaAssinatura === undefined) {
+    catalogo.taxaEntregaAssinatura = 2.99;
+    precisouMigrar = true;
+  }
+
+  return precisouMigrar;
+}
 
 /* ---------- Carregar (leitura única do documento) ---------- */
 async function carregarCatalogo(){
@@ -95,9 +183,12 @@ async function carregarCatalogo(){
       return JSON.parse(JSON.stringify(CATALOGO_PADRAO));
     }
     const catalogo = snap.data();
-    // migração suave: documentos salvos antes da existência de bairros ganham a lista padrão
     if (!catalogo.bairros) catalogo.bairros = montarBairrosPadrao();
-    if (catalogo.taxaEntregaAssinatura === undefined) catalogo.taxaEntregaAssinatura = 2.99;
+
+    const precisouMigrar = migrarCatalogo(catalogo);
+    if (precisouMigrar) {
+      await salvarCatalogo(catalogo); // persiste a migração, só acontece uma vez
+    }
     return catalogo;
   } catch (e) {
     console.error('Erro ao ler catálogo do Firestore, usando padrão local (sem persistência).', e);
@@ -121,6 +212,21 @@ function escutarCatalogo(callback){
   return CATALOGO_DOC_REF.onSnapshot(snap => {
     if (snap.exists) callback(snap.data());
   }, err => console.error('Erro ao escutar catálogo em tempo real.', err));
+}
+
+/* ---------- Captura de interesse (bairro não atendido) ---------- */
+async function registrarInteresseBairro(nomeBairro, contato){
+  try {
+    await INTERESSES_COLLECTION.add({
+      bairro: nomeBairro,
+      contato: contato,
+      criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    return true;
+  } catch (e) {
+    console.error('Erro ao registrar interesse de bairro.', e);
+    return false;
+  }
 }
 
 function gerarIdUnico(nome, listaExistente){
