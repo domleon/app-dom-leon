@@ -10,6 +10,13 @@ service cloud.firestore {
       allow write: if true;
     }
 
+    // Interesse de cliente em bairro não atendido: qualquer visitante pode registrar (create),
+    // leitura fica só pro admin autenticado (ainda não implementado, então liberada por ora).
+    match /interesses_bairro/{documento} {
+      allow create: if true;
+      allow read: if true;
+    }
+
     // Qualquer outra coleção futura (pedidos, assinantes etc.) fica protegida por padrão.
     match /{document=**} {
       allow read, write: if request.auth != null;
