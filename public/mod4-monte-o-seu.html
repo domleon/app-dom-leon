@@ -77,10 +77,28 @@
   .parcial-dia{font-size:12px;color:var(--text-muted);}
   .parcial-dia b{color:var(--text-primary);}
 
-  .copy-select-wrap{margin-bottom:12px;display:none;}
-  .copy-select-wrap select{
-    width:100%;height:32px;font-size:12px;border:0.5px solid var(--border-strong);border-radius:8px;
-    padding:0 8px;font-family:inherit;background:var(--bg);color:var(--text-secondary);
+  .dias-badges-row{display:flex;justify-content:space-between;margin-bottom:16px;}
+  .dia-badge{text-align:center;}
+  .dia-badge .circulo{
+    width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-size:12px;font-weight:600;margin:0 auto 4px;border:1.5px solid var(--border);color:var(--border-strong);
+  }
+  .dia-badge .circulo svg{width:15px;height:15px;}
+  .dia-badge .rotulo{font-size:9px;color:var(--border-strong);}
+  .dia-badge.selecionado .circulo{border-color:var(--accent);background:var(--accent-bg);color:var(--accent-text);}
+  .dia-badge.selecionado .rotulo{color:var(--text-primary);font-weight:600;}
+  .dia-badge.concluido .circulo{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .dia-badge.ativo .circulo{border-width:2px;border-color:var(--text-primary);}
+
+  .banner-copiar{
+    display:flex;align-items:center;gap:10px;background:var(--accent-bg);border:0.5px solid var(--accent);
+    border-radius:10px;padding:10px 12px;margin-bottom:12px;
+  }
+  .banner-copiar svg{width:16px;height:16px;color:var(--accent-text);flex-shrink:0;}
+  .banner-copiar span{font-size:11.5px;color:var(--accent-text);flex:1;}
+  .banner-copiar button{
+    background:var(--text-primary);color:#fff;border:none;padding:0 10px;height:28px;
+    border-radius:6px;font-size:11px;flex-shrink:0;font-family:inherit;cursor:pointer;
   }
 
   .categoria{margin-bottom:10px;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;}
@@ -88,8 +106,8 @@
     display:flex;justify-content:space-between;align-items:center;
     font-size:13px;font-weight:500;color:var(--text-primary);padding:12px 14px;cursor:pointer;
   }
-  .categoria-titulo i{font-size:16px;color:var(--text-muted);transition:transform .15s;}
-  .categoria.aberta .categoria-titulo i{transform:rotate(180deg);}
+  .categoria-titulo svg{width:16px;height:16px;color:var(--text-muted);transition:transform .15s;flex-shrink:0;}
+  .categoria.aberta .categoria-titulo svg{transform:rotate(180deg);}
   .categoria-itens{display:none;padding:0 10px 10px;}
   .categoria.aberta .categoria-itens{display:block;}
   .item-row{
@@ -218,16 +236,18 @@
 
   <!-- ETAPA 2: ITENS DO DIA -->
   <div class="etapa" id="etapa-itens">
+    <div class="dias-badges-row" id="dias-badges-row"></div>
+
     <p class="titulo-etapa" id="etapa2-titulo">Itens do dia</p>
 
     <div class="etapa2-header">
-      <button class="copy-btn" id="btn-copiar" onclick="mostrarSeletorCopia()" style="display:none;">Copiar itens de...</button>
       <span class="parcial-dia">Parcial do dia: <b id="parcial-dia-valor">R$ 0,00</b></span>
     </div>
-    <div class="copy-select-wrap" id="copy-select-wrap">
-      <select id="copy-select" onchange="copiarDeOutroDia(this.value)">
-        <option value="">Escolher dia...</option>
-      </select>
+
+    <div class="banner-copiar" id="banner-copiar" style="display:none;">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+      <span id="banner-copiar-texto">Usar os mesmos itens de outro dia?</span>
+      <button onclick="usarSugestaoCopia()">Usar</button>
     </div>
 
     <div id="categorias-container" style="overflow-y:auto;"></div>
@@ -368,24 +388,50 @@ function avancarDeEtapa1(){
 
 /* ---------- ETAPA 2: itens do dia ---------- */
 const PREP_DIA = {seg:'da', ter:'da', qua:'da', qui:'da', sex:'da', sab:'de', dom:'de'};
+const DIA_LETRA = {seg:'S', ter:'T', qua:'Q', qui:'Q', sex:'S', sab:'S', dom:'D'};
+const SVG_CHECK = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+const SVG_CHEVRON = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>';
+
+function diaTemItens(dia){
+  const itens = itensPorDia[dia] || {};
+  return Object.values(itens).some(qtd => qtd > 0);
+}
+
+function renderizarBadgesDias(){
+  const container = document.getElementById('dias-badges-row');
+  container.innerHTML = DIAS_ORDEM.map(dia => {
+    const selecionado = diasSelecionados.includes(dia);
+    const concluido = selecionado && diaTemItens(dia);
+    const ativo = dia === diaAtivoTab;
+    const classes = ['dia-badge'];
+    if (selecionado) classes.push('selecionado');
+    if (concluido) classes.push('concluido');
+    if (ativo) classes.push('ativo');
+    const conteudo = concluido ? SVG_CHECK : DIA_LETRA[dia];
+    return `
+      <div class="${classes.join(' ')}">
+        <div class="circulo">${conteudo}</div>
+        <div class="rotulo">${DIA_LABEL[dia].slice(0, 3)}</div>
+      </div>`;
+  }).join('');
+}
 
 function renderizarEtapa2(){
-  document.getElementById('etapa2-titulo').textContent =
-    'Itens ' + PREP_DIA[diaAtivoTab] + ' ' + DIA_LABEL[diaAtivoTab].toLowerCase();
+  renderizarBadgesDias();
 
-  // "Copiar itens de..." só aparece a partir do 2º dia do fluxo (precisa existir dia anterior preenchido)
+  document.getElementById('etapa2-titulo').textContent =
+    'Escolha os itens ' + PREP_DIA[diaAtivoTab] + ' ' + DIA_LABEL[diaAtivoTab].toLowerCase();
+
+  // Banner "usar os mesmos itens de outro dia?" — só a partir do 2º dia e só se o dia atual ainda estiver vazio
   const idxAtual = diasSelecionados.indexOf(diaAtivoTab);
-  const btnCopiar = document.getElementById('btn-copiar');
-  const copyWrap = document.getElementById('copy-select-wrap');
-  copyWrap.style.display = 'none';
-  if (idxAtual > 0){
-    btnCopiar.style.display = 'inline-block';
-    const select = document.getElementById('copy-select');
-    select.innerHTML = '<option value="">Escolher dia...</option>' +
-      diasSelecionados.filter(d => d !== diaAtivoTab)
-        .map(d => `<option value="${d}">${DIA_LABEL[d]}</option>`).join('');
+  const banner = document.getElementById('banner-copiar');
+  if (idxAtual > 0 && !diaTemItens(diaAtivoTab)){
+    const diaAnterior = diasSelecionados[idxAtual - 1];
+    document.getElementById('banner-copiar-texto').textContent =
+      'Usar os mesmos itens ' + PREP_DIA[diaAnterior] + ' ' + DIA_LABEL[diaAnterior].toLowerCase() + '?';
+    banner.style.display = 'flex';
   } else {
-    btnCopiar.style.display = 'none';
+    banner.style.display = 'none';
   }
 
   const container = document.getElementById('categorias-container');
@@ -399,8 +445,8 @@ function renderizarEtapa2(){
 
     const titulo = document.createElement('div');
     titulo.className = 'categoria-titulo';
-    titulo.onclick = () => bloco.classList.toggle('aberta');
-    titulo.innerHTML = `<span>${catNome}</span><i class="ti ti-chevron-down"></i>`;
+    titulo.onclick = () => alternarCategoria(bloco);
+    titulo.innerHTML = `<span>${catNome}</span>${SVG_CHEVRON}`;
     bloco.appendChild(titulo);
 
     const itensWrap = document.createElement('div');
@@ -434,6 +480,13 @@ function renderizarEtapa2(){
   atualizarParcialDia();
 }
 
+// Mantém só uma categoria aberta por vez — abrir uma fecha a anterior
+function alternarCategoria(blocoClicado){
+  const jaAberta = blocoClicado.classList.contains('aberta');
+  document.querySelectorAll('#categorias-container .categoria').forEach(b => b.classList.remove('aberta'));
+  if (!jaAberta) blocoClicado.classList.add('aberta');
+}
+
 function alterarItem(itemId, delta){
   const atual = itensPorDia[diaAtivoTab][itemId] || 0;
   let novo = atual + delta;
@@ -441,6 +494,8 @@ function alterarItem(itemId, delta){
   itensPorDia[diaAtivoTab][itemId] = novo;
   document.getElementById('qtd-' + itemId).textContent = novo;
   atualizarParcialDia();
+  renderizarBadgesDias();
+  if (diaTemItens(diaAtivoTab)) document.getElementById('banner-copiar').style.display = 'none';
 }
 
 function atualizarParcialDia(){
@@ -448,15 +503,13 @@ function atualizarParcialDia(){
     'R$ ' + calcularValorDia(diaAtivoTab).toFixed(2).replace('.', ',');
 }
 
-function mostrarSeletorCopia(){
-  document.getElementById('copy-select-wrap').style.display = 'block';
-}
-
-function copiarDeOutroDia(diaOrigem){
-  if (!diaOrigem) return;
-  itensPorDia[diaAtivoTab] = Object.assign({}, itensPorDia[diaOrigem]);
+function usarSugestaoCopia(){
+  const idxAtual = diasSelecionados.indexOf(diaAtivoTab);
+  if (idxAtual <= 0) return;
+  const diaAnterior = diasSelecionados[idxAtual - 1];
+  itensPorDia[diaAtivoTab] = Object.assign({}, itensPorDia[diaAnterior]);
+  document.getElementById('banner-copiar').style.display = 'none';
   renderizarEtapa2();
-  document.getElementById('copy-select-wrap').style.display = 'none';
 }
 
 function voltarDeEtapa2(){

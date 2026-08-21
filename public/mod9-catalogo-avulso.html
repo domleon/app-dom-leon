@@ -157,7 +157,7 @@ function renderizarCategorias(filtroTexto){
 
     const titulo = document.createElement('div');
     titulo.className = 'categoria-titulo';
-    titulo.onclick = () => bloco.classList.toggle('aberta');
+    titulo.onclick = () => alternarCategoria(bloco);
     titulo.innerHTML = `<span>${catNome}</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>`;
     bloco.appendChild(titulo);
 
@@ -194,6 +194,13 @@ function renderizarCategorias(filtroTexto){
   });
 
   document.getElementById('sem-resultado').style.display = algumResultado ? 'none' : 'block';
+}
+
+// Mantém só uma categoria aberta por vez — abrir uma fecha a anterior
+function alternarCategoria(blocoClicado){
+  const jaAberta = blocoClicado.classList.contains('aberta');
+  document.querySelectorAll('#categorias-container .categoria').forEach(b => b.classList.remove('aberta'));
+  if (!jaAberta) blocoClicado.classList.add('aberta');
 }
 
 function destacarTexto(texto, filtro){
