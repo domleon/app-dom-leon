@@ -112,6 +112,26 @@
   .cat-row:last-child{border-bottom:none;}
   .cat-row .count{font-size:11px;color:var(--text-muted);margin-left:8px;}
 
+  /* Disponibilidade */
+  .disp-card{background:var(--card);border:0.5px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:16px;max-width:680px;}
+  .disp-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+  .disp-card-header h3{font-size:14px;font-weight:600;}
+  .disp-card-sub{font-size:11px;color:var(--text-muted);margin-bottom:12px;}
+  .disp-toggle{position:relative;width:38px;height:22px;border-radius:11px;background:var(--border-strong);cursor:pointer;flex-shrink:0;}
+  .disp-toggle.on{background:var(--accent);}
+  .disp-toggle .knob{position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .15s;}
+  .disp-toggle.on .knob{left:18px;}
+  .disp-dias-table{width:100%;border-collapse:collapse;font-size:12px;}
+  .disp-dias-table th{text-align:left;padding:6px 8px;font-size:10.5px;text-transform:uppercase;letter-spacing:0.02em;color:var(--text-muted);font-weight:500;}
+  .disp-dias-table td{padding:6px 8px;border-top:0.5px solid var(--border);vertical-align:middle;}
+  .disp-dias-table input[type="time"]{
+    border:0.5px solid var(--border-strong);border-radius:6px;padding:3px 6px;font-size:11.5px;font-family:inherit;background:var(--bg);width:88px;
+  }
+  .disp-toggle-mini{position:relative;width:30px;height:18px;border-radius:9px;background:var(--border-strong);cursor:pointer;}
+  .disp-toggle-mini.on{background:var(--accent);}
+  .disp-toggle-mini .knob{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:left .15s;}
+  .disp-toggle-mini.on .knob{left:14px;}
+
   /* Modal */
   .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);align-items:center;justify-content:center;z-index:10;overflow-y:auto;padding:24px 0;}
   .modal-overlay.open{display:flex;}
@@ -191,6 +211,7 @@
     <button class="tab-btn" onclick="showPanel('itens')">Itens do Monte o seu</button>
     <button class="tab-btn" onclick="showPanel('categorias')">Categorias</button>
     <button class="tab-btn" onclick="showPanel('bairros')">Bairros</button>
+    <button class="tab-btn" onclick="showPanel('disponibilidade')">Disponibilidade</button>
   </div>
 
   <!-- PAINEL: COMBOS FIXOS -->
@@ -242,6 +263,15 @@
         <tbody id="tbody-bairros"></tbody>
       </table>
     </div>
+  </div>
+
+  <!-- PAINEL: DISPONIBILIDADE -->
+  <div class="panel" id="panel-disponibilidade">
+    <p style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">
+      Controle quando cada opção aparece pro cliente na tela inicial. Desligado = nunca aparece.
+      Ligado, mas fora do horário configurado no dia = também fica oculto naquele momento.
+    </p>
+    <div id="disponibilidade-container"></div>
   </div>
 
 </div>
@@ -411,6 +441,7 @@ function renderizarTudo(){
   renderizarItens();
   renderizarCategorias();
   renderizarBairros();
+  renderizarDisponibilidade();
 }
 
 /* ---------- COMBOS FIXOS ---------- */
@@ -862,6 +893,77 @@ function salvarBairro(){
   persistir();
   renderizarBairros();
   fecharModal('modal-bairro');
+}
+
+/* ---------- DISPONIBILIDADE ---------- */
+const NOMES_CARDS = {
+  avulso: { titulo: 'Faça seu Pedido', sub: 'Compra avulsa, sem compromisso' },
+  assados: { titulo: 'Assados & Menu Almoço', sub: 'Catálogo próprio de assados e itens de almoço' },
+  assinatura: { titulo: 'Assinatura mensal', sub: 'Plano recorrente de pães e itens do dia a dia' }
+};
+const DIA_LABEL_DISP = {seg:'Segunda', ter:'Terça', qua:'Quarta', qui:'Quinta', sex:'Sexta', sab:'Sábado', dom:'Domingo'};
+const DIAS_ORDEM_DISP = ['seg','ter','qua','qui','sex','sab','dom'];
+
+function renderizarDisponibilidade(){
+  const container = document.getElementById('disponibilidade-container');
+  if (!container) return;
+  container.innerHTML = '';
+
+  Object.keys(NOMES_CARDS).forEach(chave => {
+    const config = CATALOGO.configCards[chave];
+    const info = NOMES_CARDS[chave];
+
+    const card = document.createElement('div');
+    card.className = 'disp-card';
+
+    const linhasDias = DIAS_ORDEM_DISP.map(dia => {
+      const h = config.horarios[dia];
+      return `
+        <tr>
+          <td>${DIA_LABEL_DISP[dia]}</td>
+          <td>
+            <div class="disp-toggle-mini ${h.ativo ? 'on' : ''}" onclick="toggleDiaCard('${chave}', '${dia}')">
+              <div class="knob"></div>
+            </div>
+          </td>
+          <td><input type="time" value="${h.inicio}" onchange="alterarHorarioCard('${chave}', '${dia}', 'inicio', this.value)" ${h.ativo ? '' : 'disabled'}></td>
+          <td>até</td>
+          <td><input type="time" value="${h.fim}" onchange="alterarHorarioCard('${chave}', '${dia}', 'fim', this.value)" ${h.ativo ? '' : 'disabled'}></td>
+        </tr>`;
+    }).join('');
+
+    card.innerHTML = `
+      <div class="disp-card-header">
+        <h3>${info.titulo}</h3>
+        <div class="disp-toggle ${config.habilitado ? 'on' : ''}" onclick="toggleHabilitadoCard('${chave}')">
+          <div class="knob"></div>
+        </div>
+      </div>
+      <div class="disp-card-sub">${info.sub}</div>
+      <table class="disp-dias-table">
+        <thead><tr><th>Dia</th><th>Ativo</th><th>Início</th><th></th><th>Fim</th></tr></thead>
+        <tbody>${linhasDias}</tbody>
+      </table>`;
+    container.appendChild(card);
+  });
+}
+
+function toggleHabilitadoCard(chave){
+  CATALOGO.configCards[chave].habilitado = !CATALOGO.configCards[chave].habilitado;
+  persistir();
+  renderizarDisponibilidade();
+}
+
+function toggleDiaCard(chave, dia){
+  const h = CATALOGO.configCards[chave].horarios[dia];
+  h.ativo = !h.ativo;
+  persistir();
+  renderizarDisponibilidade();
+}
+
+function alterarHorarioCard(chave, dia, campo, valor){
+  CATALOGO.configCards[chave].horarios[dia][campo] = valor;
+  persistir();
 }
 
 /* ---------- Inicialização ---------- */

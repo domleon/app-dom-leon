@@ -58,6 +58,50 @@ function montarBairrosPadrao(){
   });
 }
 
+const DIAS_ORDEM_CATALOGO = ['seg','ter','qua','qui','sex','sab','dom'];
+
+/* Monta a semana de horários de um card: por padrão todo mundo disponível o dia inteiro.
+   overrides permite deixar dias específicos desativados ou com outro horário. */
+function montarSemanaHorarios(overrides){
+  const semana = {};
+  DIAS_ORDEM_CATALOGO.forEach(dia => {
+    semana[dia] = { ativo: true, inicio: '00:00', fim: '23:59' };
+  });
+  if (overrides) Object.assign(semana, overrides);
+  return semana;
+}
+
+function montarConfigCardsPadrao(){
+  return {
+    avulso: { habilitado: true, horarios: montarSemanaHorarios() },
+    assinatura: { habilitado: true, horarios: montarSemanaHorarios() },
+    // Assados & Menu Almoço: por padrão só sábado e domingo, das 8h às 14h (almoço de fim de semana)
+    assados: { habilitado: true, horarios: montarSemanaHorarios({
+      seg: { ativo: false, inicio: '00:00', fim: '23:59' },
+      ter: { ativo: false, inicio: '00:00', fim: '23:59' },
+      qua: { ativo: false, inicio: '00:00', fim: '23:59' },
+      qui: { ativo: false, inicio: '00:00', fim: '23:59' },
+      sex: { ativo: false, inicio: '00:00', fim: '23:59' },
+      sab: { ativo: true,  inicio: '08:00', fim: '14:00' },
+      dom: { ativo: true,  inicio: '08:00', fim: '14:00' }
+    }) }
+  };
+}
+
+/* Confere se um card está disponível agora mesmo (habilitado + dentro da janela do dia de hoje) */
+function cardDisponivelAgora(configCard){
+  if (!configCard || !configCard.habilitado) return false;
+  const agora = new Date();
+  const diaJs = agora.getDay(); // 0=dom..6=sab
+  const mapaDiaJs = {0:'dom', 1:'seg', 2:'ter', 3:'qua', 4:'qui', 5:'sex', 6:'sab'};
+  const diaChave = mapaDiaJs[diaJs];
+  const horarioDia = (configCard.horarios || {})[diaChave];
+  if (!horarioDia || !horarioDia.ativo) return false;
+
+  const horaAtual = String(agora.getHours()).padStart(2, '0') + ':' + String(agora.getMinutes()).padStart(2, '0');
+  return horaAtual >= horarioDia.inicio && horaAtual <= horarioDia.fim;
+}
+
 function removerAcentos(txt){
   return (txt || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
@@ -108,7 +152,21 @@ const CATALOGO_PADRAO = {
     { id: 'doce', nome: 'Doce lar',                dias: ['sab', 'dom'],                      itensPadrao: { 'pao-forma-100g': 1, 'fruta': 1 },                 imagem: null }
   ],
   bairros: montarBairrosPadrao(),
-  taxaEntregaAssinatura: 2.99
+  taxaEntregaAssinatura: 2.99,
+
+  // Catálogo próprio do fluxo "Assados & Menu Almoço" — separado do catálogo de Pedido avulso
+  categoriasAssados: ['Assados', 'Acompanhamentos'],
+  itensAssados: [
+    { id: 'frango-assado-inteiro', nome: 'Frango Assado Inteiro',   categoria: 'Assados', precoAvulso: 45.00, ativo: true, imagem: null },
+    { id: 'frango-assado-meio',    nome: 'Meio Frango Assado',      categoria: 'Assados', precoAvulso: 25.00, ativo: true, imagem: null },
+    { id: 'lasanha-familia',       nome: 'Lasanha à Bolonhesa (P/4)', categoria: 'Assados', precoAvulso: 38.00, ativo: true, imagem: null },
+    { id: 'farofa-bacon',          nome: 'Farofa com Bacon 300g',   categoria: 'Acompanhamentos', precoAvulso: 12.00, ativo: true, imagem: null },
+    { id: 'batata-assada',         nome: 'Batata Assada c/ Ervas 400g', categoria: 'Acompanhamentos', precoAvulso: 14.00, ativo: true, imagem: null },
+    { id: 'vinagrete',             nome: 'Vinagrete 300g',          categoria: 'Acompanhamentos', precoAvulso: 8.00,  ativo: true, imagem: null }
+  ],
+
+  // Disponibilidade configurável dos 3 cards da tela inicial (habilitado + janela de horário por dia)
+  configCards: montarConfigCardsPadrao()
 };
 
 /* Mapeia os ids antigos (por unidade) para os novos ids de porção equivalentes,
@@ -167,6 +225,19 @@ function migrarCatalogo(catalogo){
 
   if (catalogo.taxaEntregaAssinatura === undefined) {
     catalogo.taxaEntregaAssinatura = 2.99;
+    precisouMigrar = true;
+  }
+
+  if (!catalogo.categoriasAssados) {
+    catalogo.categoriasAssados = JSON.parse(JSON.stringify(CATALOGO_PADRAO.categoriasAssados));
+    precisouMigrar = true;
+  }
+  if (!catalogo.itensAssados) {
+    catalogo.itensAssados = JSON.parse(JSON.stringify(CATALOGO_PADRAO.itensAssados));
+    precisouMigrar = true;
+  }
+  if (!catalogo.configCards) {
+    catalogo.configCards = montarConfigCardsPadrao();
     precisouMigrar = true;
   }
 
