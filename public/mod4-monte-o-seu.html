@@ -130,7 +130,7 @@
   }
   .stepper .qtd{font-size:12.5px;font-weight:500;min-width:14px;text-align:center;}
 
-  /* Etapa 3 — resumo com grid consolidado */
+  /* Etapa 3 — grid consolidado SEM R$ nos valores */
   .grid-itens-consolidado{
     display:grid;
     grid-template-columns: 44px 1fr 62px 72px;
@@ -665,8 +665,8 @@ function renderizarEtapa3(){
       linha.innerHTML = `
         <span class="qtd-grid">${qtd}</span>
         <span class="nome-grid">${nome}</span>
-        <span class="unit-grid">R$ ${precoUnit.toFixed(2).replace('.', ',')}</span>
-        <span class="total-grid">R$ ${total.toFixed(2).replace('.', ',')}</span>`;
+        <span class="unit-grid">${precoUnit.toFixed(2).replace('.', ',')}</span>
+        <span class="total-grid">${total.toFixed(2).replace('.', ',')}</span>`;
       gridHtml.appendChild(linha);
     });
   } else {
