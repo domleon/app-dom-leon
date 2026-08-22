@@ -130,15 +130,70 @@
   }
   .stepper .qtd{font-size:12.5px;font-weight:500;min-width:14px;text-align:center;}
 
-  /* Etapa 3 — resumo */
-  .dia-resumo-card{
-    border:0.5px solid var(--border);border-radius:10px;padding:11px 12px;margin-bottom:8px;cursor:pointer;
+  /* Etapa 3 — resumo com grid consolidado */
+  .grid-itens-consolidado{
+    display:grid;
+    grid-template-columns: 44px 1fr 62px 72px;
+    border:0.5px solid var(--border);border-radius:10px;overflow:hidden;
+    margin-bottom:12px;
   }
-  .dia-resumo-card:hover{border-color:var(--border-strong);}
-  .dia-resumo-topo{display:flex;justify-content:space-between;margin-bottom:3px;}
-  .dia-resumo-topo .dia-nome{font-size:13px;font-weight:600;color:var(--text-primary);}
-  .dia-resumo-topo .dia-preco{font-size:13px;color:var(--text-secondary);}
-  .dia-resumo-itens{font-size:12px;color:var(--text-muted);line-height:1.7;}
+
+  .grid-head{
+    display:contents;
+  }
+
+  .grid-head span{
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    color:var(--text-muted);
+    font-weight:600;
+    padding:10px 8px 8px;
+    border-bottom:0.5px solid var(--border);
+    background:var(--bg);
+  }
+
+  .grid-head span:nth-child(1){text-align:center;}
+  .grid-head span:nth-child(3),
+  .grid-head span:nth-child(4){text-align:right;padding-right:12px;}
+
+  .linha-item-grid{
+    display:contents;
+  }
+
+  .linha-item-grid span{
+    padding:10px 8px;
+    font-size:12px;
+    border-bottom:0.5px solid var(--border);
+    display:flex;
+    align-items:center;
+  }
+
+  .linha-item-grid:last-child span{
+    border-bottom:none;
+  }
+
+  .qtd-grid{
+    justify-content:center !important;
+    font-weight:600;
+    color:var(--accent);
+  }
+
+  .nome-grid{
+    font-weight:500;
+    line-height:1.25;
+    padding-left:10px;
+  }
+
+  .unit-grid, .total-grid{
+    justify-content:flex-end !important;
+    font-variant-numeric: tabular-nums;
+    padding-right:12px;
+  }
+
+  .total-grid{
+    font-weight:600;
+  }
 
   .ciclo-card{
     background:var(--accent-bg);border-radius:10px;padding:12px;margin:6px 0 14px;
@@ -552,28 +607,26 @@ function renderizarEtapa3(){
   const container = document.getElementById('dias-resumo-container');
   container.innerHTML = '';
 
+  // Agregar itens por toda a assinatura (período completo)
+  const itensAgregados = {};
   diasSelecionados.forEach(dia => {
     const itens = itensPorDia[dia] || {};
-    const idsComQtd = Object.keys(itens).filter(id => itens[id] > 0);
-    const itensHtml = idsComQtd.length > 0
-      ? idsComQtd.map(id => `<div>${itens[id]} ${NOMES[id]}</div>`).join('')
-      : '<div>sem itens selecionados</div>';
-    const valorDia = calcularValorDia(dia);
-
-    const card = document.createElement('div');
-    card.className = 'dia-resumo-card';
-    card.onclick = () => editarDiaDoResumo(dia);
-    card.innerHTML = `
-      <div class="dia-resumo-topo">
-        <span class="dia-nome">${DIA_LABEL[dia]}</span>
-        <span class="dia-preco">R$ ${valorDia.toFixed(2).replace('.', ',')}</span>
-      </div>
-      <div class="dia-resumo-itens">${itensHtml}</div>`;
-    container.appendChild(card);
+    Object.keys(itens).forEach(id => {
+      if (itens[id] > 0){
+        if (!itensAgregados[id]){
+          itensAgregados[id] = 0;
+        }
+        // Somar quantidade total no período (considerando o ciclo)
+        const ciclo = calcularCiclo(diasSelecionados);
+        const ocorrencias = ciclo ? (ciclo.contagem[dia] || 0) : 1;
+        itensAgregados[id] += itens[id] * ocorrencias;
+      }
+    });
   });
 
-  const ciclo = calcularCiclo(diasSelecionados);
+  // Calcular total do ciclo
   let totalCiclo = 0;
+  const ciclo = calcularCiclo(diasSelecionados);
   if (ciclo){
     diasSelecionados.forEach(dia => {
       totalCiclo += calcularValorDia(dia) * (ciclo.contagem[dia] || 0);
@@ -583,6 +636,47 @@ function renderizarEtapa3(){
       Object.values(ciclo.contagem).reduce((a, b) => a + b, 0) + ' entregas';
   }
   document.getElementById('total-valor').textContent = 'R$ ' + totalCiclo.toFixed(2).replace('.', ',');
+
+  // Montar grid consolidado
+  const gridHtml = document.createElement('div');
+  gridHtml.className = 'grid-itens-consolidado';
+  
+  // Cabeçalho
+  const cabecalho = document.createElement('div');
+  cabecalho.className = 'grid-head';
+  cabecalho.innerHTML = `
+    <span>Qtd</span>
+    <span>Item</span>
+    <span>R$ Unit</span>
+    <span>R$ Total</span>`;
+  gridHtml.appendChild(cabecalho);
+
+  // Linhas de itens
+  const idsComQtd = Object.keys(itensAgregados).filter(id => itensAgregados[id] > 0);
+  if (idsComQtd.length > 0){
+    idsComQtd.forEach(id => {
+      const qtd = itensAgregados[id];
+      const nome = NOMES[id];
+      const precoUnit = PRECOS[id];
+      const total = qtd * precoUnit;
+
+      const linha = document.createElement('div');
+      linha.className = 'linha-item-grid';
+      linha.innerHTML = `
+        <span class="qtd-grid">${qtd}</span>
+        <span class="nome-grid">${nome}</span>
+        <span class="unit-grid">R$ ${precoUnit.toFixed(2).replace('.', ',')}</span>
+        <span class="total-grid">R$ ${total.toFixed(2).replace('.', ',')}</span>`;
+      gridHtml.appendChild(linha);
+    });
+  } else {
+    const linhaVazia = document.createElement('div');
+    linhaVazia.className = 'linha-item-grid';
+    linhaVazia.innerHTML = `<span colspan="4" style="grid-column: 1/-1; text-align:center; color:var(--text-muted);">nenhum item selecionado</span>`;
+    gridHtml.appendChild(linhaVazia);
+  }
+
+  container.appendChild(gridHtml);
 }
 
 function voltarDeEtapa3(){
