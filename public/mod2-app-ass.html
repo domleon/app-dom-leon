@@ -281,6 +281,73 @@
   }
   .success-wrap h2{font-size:18px;font-weight:600;margin-bottom:6px;font-family:'Fraunces',serif;}
   .success-wrap p{font-size:13px;color:var(--text-secondary);max-width:260px;}
+
+  /* Grid consolidado de itens - SEM R$ nos valores */
+  .grid-itens-consolidado{
+    display:grid;
+    grid-template-columns: 44px 1fr 62px 72px;
+    border:0.5px solid var(--border);
+    border-radius:10px;
+    overflow:hidden;
+    margin-bottom:16px;
+  }
+
+  .grid-head{
+    display:contents;
+  }
+
+  .grid-head span{
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    color:var(--text-muted);
+    font-weight:600;
+    padding:10px 8px 8px;
+    border-bottom:0.5px solid var(--border);
+    background:var(--bg);
+  }
+
+  .grid-head span:nth-child(1){text-align:center;}
+  .grid-head span:nth-child(3),
+  .grid-head span:nth-child(4){text-align:right;padding-right:12px;}
+
+  .linha-item-grid{
+    display:contents;
+  }
+
+  .linha-item-grid span{
+    padding:10px 8px;
+    font-size:12px;
+    border-bottom:0.5px solid var(--border);
+    display:flex;
+    align-items:center;
+  }
+
+  .linha-item-grid:last-child span{
+    border-bottom:none;
+  }
+
+  .qtd-grid{
+    justify-content:center !important;
+    font-weight:600;
+    color:var(--accent);
+  }
+
+  .nome-grid{
+    font-weight:500;
+    line-height:1.25;
+    padding-left:10px;
+  }
+
+  .unit-grid, .total-grid{
+    justify-content:flex-end !important;
+    font-variant-numeric: tabular-nums;
+    padding-right:12px;
+  }
+
+  .total-grid{
+    font-weight:600;
+  }
 </style>
 </head>
 <body>
@@ -296,6 +363,8 @@
       <div class="name" id="plano-nome">—</div>
       <div class="items" id="plano-itens">—</div>
     </div>
+
+    <div id="grid-container" class="grid-itens-consolidado" style="display:none;"></div>
 
     <div class="section-label">Ciclo de entrega</div>
     <div class="summary-card" id="ciclo-card">
@@ -458,8 +527,58 @@ function selecionarPagamento(el, tipo){
   document.getElementById('sucesso-texto').textContent =
     'Seu plano "' + nome + '" já está confirmado. Você vai receber uma notificação quando o pedido estiver pronto.';
 
+  // Montar grid consolidado a partir de parâmetros JSON
+  const gridData = params.get('gridData');
+  if (gridData){
+    try {
+      const itensArray = JSON.parse(decodeURIComponent(gridData));
+      montarGridConsolidado(itensArray);
+    } catch(e) {
+      console.error('Erro ao parsear gridData:', e);
+    }
+  }
+
   atualizarTotalComTaxa();
 })();
+
+function montarGridConsolidado(itensArray){
+  const gridContainer = document.getElementById('grid-container');
+  
+  if (!itensArray || itensArray.length === 0){
+    gridContainer.style.display = 'none';
+    return;
+  }
+
+  gridContainer.innerHTML = '';
+  
+  // Cabeçalho
+  const cabecalho = document.createElement('div');
+  cabecalho.className = 'grid-head';
+  cabecalho.innerHTML = `
+    <span>Qtd</span>
+    <span>Item</span>
+    <span>R$ Unit</span>
+    <span>R$ Total</span>`;
+  gridContainer.appendChild(cabecalho);
+
+  // Linhas de itens
+  itensArray.forEach(item => {
+    const linha = document.createElement('div');
+    linha.className = 'linha-item-grid';
+    const precoUnit = parseFloat(item.preco) || 0;
+    const qtd = parseInt(item.qtd) || 1;
+    const total = precoUnit * qtd;
+    
+    linha.innerHTML = `
+      <span class="qtd-grid">${qtd}</span>
+      <span class="nome-grid">${item.nome || 'Item'}</span>
+      <span class="unit-grid">${precoUnit.toFixed(2).replace('.', ',')}</span>
+      <span class="total-grid">${total.toFixed(2).replace('.', ',')}</span>`;
+    gridContainer.appendChild(linha);
+  });
+
+  gridContainer.style.display = 'grid';
+}
 
 // Botão "Continuar" no plano leva para a tela de pagamento (mesma página)
 document.addEventListener('DOMContentLoaded', function() {
