@@ -509,133 +509,86 @@ function selecionarPagamento(el, tipo){
 }
 
 // Preenche dados do plano a partir da URL (vindo do catálogo)
-(function preencherPlano(){
-  // Aguardar catalogo estar carregado
-  const checkCatalogo = setInterval(() => {
-    if (window.catalogo && window.catalogo.itens){
-      clearInterval(checkCatalogo);
-      executarPreenchimento();
-    }
-  }, 100);
-  
-  // Timeout de 5s se catalogo não carregar
-  setTimeout(() => {
-    clearInterval(checkCatalogo);
-    if (!window.catalogo || !window.catalogo.itens){
-      console.warn('Catálogo não carregou, continuando sem preços');
-      executarPreenchimento();
-    }
-  }, 5000);
+(async function preencherPlano(){
+  const params = new URLSearchParams(window.location.search);
+  const nome = params.get('nome') || 'Plano selecionado';
+  const itensTexto = params.get('itens') || '';
+  PRECO_BASE_ITENS = parseFloat(params.get('preco') || '0');
+  TOTAL_ENTREGAS_CICLO = parseInt(params.get('entregas') || '0', 10);
 
-  function executarPreenchimento(){
-    const params = new URLSearchParams(window.location.search);
-    const nome = params.get('nome') || 'Plano selecionado';
-    const itensTexto = params.get('itens') || '';
-    PRECO_BASE_ITENS = parseFloat(params.get('preco') || '0');
-    TOTAL_ENTREGAS_CICLO = parseInt(params.get('entregas') || '0', 10);
+  const dias = params.get('dias') || '—';
+  const inicio = params.get('inicio');
+  const fim = params.get('fim');
+  const proximo = params.get('proximo') || '—';
+  const periodo = (inicio && fim) ? (inicio + ' a ' + fim) : '—';
 
-    const dias = params.get('dias') || '—';
-    const inicio = params.get('inicio');
-    const fim = params.get('fim');
-    const proximo = params.get('proximo') || '—';
-    const periodo = (inicio && fim) ? (inicio + ' a ' + fim) : '—';
+  document.getElementById('plano-nome').textContent = nome;
+  document.getElementById('ciclo-dias').textContent = dias;
+  document.getElementById('ciclo-periodo').textContent = periodo;
+  document.getElementById('ciclo-proximo').textContent = proximo;
+  document.getElementById('sucesso-texto').textContent =
+    'Seu plano "' + nome + '" já está confirmado. Você vai receber uma notificação quando o pedido estiver pronto.';
 
-    document.getElementById('plano-nome').textContent = nome;
-    // NÃO mostrar o texto de itens completo, deixar vazio
-
-    document.getElementById('ciclo-dias').textContent = dias;
-    document.getElementById('ciclo-periodo').textContent = periodo;
-    document.getElementById('ciclo-proximo').textContent = proximo;
-    document.getElementById('sucesso-texto').textContent =
-      'Seu plano "' + nome + '" já está confirmado. Você vai receber uma notificação quando o pedido estiver pronto.';
-
-    // Parsear itens do texto e consolidar no grid
-    const itensConsolidados = parseItensPorDia(itensTexto);
+  // Carregar catalogo do Firestore e montar grid
+  try {
+    const catalogo = await carregarCatalogo();
+    const itensConsolidados = parseItensPorDia(itensTexto, catalogo);
     montarGridConsolidado(itensConsolidados);
-
-    atualizarTotalComTaxa();
+  } catch(e) {
+    console.error('Erro ao carregar catálogo:', e);
+    const itensConsolidados = parseItensPorDia(itensTexto, null);
+    montarGridConsolidado(itensConsolidados);
   }
+
+  atualizarTotalComTaxa();
 })();
 
-function parseItensPorDia(itensTexto){
-  if (!itensTexto){
-    return [];
-  }
+function parseItensPorDia(itensTexto, catalogo){
+  if (!itensTexto) return [];
 
-  // Separar por dias (divisor é " · ")
   const diasTexto = itensTexto.split(' · ');
-  
-  // Objeto para consolidar itens (nome -> quantidade)
   const consolidacao = {};
 
   diasTexto.forEach(diaTexto => {
-    // Exemplo: "Segunda-feira: 1 Pão Francês - Porção de 60g, 1 Pão Integral 250g, ..."
-    // Remover o prefixo do dia (tudo até ":")
     const partes = diaTexto.split(':');
     if (partes.length < 2) return;
-
     const itensStr = partes.slice(1).join(':').trim();
-    
-    // Separar itens por vírgula
     const itensSeparados = itensStr.split(',').map(s => s.trim());
 
     itensSeparados.forEach(itemStr => {
       if (!itemStr) return;
-
-      // Extrair quantidade e nome
-      // Padrão: "1 Nome do Item", "2 Pão Francês - Porção de 60g", etc
       const match = itemStr.match(/^(\d+)\s+(.+)$/);
       if (match){
         const qtd = parseInt(match[1], 10);
         const nome = match[2].trim();
-
-        if (consolidacao[nome]){
-          consolidacao[nome] += qtd;
-        } else {
-          consolidacao[nome] = qtd;
-        }
+        consolidacao[nome] = (consolidacao[nome] || 0) + qtd;
       }
     });
   });
 
-  // Converter para array de objetos para o grid
-  const itensArray = Object.keys(consolidacao).map(nome => ({
+  return Object.keys(consolidacao).map(nome => ({
     nome: nome,
     qtd: consolidacao[nome],
-    preco: buscarPrecoItem(nome)  // ← BUSCA PREÇO NO FIRESTORE
+    preco: buscarPrecoItem(nome, catalogo)
   }));
-
-  return itensArray;
 }
 
-// Buscar preço do item no catalogo carregado
-function buscarPrecoItem(nomeBuscado){
-  // Procurar na array de itens carregada do Firestore (catalogo.itens)
-  if (window.catalogo && window.catalogo.itens){
-    // Converter para array se vier como objeto
-    let itensArray = Array.isArray(window.catalogo.itens) ? window.catalogo.itens : Object.values(window.catalogo.itens);
-    
-    console.log('🔍 Procurando:', nomeBuscado, '| Total de itens no catalogo:', itensArray.length);
-    const item = itensArray.find(it => {
-      // Comparar removendo variações de espaço/acentuação
-      const nomeNormalizado = (it.nome || '').toLowerCase().trim();
-      const buscaNormalizada = nomeBuscado.toLowerCase().trim();
-      const match = nomeNormalizado === buscaNormalizada || nomeNormalizado.includes(buscaNormalizada) || buscaNormalizada.includes(nomeNormalizado);
-      if (match) {
-        console.log('  ✅ Encontrado:', it.nome, '→ R$', it.precoAssinatura);
-      }
-      return match;
-    });
-    
-    if (item && item.precoAssinatura){
-      return item.precoAssinatura;
-    } else {
-      console.log('  ❌ Não encontrado:', nomeBuscado);
-    }
-  } else {
-    console.log('⚠️ catalogo.itens não carregou ainda');
-  }
-  return 0;  // Fallback se não encontrar
+function buscarPrecoItem(nomeBuscado, catalogo){
+  if (!catalogo || !catalogo.itens) return 0;
+
+  const itensArray = Array.isArray(catalogo.itens)
+    ? catalogo.itens
+    : Object.values(catalogo.itens);
+
+  const buscaNormalizada = nomeBuscado.toLowerCase().trim();
+  const item = itensArray.find(it => {
+    const nomeNormalizado = (it.nome || '').toLowerCase().trim();
+    return nomeNormalizado === buscaNormalizada
+      || nomeNormalizado.includes(buscaNormalizada)
+      || buscaNormalizada.includes(nomeNormalizado);
+  });
+
+  return (item && item.precoAssinatura) ? item.precoAssinatura : 0;
 }
 
 function montarGridConsolidado(itensArray){
