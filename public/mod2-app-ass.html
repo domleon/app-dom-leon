@@ -458,8 +458,8 @@
 
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.min.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="catalogo.js"></script>
 <script>
 const TAXA_ENTREGA_ASSINATURA = 2.99;
@@ -611,17 +611,29 @@ function parseItensPorDia(itensTexto){
 // Buscar preço do item no catalogo carregado
 function buscarPrecoItem(nomeBuscado){
   // Procurar na array de itens carregada do Firestore (catalogo.itens)
-  if (window.catalogo && window.catalogo.itens && Array.isArray(window.catalogo.itens)){
-    const item = window.catalogo.itens.find(it => {
+  if (window.catalogo && window.catalogo.itens){
+    // Converter para array se vier como objeto
+    let itensArray = Array.isArray(window.catalogo.itens) ? window.catalogo.itens : Object.values(window.catalogo.itens);
+    
+    console.log('🔍 Procurando:', nomeBuscado, '| Total de itens no catalogo:', itensArray.length);
+    const item = itensArray.find(it => {
       // Comparar removendo variações de espaço/acentuação
       const nomeNormalizado = (it.nome || '').toLowerCase().trim();
       const buscaNormalizada = nomeBuscado.toLowerCase().trim();
-      return nomeNormalizado === buscaNormalizada || nomeNormalizado.includes(buscaNormalizada) || buscaNormalizada.includes(nomeNormalizado);
+      const match = nomeNormalizado === buscaNormalizada || nomeNormalizado.includes(buscaNormalizada) || buscaNormalizada.includes(nomeNormalizado);
+      if (match) {
+        console.log('  ✅ Encontrado:', it.nome, '→ R$', it.precoAssinatura);
+      }
+      return match;
     });
     
     if (item && item.precoAssinatura){
       return item.precoAssinatura;
+    } else {
+      console.log('  ❌ Não encontrado:', nomeBuscado);
     }
+  } else {
+    console.log('⚠️ catalogo.itens não carregou ainda');
   }
   return 0;  // Fallback se não encontrar
 }
