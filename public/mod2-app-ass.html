@@ -348,6 +348,46 @@
   .total-grid{
     font-weight:600;
   }
+
+  /* Cupom fiscal */
+  .cupom-wrap{
+    display:flex;
+    justify-content:center;
+    margin-bottom:16px;
+  }
+  .cupom{
+    width:100%;
+    max-width:300px;
+    font-family:'Courier New',Courier,monospace;
+    background:#f9f6f0;
+    color:#222;
+    filter:drop-shadow(0 3px 8px rgba(0,0,0,0.12));
+    clip-path:polygon(
+      0% 7px,7px 0%,14px 7px,21px 0%,28px 7px,35px 0%,42px 7px,49px 0%,56px 7px,63px 0%,70px 7px,77px 0%,84px 7px,91px 0%,98px 7px,105px 0%,112px 7px,119px 0%,126px 7px,133px 0%,140px 7px,147px 0%,154px 7px,161px 0%,168px 7px,175px 0%,182px 7px,189px 0%,196px 7px,203px 0%,210px 7px,217px 0%,224px 7px,231px 0%,238px 7px,245px 0%,252px 7px,259px 0%,266px 7px,273px 0%,280px 7px,287px 0%,294px 7px,300px 0%,
+      100% 0%,100% calc(100% - 7px),calc(100% - 7px) 100%,calc(100% - 14px) calc(100% - 7px),calc(100% - 21px) 100%,calc(100% - 28px) calc(100% - 7px),calc(100% - 35px) 100%,calc(100% - 42px) calc(100% - 7px),calc(100% - 49px) 100%,calc(100% - 56px) calc(100% - 7px),calc(100% - 63px) 100%,calc(100% - 70px) calc(100% - 7px),calc(100% - 77px) 100%,calc(100% - 84px) calc(100% - 7px),calc(100% - 91px) 100%,calc(100% - 98px) calc(100% - 7px),calc(100% - 105px) 100%,calc(100% - 112px) calc(100% - 7px),calc(100% - 119px) 100%,calc(100% - 126px) calc(100% - 7px),calc(100% - 133px) 100%,calc(100% - 140px) calc(100% - 7px),calc(100% - 147px) 100%,calc(100% - 154px) calc(100% - 7px),calc(100% - 161px) 100%,calc(100% - 168px) calc(100% - 7px),calc(100% - 175px) 100%,calc(100% - 182px) calc(100% - 7px),calc(100% - 189px) 100%,calc(100% - 196px) calc(100% - 7px),calc(100% - 203px) 100%,calc(100% - 210px) calc(100% - 7px),calc(100% - 217px) 100%,calc(100% - 224px) calc(100% - 7px),calc(100% - 231px) 100%,calc(100% - 238px) calc(100% - 7px),calc(100% - 245px) 100%,calc(100% - 252px) calc(100% - 7px),calc(100% - 259px) 100%,calc(100% - 266px) calc(100% - 7px),calc(100% - 273px) 100%,calc(100% - 280px) calc(100% - 7px),0% 100%
+    );
+  }
+  .cupom-inner{padding:22px 18px 20px;}
+  .cupom-header{text-align:center;margin-bottom:12px;}
+  .cupom-header .loja{font-size:13px;font-weight:700;letter-spacing:.12em;}
+  .cupom-header .sub{font-size:10px;color:#777;letter-spacing:.06em;margin-top:2px;}
+  .cupom-header .nome{font-size:12px;font-weight:700;letter-spacing:.06em;margin-top:8px;}
+  .cupom-dash{border:none;border-top:1px dashed #bbb;margin:10px 0;}
+  .cupom-col-head{display:flex;justify-content:space-between;margin-bottom:5px;}
+  .cupom-col-head span{font-size:9px;color:#999;text-transform:uppercase;letter-spacing:.05em;}
+  .cupom-col-right{display:flex;gap:12px;}
+  .cupom-col-right span{font-size:9px;color:#999;text-transform:uppercase;letter-spacing:.05em;}
+  .cupom-col-right .col-total{width:40px;text-align:right;}
+  .cupom-linha{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;}
+  .cupom-linha .nome-item{font-size:12px;}
+  .cupom-linha .valores{display:flex;gap:12px;flex-shrink:0;}
+  .cupom-linha .unit{font-size:12px;color:#666;}
+  .cupom-linha .total-item{font-size:12px;font-weight:700;width:40px;text-align:right;}
+  .cupom-total-row{display:flex;justify-content:space-between;align-items:baseline;padding-top:10px;}
+  .cupom-total-row .label{font-size:12px;font-weight:700;letter-spacing:.04em;}
+  .cupom-total-row .valor{font-size:15px;font-weight:700;}
+  .cupom-rodape{padding-top:10px;}
+  .cupom-rodape p{font-size:10px;color:#666;margin-bottom:2px;}
 </style>
 </head>
 <body>
@@ -359,12 +399,44 @@
       <h2>Confirmar assinatura</h2>
     </div>
 
-    <div class="summary-card">
-      <div class="name" id="plano-nome">—</div>
-      <div class="items" id="plano-itens">—</div>
-    </div>
+    <div class="cupom-wrap">
+      <div class="cupom">
+        <div class="cupom-inner">
 
-    <div id="grid-container" class="grid-itens-consolidado"></div>
+          <div class="cupom-header">
+            <div class="loja">PADARIA DOM LEON</div>
+            <div class="sub">ASSINATURA MENSAL</div>
+            <hr class="cupom-dash">
+            <div class="nome" id="plano-nome">—</div>
+          </div>
+
+          <hr class="cupom-dash">
+
+          <div class="cupom-col-head">
+            <span>Qtd  Item</span>
+            <div class="cupom-col-right">
+              <span>Unit</span>
+              <span class="col-total">Total</span>
+            </div>
+          </div>
+
+          <div id="cupom-itens-container"></div>
+
+          <hr class="cupom-dash">
+          <div class="cupom-total-row">
+            <span class="label">TOTAL (30 dias)</span>
+            <span class="valor" id="plano-preco-cupom">—</span>
+          </div>
+
+          <hr class="cupom-dash">
+          <div class="cupom-rodape">
+            <p id="cupom-dias-linha">—</p>
+            <p id="cupom-periodo-linha">—</p>
+          </div>
+
+        </div>
+      </div>
+    </div>
 
     <div class="section-label">Ciclo de entrega</div>
     <div class="summary-card" id="ciclo-card">
@@ -523,6 +595,15 @@ function selecionarPagamento(el, tipo){
   const periodo = (inicio && fim) ? (inicio + ' a ' + fim) : '—';
 
   document.getElementById('plano-nome').textContent = nome;
+
+  // Preencher dias/período no rodapé do cupom (abreviados)
+  const diasAbrev = dias
+    .replace(/Segunda-feira/g,'Seg').replace(/Terça-feira/g,'Ter')
+    .replace(/Quarta-feira/g,'Qua').replace(/Quinta-feira/g,'Qui')
+    .replace(/Sexta-feira/g,'Sex').replace(/Sábado/g,'Sáb').replace(/Domingo/g,'Dom');
+  document.getElementById('cupom-dias-linha').textContent = 'Entregas ' + diasAbrev;
+  document.getElementById('cupom-periodo-linha').textContent = 'De ' + periodo;
+
   document.getElementById('ciclo-dias').textContent = dias;
   document.getElementById('ciclo-periodo').textContent = periodo;
   document.getElementById('ciclo-proximo').textContent = proximo;
@@ -592,52 +673,43 @@ function buscarPrecoItem(nomeBuscado, catalogo){
 }
 
 function montarGridConsolidado(itensArray){
-  const gridContainer = document.getElementById('grid-container');
-  
-  gridContainer.innerHTML = '';
-  
-  // Cabeçalho
-  const cabecalho = document.createElement('div');
-  cabecalho.className = 'grid-head';
-  cabecalho.innerHTML = `
-    <span>Qtd</span>
-    <span>Item</span>
-    <span>R$ Unit</span>
-    <span>R$ Total</span>`;
-  gridContainer.appendChild(cabecalho);
+  const container = document.getElementById('cupom-itens-container');
+  container.innerHTML = '';
 
-  // Se não houver dados, mostrar "-"
   if (!itensArray || itensArray.length === 0){
-    const linhaVazia = document.createElement('div');
-    linhaVazia.className = 'linha-item-grid';
-    linhaVazia.innerHTML = `
-      <span class="qtd-grid">—</span>
-      <span class="nome-grid">—</span>
-      <span class="unit-grid">—</span>
-      <span class="total-grid">—</span>`;
-    gridContainer.appendChild(linhaVazia);
+    container.innerHTML = '<div class="cupom-linha"><span class="nome-item">—</span></div>';
+    document.getElementById('plano-preco-cupom').textContent = '—';
     return;
   }
 
-  // Linhas de itens com dados
+  let totalGeral = 0;
+
   itensArray.forEach(item => {
-    const linha = document.createElement('div');
-    linha.className = 'linha-item-grid';
     const precoUnit = parseFloat(item.preco) || 0;
     const qtd = parseInt(item.qtd) || 1;
-    const total = precoUnit * qtd;
-    
-    // Se não houver preço, mostrar "-"
+    const totalItem = precoUnit * qtd;
+    totalGeral += totalItem;
+
     const unitStr = precoUnit > 0 ? precoUnit.toFixed(2).replace('.', ',') : '—';
-    const totalStr = precoUnit > 0 ? total.toFixed(2).replace('.', ',') : '—';
-    
-    linha.innerHTML = `
-      <span class="qtd-grid">${qtd}</span>
-      <span class="nome-grid">${item.nome || '—'}</span>
-      <span class="unit-grid">${unitStr}</span>
-      <span class="total-grid">${totalStr}</span>`;
-    gridContainer.appendChild(linha);
+    const totalStr = precoUnit > 0 ? totalItem.toFixed(2).replace('.', ',') : '—';
+
+    const div = document.createElement('div');
+    div.className = 'cupom-linha';
+    div.innerHTML = `
+      <span class="nome-item"><b>${qtd}x</b> ${item.nome || '—'}</span>
+      <div class="valores">
+        <span class="unit">${unitStr}</span>
+        <span class="total-item">${totalStr}</span>
+      </div>`;
+    container.appendChild(div);
   });
+
+  // Atualizar total no cupom se houver preços reais
+  if (totalGeral > 0){
+    document.getElementById('plano-preco-cupom').textContent = 'R$ ' + totalGeral.toFixed(2).replace('.', ',');
+  } else {
+    document.getElementById('plano-preco-cupom').textContent = document.getElementById('plano-preco').textContent || '—';
+  }
 }
 
 // Botão "Continuar" no plano leva para a tela de pagamento (mesma página)
