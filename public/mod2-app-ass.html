@@ -364,7 +364,7 @@
       <div class="items" id="plano-itens">—</div>
     </div>
 
-    <div id="grid-container" class="grid-itens-consolidado" style="display:none;"></div>
+    <div id="grid-container" class="grid-itens-consolidado"></div>
 
     <div class="section-label">Ciclo de entrega</div>
     <div class="summary-card" id="ciclo-card">
@@ -544,11 +544,6 @@ function selecionarPagamento(el, tipo){
 function montarGridConsolidado(itensArray){
   const gridContainer = document.getElementById('grid-container');
   
-  if (!itensArray || itensArray.length === 0){
-    gridContainer.style.display = 'none';
-    return;
-  }
-
   gridContainer.innerHTML = '';
   
   // Cabeçalho
@@ -561,7 +556,20 @@ function montarGridConsolidado(itensArray){
     <span>R$ Total</span>`;
   gridContainer.appendChild(cabecalho);
 
-  // Linhas de itens
+  // Se não houver dados, mostrar "-"
+  if (!itensArray || itensArray.length === 0){
+    const linhaVazia = document.createElement('div');
+    linhaVazia.className = 'linha-item-grid';
+    linhaVazia.innerHTML = `
+      <span class="qtd-grid">—</span>
+      <span class="nome-grid">—</span>
+      <span class="unit-grid">—</span>
+      <span class="total-grid">—</span>`;
+    gridContainer.appendChild(linhaVazia);
+    return;
+  }
+
+  // Linhas de itens com dados
   itensArray.forEach(item => {
     const linha = document.createElement('div');
     linha.className = 'linha-item-grid';
@@ -571,13 +579,11 @@ function montarGridConsolidado(itensArray){
     
     linha.innerHTML = `
       <span class="qtd-grid">${qtd}</span>
-      <span class="nome-grid">${item.nome || 'Item'}</span>
+      <span class="nome-grid">${item.nome || '—'}</span>
       <span class="unit-grid">${precoUnit.toFixed(2).replace('.', ',')}</span>
       <span class="total-grid">${total.toFixed(2).replace('.', ',')}</span>`;
     gridContainer.appendChild(linha);
   });
-
-  gridContainer.style.display = 'grid';
 }
 
 // Botão "Continuar" no plano leva para a tela de pagamento (mesma página)
