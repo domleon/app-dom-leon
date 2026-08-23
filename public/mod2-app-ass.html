@@ -509,7 +509,7 @@ function selecionarPagamento(el, tipo){
 (function preencherPlano(){
   const params = new URLSearchParams(window.location.search);
   const nome = params.get('nome') || 'Plano selecionado';
-  const itens = params.get('itens') || '';
+  const itensTexto = params.get('itens') || '';
   PRECO_BASE_ITENS = parseFloat(params.get('preco') || '0');
   TOTAL_ENTREGAS_CICLO = parseInt(params.get('entregas') || '0', 10);
 
@@ -520,28 +520,70 @@ function selecionarPagamento(el, tipo){
   const periodo = (inicio && fim) ? (inicio + ' a ' + fim) : '—';
 
   document.getElementById('plano-nome').textContent = nome;
-  document.getElementById('plano-itens').textContent = itens;
+  document.getElementById('plano-itens').textContent = itensTexto;
   document.getElementById('ciclo-dias').textContent = dias;
   document.getElementById('ciclo-periodo').textContent = periodo;
   document.getElementById('ciclo-proximo').textContent = proximo;
   document.getElementById('sucesso-texto').textContent =
     'Seu plano "' + nome + '" já está confirmado. Você vai receber uma notificação quando o pedido estiver pronto.';
 
-  // Montar grid consolidado a partir de parâmetros JSON
-  const gridData = params.get('gridData');
-  let itensArray = [];
-  if (gridData){
-    try {
-      itensArray = JSON.parse(decodeURIComponent(gridData));
-    } catch(e) {
-      console.error('Erro ao parsear gridData:', e);
-    }
-  }
-  // SEMPRE chamar, mesmo com array vazio
-  montarGridConsolidado(itensArray);
+  // Parsear itens do texto e consolidar no grid
+  const itensConsolidados = parseItensPorDia(itensTexto);
+  montarGridConsolidado(itensConsolidados);
 
   atualizarTotalComTaxa();
 })();
+
+function parseItensPorDia(itensTexto){
+  if (!itensTexto){
+    return [];
+  }
+
+  // Separar por dias (divisor é " · ")
+  const diasTexto = itensTexto.split(' · ');
+  
+  // Objeto para consolidar itens (nome -> quantidade)
+  const consolidacao = {};
+
+  diasTexto.forEach(diaTexto => {
+    // Exemplo: "Segunda-feira: 1 Pão Francês - Porção de 60g, 1 Pão Integral 250g, ..."
+    // Remover o prefixo do dia (tudo até ":")
+    const partes = diaTexto.split(':');
+    if (partes.length < 2) return;
+
+    const itensStr = partes.slice(1).join(':').trim();
+    
+    // Separar itens por vírgula
+    const itensSeparados = itensStr.split(',').map(s => s.trim());
+
+    itensSeparados.forEach(itemStr => {
+      if (!itemStr) return;
+
+      // Extrair quantidade e nome
+      // Padrão: "1 Nome do Item", "2 Pão Francês - Porção de 60g", etc
+      const match = itemStr.match(/^(\d+)\s+(.+)$/);
+      if (match){
+        const qtd = parseInt(match[1], 10);
+        const nome = match[2].trim();
+
+        if (consolidacao[nome]){
+          consolidacao[nome] += qtd;
+        } else {
+          consolidacao[nome] = qtd;
+        }
+      }
+    });
+  });
+
+  // Converter para array de objetos para o grid
+  const itensArray = Object.keys(consolidacao).map(nome => ({
+    nome: nome,
+    qtd: consolidacao[nome],
+    preco: 0  // Sem informação de preço na URL
+  }));
+
+  return itensArray;
+}
 
 function montarGridConsolidado(itensArray){
   const gridContainer = document.getElementById('grid-container');
@@ -579,11 +621,15 @@ function montarGridConsolidado(itensArray){
     const qtd = parseInt(item.qtd) || 1;
     const total = precoUnit * qtd;
     
+    // Se não houver preço, mostrar "-"
+    const unitStr = precoUnit > 0 ? precoUnit.toFixed(2).replace('.', ',') : '—';
+    const totalStr = precoUnit > 0 ? total.toFixed(2).replace('.', ',') : '—';
+    
     linha.innerHTML = `
       <span class="qtd-grid">${qtd}</span>
       <span class="nome-grid">${item.nome || '—'}</span>
-      <span class="unit-grid">${precoUnit.toFixed(2).replace('.', ',')}</span>
-      <span class="total-grid">${total.toFixed(2).replace('.', ',')}</span>`;
+      <span class="unit-grid">${unitStr}</span>
+      <span class="total-grid">${totalStr}</span>`;
     gridContainer.appendChild(linha);
   });
 }
