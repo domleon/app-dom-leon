@@ -458,6 +458,9 @@
 
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.min.js"></script>
+<script src="catalogo.js"></script>
 <script>
 const TAXA_ENTREGA_ASSINATURA = 2.99;
 let PRECO_BASE_ITENS = 0;
@@ -507,31 +510,51 @@ function selecionarPagamento(el, tipo){
 
 // Preenche dados do plano a partir da URL (vindo do catálogo)
 (function preencherPlano(){
-  const params = new URLSearchParams(window.location.search);
-  const nome = params.get('nome') || 'Plano selecionado';
-  const itensTexto = params.get('itens') || '';
-  PRECO_BASE_ITENS = parseFloat(params.get('preco') || '0');
-  TOTAL_ENTREGAS_CICLO = parseInt(params.get('entregas') || '0', 10);
+  // Aguardar catalogo estar carregado
+  const checkCatalogo = setInterval(() => {
+    if (window.catalogo && window.catalogo.itens){
+      clearInterval(checkCatalogo);
+      executarPreenchimento();
+    }
+  }, 100);
+  
+  // Timeout de 5s se catalogo não carregar
+  setTimeout(() => {
+    clearInterval(checkCatalogo);
+    if (!window.catalogo || !window.catalogo.itens){
+      console.warn('Catálogo não carregou, continuando sem preços');
+      executarPreenchimento();
+    }
+  }, 5000);
 
-  const dias = params.get('dias') || '—';
-  const inicio = params.get('inicio');
-  const fim = params.get('fim');
-  const proximo = params.get('proximo') || '—';
-  const periodo = (inicio && fim) ? (inicio + ' a ' + fim) : '—';
+  function executarPreenchimento(){
+    const params = new URLSearchParams(window.location.search);
+    const nome = params.get('nome') || 'Plano selecionado';
+    const itensTexto = params.get('itens') || '';
+    PRECO_BASE_ITENS = parseFloat(params.get('preco') || '0');
+    TOTAL_ENTREGAS_CICLO = parseInt(params.get('entregas') || '0', 10);
 
-  document.getElementById('plano-nome').textContent = nome;
-  document.getElementById('plano-itens').textContent = itensTexto;
-  document.getElementById('ciclo-dias').textContent = dias;
-  document.getElementById('ciclo-periodo').textContent = periodo;
-  document.getElementById('ciclo-proximo').textContent = proximo;
-  document.getElementById('sucesso-texto').textContent =
-    'Seu plano "' + nome + '" já está confirmado. Você vai receber uma notificação quando o pedido estiver pronto.';
+    const dias = params.get('dias') || '—';
+    const inicio = params.get('inicio');
+    const fim = params.get('fim');
+    const proximo = params.get('proximo') || '—';
+    const periodo = (inicio && fim) ? (inicio + ' a ' + fim) : '—';
 
-  // Parsear itens do texto e consolidar no grid
-  const itensConsolidados = parseItensPorDia(itensTexto);
-  montarGridConsolidado(itensConsolidados);
+    document.getElementById('plano-nome').textContent = nome;
+    // NÃO mostrar o texto de itens completo, deixar vazio
 
-  atualizarTotalComTaxa();
+    document.getElementById('ciclo-dias').textContent = dias;
+    document.getElementById('ciclo-periodo').textContent = periodo;
+    document.getElementById('ciclo-proximo').textContent = proximo;
+    document.getElementById('sucesso-texto').textContent =
+      'Seu plano "' + nome + '" já está confirmado. Você vai receber uma notificação quando o pedido estiver pronto.';
+
+    // Parsear itens do texto e consolidar no grid
+    const itensConsolidados = parseItensPorDia(itensTexto);
+    montarGridConsolidado(itensConsolidados);
+
+    atualizarTotalComTaxa();
+  }
 })();
 
 function parseItensPorDia(itensTexto){
@@ -579,10 +602,28 @@ function parseItensPorDia(itensTexto){
   const itensArray = Object.keys(consolidacao).map(nome => ({
     nome: nome,
     qtd: consolidacao[nome],
-    preco: 0  // Sem informação de preço na URL
+    preco: buscarPrecoItem(nome)  // ← BUSCA PREÇO NO FIRESTORE
   }));
 
   return itensArray;
+}
+
+// Buscar preço do item no catalogo carregado
+function buscarPrecoItem(nomeBuscado){
+  // Procurar na array de itens carregada do Firestore (catalogo.itens)
+  if (window.catalogo && window.catalogo.itens && Array.isArray(window.catalogo.itens)){
+    const item = window.catalogo.itens.find(it => {
+      // Comparar removendo variações de espaço/acentuação
+      const nomeNormalizado = (it.nome || '').toLowerCase().trim();
+      const buscaNormalizada = nomeBuscado.toLowerCase().trim();
+      return nomeNormalizado === buscaNormalizada || nomeNormalizado.includes(buscaNormalizada) || buscaNormalizada.includes(nomeNormalizado);
+    });
+    
+    if (item && item.precoAssinatura){
+      return item.precoAssinatura;
+    }
+  }
+  return 0;  // Fallback se não encontrar
 }
 
 function montarGridConsolidado(itensArray){
