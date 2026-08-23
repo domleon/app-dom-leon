@@ -529,14 +529,16 @@ function selecionarPagamento(el, tipo){
 
   // Montar grid consolidado a partir de parâmetros JSON
   const gridData = params.get('gridData');
+  let itensArray = [];
   if (gridData){
     try {
-      const itensArray = JSON.parse(decodeURIComponent(gridData));
-      montarGridConsolidado(itensArray);
+      itensArray = JSON.parse(decodeURIComponent(gridData));
     } catch(e) {
       console.error('Erro ao parsear gridData:', e);
     }
   }
+  // SEMPRE chamar, mesmo com array vazio
+  montarGridConsolidado(itensArray);
 
   atualizarTotalComTaxa();
 })();
