@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dom Leon Admin — Item</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/dist/tabler-icons.min.css">
+<style>
+  :root{
+    --bg:#F5F0E8;--card:#FFFFFF;--border:#E3D8C4;--border-strong:#C7B79A;
+    --text-primary:#3B2314;--text-secondary:#6B5B47;--text-muted:#8A7860;
+    --accent:#B8873B;--accent-bg:#FBF3E2;--accent-text:#6B4E1E;
+    --danger-bg:#FEE2E2;--danger-text:#DC2626;--danger-border:#FCA5A5;
+    --radius:10px;--radius-lg:16px;--sidebar-w:220px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text-primary);min-height:100vh;display:flex;}
+
+  .sidebar{width:var(--sidebar-w);flex-shrink:0;background:var(--card);border-right:0.5px solid var(--border);padding:20px 14px;height:100vh;position:sticky;top:0;}
+  .sidebar-brand{display:flex;align-items:center;gap:10px;padding:6px 8px 20px;border-bottom:0.5px solid var(--border);margin-bottom:16px;}
+  .sidebar-brand span{font-size:15px;font-weight:600;font-family:'Fraunces',serif;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius);font-size:13px;color:var(--text-secondary);cursor:pointer;margin-bottom:2px;}
+  .nav-item i{font-size:18px;}
+  .nav-item.active{background:var(--accent-bg);color:var(--accent-text);font-weight:500;}
+  .nav-item:hover:not(.active){background:var(--bg);}
+
+  .main{flex:1;padding:28px 32px;}
+
+  /* Cabeçalho */
+  .page-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;padding-bottom:20px;border-bottom:0.5px solid var(--border);}
+  .breadcrumb{font-size:12px;color:var(--text-muted);margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+  .breadcrumb a{color:var(--text-muted);text-decoration:none;cursor:pointer;}
+  .breadcrumb a:hover{color:var(--accent-text);}
+  .page-title{font-size:22px;font-weight:600;font-family:'Fraunces',serif;}
+  .header-actions{display:flex;gap:8px;align-items:center;}
+
+  /* Layout grid */
+  .grid{display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start;}
+
+  /* Cards de seção */
+  .sec-card{background:var(--card);border:0.5px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px;}
+  .sec-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:14px;}
+
+  /* Campos */
+  .field{margin-bottom:14px;}
+  .field:last-child{margin-bottom:0;}
+  .field label{font-size:12px;font-weight:500;color:var(--text-secondary);display:block;margin-bottom:5px;}
+  .field input,.field select,.field textarea{
+    width:100%;border:0.5px solid var(--border-strong);border-radius:var(--radius);
+    padding:0 12px;font-size:13px;font-family:inherit;background:var(--bg);color:var(--text-primary);
+    height:38px;
+  }
+  .field textarea{height:80px;padding:10px 12px;resize:none;line-height:1.5;}
+  .field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--accent);}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+  /* Upload de imagem */
+  .img-drop-zone{
+    border:1.5px dashed var(--border-strong);border-radius:10px;
+    background:var(--bg);cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:8px;padding:24px;text-align:center;transition:border-color .15s;
+    position:relative;overflow:hidden;
+  }
+  .img-drop-zone:hover{border-color:var(--accent);}
+  .img-drop-zone.tem-imagem{padding:0;}
+  .img-drop-zone img{width:100%;height:160px;object-fit:cover;border-radius:8px;display:block;}
+  .img-drop-zone i{font-size:28px;color:var(--text-muted);}
+  .img-drop-zone p{font-size:13px;color:var(--text-secondary);}
+  .img-drop-zone small{font-size:11px;color:var(--text-muted);}
+  .img-drop-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+  .btn-remover-img{font-size:11px;color:var(--danger-text);background:transparent;border:none;cursor:pointer;padding:0;display:flex;align-items:center;gap:4px;margin-top:6px;}
+
+  /* Operações */
+  .op-card{border:0.5px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:10px;}
+  .op-card.ativa{border-color:var(--accent);}
+  .op-header{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;}
+  .op-header i{font-size:16px;color:var(--text-muted);}
+  .op-card.ativa .op-header i{color:var(--accent-text);}
+  .op-label{flex:1;font-size:13px;font-weight:500;color:var(--text-secondary);}
+  .op-card.ativa .op-label{color:var(--accent-text);}
+  .op-body{display:none;padding:0 14px 14px;border-top:0.5px solid var(--border);}
+  .op-card.ativa .op-body{display:block;}
+  .preco-input{display:flex;align-items:center;gap:8px;margin-top:10px;}
+  .preco-input span{font-size:13px;color:var(--text-muted);flex-shrink:0;}
+  .preco-input input{flex:1;border:0.5px solid var(--border-strong);border-radius:var(--radius);height:36px;padding:0 12px;font-size:14px;font-family:inherit;background:var(--bg);color:var(--text-primary);}
+  .preco-input input:focus{outline:none;border-color:var(--accent);}
+
+  /* Toggle */
+  .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:4px 0;}
+  .toggle-row span{font-size:13px;color:var(--text-secondary);}
+  .toggle{width:38px;height:22px;border-radius:20px;background:var(--border-strong);position:relative;cursor:pointer;flex-shrink:0;transition:background .15s;}
+  .toggle.on{background:var(--accent);}
+  .toggle::after{content:'';position:absolute;width:18px;height:18px;background:#fff;border-radius:50%;top:2px;left:2px;transition:left .15s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+  .toggle.on::after{left:18px;}
+
+  /* Botões */
+  .btn-primary{height:38px;padding:0 20px;background:var(--text-primary);color:#fff;border:none;border-radius:var(--radius);font-size:13px;font-family:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+  .btn-primary:hover{opacity:.9;}
+  .btn-secondary{height:38px;padding:0 16px;background:transparent;color:var(--text-secondary);border:0.5px solid var(--border-strong);border-radius:var(--radius);font-size:13px;font-family:inherit;cursor:pointer;}
+  .btn-secondary:hover{background:var(--bg);}
+  .btn-danger{height:38px;padding:0 14px;background:transparent;color:var(--danger-text);border:0.5px solid var(--danger-border);border-radius:var(--radius);font-size:13px;font-family:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+  .btn-danger:hover{background:var(--danger-bg);}
+
+  /* Toast */
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--text-primary);color:#fff;border-radius:10px;padding:12px 18px;font-size:13px;display:none;align-items:center;gap:8px;z-index:999;}
+  .toast.show{display:flex;}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="sidebar-brand">
+    <i class="ti ti-bread" style="font-size:20px;color:var(--accent-text);"></i>
+    <span>Dom Leon Admin</span>
+  </div>
+  <div class="nav-item" onclick="window.location.href='mod3-admin-assinantes.html'"><i class="ti ti-layout-dashboard"></i>Dashboard</div>
+  <div class="nav-item" onclick="window.location.href='mod3-admin-assinantes.html'"><i class="ti ti-users"></i>Assinantes</div>
+  <div class="nav-item" onclick="window.location.href='mod3-admin-assinantes.html?tab=producao'"><i class="ti ti-clipboard-list"></i>Produção do dia</div>
+  <div class="nav-item active"><i class="ti ti-package"></i>Planos</div>
+  <div class="nav-item" onclick="window.location.href='mod5-entrega.html'"><i class="ti ti-truck-delivery"></i>Logística</div>
+  <div class="nav-item" onclick="window.location.href='mod7-relatorios.html?tab=checklist'"><i class="ti ti-checklist"></i>Checklist retirada</div>
+  <div class="nav-item"><i class="ti ti-cash"></i>Financeiro</div>
+  <div class="nav-item" onclick="window.location.href='mod7-relatorios.html'"><i class="ti ti-chart-bar"></i>Relatórios</div>
+</div>
+
+<div class="main">
+
+  <div class="page-header">
+    <div>
+      <div class="breadcrumb">
+        <a onclick="voltar()">Planos</a>
+        <i class="ti ti-chevron-right" style="font-size:12px;"></i>
+        <a onclick="voltar()">Itens</a>
+        <i class="ti ti-chevron-right" style="font-size:12px;"></i>
+        <span id="breadcrumb-titulo">Novo item</span>
+      </div>
+      <div class="page-title" id="page-title">Novo item</div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-danger" id="btn-excluir" style="display:none;" onclick="excluirItem()">
+        <i class="ti ti-trash"></i> Excluir item
+      </button>
+      <button class="btn-secondary" onclick="voltar()">Descartar</button>
+      <button class="btn-primary" onclick="salvarItem()">
+        <i class="ti ti-check"></i> Salvar item
+      </button>
+    </div>
+  </div>
+
+  <div class="grid">
+
+    <!-- Coluna esquerda -->
+    <div>
+
+      <!-- Dados gerais -->
+      <div class="sec-card">
+        <div class="sec-title">Dados do item</div>
+        <div class="field-row" style="margin-bottom:14px;">
+          <div class="field" style="margin-bottom:0;">
+            <label>Nome do item</label>
+            <input type="text" id="item-nome" placeholder="Ex: Frango assado inteiro">
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label>Categoria</label>
+            <select id="item-categoria"></select>
+          </div>
+        </div>
+        <div class="field">
+          <label>Descrição (opcional)</label>
+          <textarea id="item-descricao" placeholder="Descreva brevemente o produto..."></textarea>
+        </div>
+      </div>
+
+      <!-- Imagem -->
+      <div class="sec-card">
+        <div class="sec-title">Imagem do produto</div>
+        <div class="img-drop-zone" id="img-drop-zone" onclick="document.getElementById('item-img-input').click()">
+          <i class="ti ti-cloud-upload"></i>
+          <p>Clique ou arraste uma imagem</p>
+          <small>JPG, PNG ou WEBP · máx. 2 MB</small>
+          <input type="file" accept="image/*" id="item-img-input" onchange="preverImagem(this)" style="display:none;">
+        </div>
+        <button class="btn-remover-img" id="btn-remover-img" style="display:none;" onclick="removerImagem()">
+          <i class="ti ti-x" style="font-size:12px;"></i> Remover imagem
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Coluna direita -->
+    <div>
+
+      <!-- Status -->
+      <div class="sec-card">
+        <div class="sec-title">Status</div>
+        <div class="toggle-row">
+          <span>Item ativo (visível para clientes)</span>
+          <div class="toggle on" id="toggle-ativo" onclick="this.classList.toggle('on')"></div>
+        </div>
+      </div>
+
+      <!-- Operações & Preços -->
+      <div class="sec-card">
+        <div class="sec-title">Operações & preços</div>
+        <p style="font-size:12px;color:var(--text-muted);margin-bottom:14px;">Ative as operações em que este item estará disponível e defina o preço para cada uma.</p>
+
+        <!-- Pedido Avulso -->
+        <div class="op-card ativa" id="op-avulso">
+          <div class="op-header" onclick="toggleOp('avulso')">
+            <div class="toggle on" id="toggle-avulso" onclick="event.stopPropagation();toggleOp('avulso')"></div>
+            <i class="ti ti-shopping-bag"></i>
+            <span class="op-label">Pedido avulso</span>
+          </div>
+          <div class="op-body">
+            <div class="preco-input">
+              <span>R$</span>
+              <input type="number" id="item-preco-avulso" placeholder="0,00" min="0" step="0.01">
+            </div>
+          </div>
+        </div>
+
+        <!-- Assinatura Mensal -->
+        <div class="op-card ativa" id="op-assinatura">
+          <div class="op-header" onclick="toggleOp('assinatura')">
+            <div class="toggle on" id="toggle-assinatura" onclick="event.stopPropagation();toggleOp('assinatura')"></div>
+            <i class="ti ti-repeat"></i>
+            <span class="op-label">Assinatura mensal</span>
+          </div>
+          <div class="op-body">
+            <div class="preco-input">
+              <span>R$</span>
+              <input type="number" id="item-preco-assinatura" placeholder="0,00" min="0" step="0.01">
+            </div>
+          </div>
+        </div>
+
+        <!-- Assados -->
+        <div class="op-card" id="op-assados">
+          <div class="op-header" onclick="toggleOp('assados')">
+            <div class="toggle" id="toggle-assados" onclick="event.stopPropagation();toggleOp('assados')"></div>
+            <i class="ti ti-tools-kitchen-2"></i>
+            <span class="op-label">Assados & Menu Almoço</span>
+          </div>
+          <div class="op-body">
+            <div class="preco-input">
+              <span>R$</span>
+              <input type="number" id="item-preco-assados" placeholder="0,00" min="0" step="0.01">
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast">
+  <i class="ti ti-check" style="font-size:16px;"></i>
+  <span id="toast-msg">Item salvo!</span>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="catalogo.js"></script>
+<script>
+let CATALOGO = null;
+let itemEditandoId = null;
+
+/* ---------- Inicialização ---------- */
+(async function init(){
+  CATALOGO = await carregarCatalogo();
+  popularCategorias();
+
+  const params = new URLSearchParams(window.location.search);
+  itemEditandoId = params.get('id') || null;
+
+  if (itemEditandoId){
+    const item = CATALOGO.itens.find(i => i.id === itemEditandoId);
+    if (item) carregarItem(item);
+  }
+})();
+
+function popularCategorias(){
+  const sel = document.getElementById('item-categoria');
+  sel.innerHTML = CATALOGO.categorias.map(c => `<option value="${c}">${c}</option>`).join('');
+
+  // Também popular categorias de Assados
+  const catAssados = (CATALOGO.categoriasAssados || []);
+  if (catAssados.length > 0){
+    sel.innerHTML += `<optgroup label="── Assados ──">${catAssados.map(c => `<option value="${c}">${c}</option>`).join('')}</optgroup>`;
+  }
+}
+
+function carregarItem(item){
+  document.getElementById('breadcrumb-titulo').textContent = item.nome;
+  document.getElementById('page-title').textContent = item.nome;
+  document.getElementById('btn-excluir').style.display = 'flex';
+
+  document.getElementById('item-nome').value = item.nome || '';
+  document.getElementById('item-descricao').value = item.descricao || '';
+  document.getElementById('item-categoria').value = item.categoria || '';
+
+  // Status ativo
+  const toggleAtivo = document.getElementById('toggle-ativo');
+  if (item.ativo === false) toggleAtivo.classList.remove('on');
+  else toggleAtivo.classList.add('on');
+
+  // Modalidades
+  const mods = item.modalidades || { avulso: true, assinatura: true };
+  if (!mods.avulso) setOp('avulso', false);
+  if (!mods.assinatura) setOp('assinatura', false);
+  if (mods.assados) setOp('assados', true);
+
+  // Preços
+  if (item.precoAvulso) document.getElementById('item-preco-avulso').value = item.precoAvulso.toFixed(2);
+  if (item.precoAssinatura) document.getElementById('item-preco-assinatura').value = item.precoAssinatura.toFixed(2);
+  if (item.precoAssados) document.getElementById('item-preco-assados').value = item.precoAssados.toFixed(2);
+
+  // Imagem
+  if (item.imagem){
+    const zone = document.getElementById('img-drop-zone');
+    zone.classList.add('tem-imagem');
+    zone.innerHTML = `<img src="${item.imagem}" alt="${item.nome}"><input type="file" accept="image/*" id="item-img-input" onchange="preverImagem(this)" style="display:none;">`;
+    document.getElementById('btn-remover-img').style.display = 'flex';
+  }
+}
+
+/* ---------- Toggle de operação ---------- */
+function toggleOp(op){
+  const card = document.getElementById('op-' + op);
+  const toggle = document.getElementById('toggle-' + op);
+  const ativa = card.classList.contains('ativa');
+  setOp(op, !ativa);
+}
+
+function setOp(op, ativo){
+  const card = document.getElementById('op-' + op);
+  const toggle = document.getElementById('toggle-' + op);
+  if (ativo){
+    card.classList.add('ativa');
+    toggle.classList.add('on');
+  } else {
+    card.classList.remove('ativa');
+    toggle.classList.remove('on');
+  }
+}
+
+/* ---------- Toggle ativo ---------- */
+document.getElementById('toggle-ativo').addEventListener('click', function(){
+  this.classList.toggle('on');
+});
+
+/* ---------- Imagem ---------- */
+function preverImagem(input){
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024){ alert('Imagem muito grande. Máximo 2 MB.'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    const zone = document.getElementById('img-drop-zone');
+    zone.classList.add('tem-imagem');
+    zone.innerHTML = `<img src="${e.target.result}" alt="preview"><input type="file" accept="image/*" id="item-img-input" onchange="preverImagem(this)" style="display:none;">`;
+    zone.dataset.imagem = e.target.result;
+    document.getElementById('btn-remover-img').style.display = 'flex';
+  };
+  reader.readAsDataURL(file);
+}
+
+function removerImagem(){
+  const zone = document.getElementById('img-drop-zone');
+  zone.classList.remove('tem-imagem');
+  zone.innerHTML = `
+    <i class="ti ti-cloud-upload"></i>
+    <p>Clique ou arraste uma imagem</p>
+    <small>JPG, PNG ou WEBP · máx. 2 MB</small>
+    <input type="file" accept="image/*" id="item-img-input" onchange="preverImagem(this)" style="display:none;">`;
+  zone.dataset.imagem = '';
+  document.getElementById('btn-remover-img').style.display = 'none';
+}
+
+/* ---------- Salvar ---------- */
+async function salvarItem(){
+  const nome = document.getElementById('item-nome').value.trim();
+  if (!nome){ alert('Informe o nome do item.'); return; }
+
+  const avulso = document.getElementById('op-avulso').classList.contains('ativa');
+  const assinatura = document.getElementById('op-assinatura').classList.contains('ativa');
+  const assados = document.getElementById('op-assados').classList.contains('ativa');
+
+  if (!avulso && !assinatura && !assados){
+    alert('Ative ao menos uma operação para este item.'); return;
+  }
+
+  const categoria = document.getElementById('item-categoria').value;
+  const descricao = document.getElementById('item-descricao').value.trim();
+  const ativo = document.getElementById('toggle-ativo').classList.contains('on');
+  const precoAvulso = parseFloat(document.getElementById('item-preco-avulso').value) || 0;
+  const precoAssinatura = parseFloat(document.getElementById('item-preco-assinatura').value) || 0;
+  const precoAssados = parseFloat(document.getElementById('item-preco-assados').value) || 0;
+  const imagem = document.getElementById('img-drop-zone').dataset.imagem || null;
+
+  const modalidades = { avulso, assinatura, assados };
+
+  if (itemEditandoId){
+    // Verificar se é item de assados ou de catálogo normal
+    const itemNormal = CATALOGO.itens.find(i => i.id === itemEditandoId);
+    const itemAssados = (CATALOGO.itensAssados || []).find(i => i.id === itemEditandoId);
+
+    if (itemNormal){
+      Object.assign(itemNormal, { nome, categoria, descricao, ativo, imagem, modalidades, precoAvulso, precoAssinatura, precoAssados });
+    } else if (itemAssados){
+      Object.assign(itemAssados, { nome, categoria, descricao, ativo, imagem, precoAvulso: precoAssados });
+    }
+  } else {
+    const novoItem = {
+      id: gerarIdUnico(nome, [...(CATALOGO.itens || []), ...(CATALOGO.itensAssados || [])]),
+      nome, categoria, descricao, ativo, imagem, modalidades,
+      precoAvulso, precoAssinatura, precoAssados
+    };
+
+    // Se for categoria de assados, salvar em itensAssados; senão em itens
+    const catAssados = CATALOGO.categoriasAssados || [];
+    if (catAssados.includes(categoria)){
+      if (!CATALOGO.itensAssados) CATALOGO.itensAssados = [];
+      CATALOGO.itensAssados.push({ ...novoItem, precoAvulso: precoAssados });
+    } else {
+      CATALOGO.itens.push(novoItem);
+    }
+  }
+
+  await salvarCatalogo(CATALOGO);
+  mostrarToast('Item salvo com sucesso!');
+  setTimeout(() => voltar(), 1000);
+}
+
+/* ---------- Excluir ---------- */
+async function excluirItem(){
+  if (!confirm(`Excluir "${document.getElementById('item-nome').value}"? Ele deixa de aparecer no Monte o seu e em combos.`)) return;
+  CATALOGO.itens = (CATALOGO.itens || []).filter(i => i.id !== itemEditandoId);
+  CATALOGO.itensAssados = (CATALOGO.itensAssados || []).filter(i => i.id !== itemEditandoId);
+  (CATALOGO.combos || []).forEach(c => delete c.itensPadrao[itemEditandoId]);
+  await salvarCatalogo(CATALOGO);
+  mostrarToast('Item excluído.');
+  setTimeout(() => voltar(), 800);
+}
+
+/* ---------- Navegação ---------- */
+function voltar(){
+  const params = new URLSearchParams(window.location.search);
+  const aba = params.get('aba') || 'itens';
+  window.location.href = `mod8-planos.html?tab=${aba}`;
+}
+
+/* ---------- Toast ---------- */
+function mostrarToast(msg){
+  const t = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+</script>
+</body>
+</html>
