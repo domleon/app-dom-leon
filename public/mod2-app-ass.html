@@ -596,7 +596,6 @@ function selecionarPagamento(el, tipo){
 
   document.getElementById('plano-nome').textContent = nome;
 
-  // Preencher dias/período no rodapé do cupom (abreviados)
   const diasAbrev = dias
     .replace(/Segunda-feira/g,'Seg').replace(/Terça-feira/g,'Ter')
     .replace(/Quarta-feira/g,'Qua').replace(/Quinta-feira/g,'Qui')
@@ -610,45 +609,110 @@ function selecionarPagamento(el, tipo){
   document.getElementById('sucesso-texto').textContent =
     'Seu plano "' + nome + '" já está confirmado. Você vai receber uma notificação quando o pedido estiver pronto.';
 
+  // Calcular ocorrências reais de cada dia da semana no ciclo
+  const ocorrenciasPorDia = contarOcorrenciasDias(dias, inicio, fim);
+
   // Carregar catalogo do Firestore e montar grid
   try {
     const catalogo = await carregarCatalogo();
-    const itensConsolidados = parseItensPorDia(itensTexto, catalogo);
+    const itensConsolidados = parseItensPorDia(itensTexto, catalogo, ocorrenciasPorDia);
     montarGridConsolidado(itensConsolidados);
   } catch(e) {
     console.error('Erro ao carregar catálogo:', e);
-    const itensConsolidados = parseItensPorDia(itensTexto, null);
+    const itensConsolidados = parseItensPorDia(itensTexto, null, ocorrenciasPorDia);
     montarGridConsolidado(itensConsolidados);
   }
 
   atualizarTotalComTaxa();
 })();
 
-function parseItensPorDia(itensTexto, catalogo){
+/* Converte string de data 'DD/MM' ou 'DD/MM/YYYY' para objeto Date (ano atual se não informado) */
+function parsearData(str){
+  if (!str) return null;
+  const partes = str.split('/');
+  const dia = parseInt(partes[0], 10);
+  const mes = parseInt(partes[1], 10) - 1; // mês 0-based
+  const ano = partes[2] ? parseInt(partes[2], 10) : new Date().getFullYear();
+  const d = new Date(ano, mes, dia);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+/* Conta quantas vezes cada dia da semana selecionado ocorre entre dataInicio e dataFim (inclusive).
+   Retorna objeto: { 'Segunda-feira': 4, 'Quinta-feira': 5, 'Sábado': 4, ... } */
+function contarOcorrenciasDias(diasStr, inicioStr, fimStr){
+  const mapa = {
+    'Domingo': 0, 'Segunda-feira': 1, 'Terça-feira': 2, 'Quarta-feira': 3,
+    'Quinta-feira': 4, 'Sexta-feira': 5, 'Sábado': 6
+  };
+
+  const dataInicio = parsearData(inicioStr);
+  const dataFim = parsearData(fimStr);
+  if (!dataInicio || !dataFim) return {};
+
+  // Dias selecionados como array de números (0=dom..6=sab)
+  const diasSelecionados = diasStr.split(',').map(d => d.trim());
+  const diasNumericos = diasSelecionados.map(d => mapa[d]).filter(n => n !== undefined);
+
+  // Contar ocorrências de cada dia no intervalo
+  const contagem = {};
+  diasSelecionados.forEach(d => { contagem[d] = 0; });
+
+  const atual = new Date(dataInicio);
+  while (atual <= dataFim){
+    const diaSemana = atual.getDay();
+    const idxDia = diasNumericos.indexOf(diaSemana);
+    if (idxDia !== -1){
+      const nomeDia = diasSelecionados[idxDia];
+      if (nomeDia) contagem[nomeDia] = (contagem[nomeDia] || 0) + 1;
+    }
+    atual.setDate(atual.getDate() + 1);
+  }
+
+  return contagem;
+}
+
+/* Parseia os itens por dia e consolida a quantidade total no ciclo,
+   multiplicando a qtd diária pelo nº real de ocorrências daquele dia */
+function parseItensPorDia(itensTexto, catalogo, ocorrenciasPorDia){
   if (!itensTexto) return [];
 
   const diasTexto = itensTexto.split(' · ');
-  const consolidacao = {};
+
+  // Mapa: nomeDia → { nomeItem → qtdDiaria }
+  const itensPorDiaMap = {};
 
   diasTexto.forEach(diaTexto => {
     const partes = diaTexto.split(':');
     if (partes.length < 2) return;
+    const nomeDia = partes[0].trim();
     const itensStr = partes.slice(1).join(':').trim();
     const itensSeparados = itensStr.split(',').map(s => s.trim());
 
+    itensPorDiaMap[nomeDia] = {};
     itensSeparados.forEach(itemStr => {
       if (!itemStr) return;
       const match = itemStr.match(/^(\d+)\s+(.+)$/);
       if (match){
-        const qtd = parseInt(match[1], 10);
-        const nome = match[2].trim();
-        consolidacao[nome] = (consolidacao[nome] || 0) + qtd;
+        const qtdDiaria = parseInt(match[1], 10);
+        const nomeItem = match[2].trim();
+        itensPorDiaMap[nomeDia][nomeItem] = (itensPorDiaMap[nomeDia][nomeItem] || 0) + qtdDiaria;
       }
     });
   });
 
+  // Consolidar: para cada item, somar (qtdDiaria × ocorrências do dia)
+  const consolidacao = {}; // nomeItem → qtdTotal
+  Object.keys(itensPorDiaMap).forEach(nomeDia => {
+    const ocorrencias = (ocorrenciasPorDia && ocorrenciasPorDia[nomeDia]) || 0;
+    const itens = itensPorDiaMap[nomeDia];
+    Object.keys(itens).forEach(nomeItem => {
+      const qtdTotal = itens[nomeItem] * ocorrencias;
+      consolidacao[nomeItem] = (consolidacao[nomeItem] || 0) + qtdTotal;
+    });
+  });
+
   return Object.keys(consolidacao).map(nome => ({
-    nome: nome,
+    nome,
     qtd: consolidacao[nome],
     preco: buscarPrecoItem(nome, catalogo)
   }));
@@ -686,7 +750,7 @@ function montarGridConsolidado(itensArray){
 
   itensArray.forEach(item => {
     const precoUnit = parseFloat(item.preco) || 0;
-    const qtd = parseInt(item.qtd) || 1;
+    const qtd = parseInt(item.qtd) || 0;
     const totalItem = precoUnit * qtd;
     totalGeral += totalItem;
 
@@ -704,7 +768,6 @@ function montarGridConsolidado(itensArray){
     container.appendChild(div);
   });
 
-  // Atualizar total no cupom se houver preços reais
   if (totalGeral > 0){
     document.getElementById('plano-preco-cupom').textContent = 'R$ ' + totalGeral.toFixed(2).replace('.', ',');
   } else {
