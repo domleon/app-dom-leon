@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dom Leon — Escolha a data</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F5F0E8;--card:#FFFFFF;--border:#E3D8C4;--border-strong:#C7B79A;
+    --text-primary:#3B2314;--text-secondary:#6B5B47;--text-muted:#8A7860;
+    --accent:#B8873B;--accent-bg:#FBF3E2;--accent-text:#6B4E1E;
+    --radius:10px;--radius-lg:16px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:'Inter',sans-serif;background:var(--bg);color:var(--text-primary);
+    min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:32px 16px;
+  }
+  .phone{
+    width:100%;max-width:380px;background:var(--card);border:0.5px solid var(--border);
+    border-radius:var(--radius-lg);padding:20px;min-height:480px;display:flex;flex-direction:column;
+  }
+  .topbar{display:flex;align-items:center;gap:8px;margin-bottom:20px;}
+  .topbar svg{width:18px;height:18px;cursor:pointer;flex-shrink:0;color:var(--text-primary);}
+  .topbar h2{font-size:16px;font-weight:600;font-family:'Fraunces',serif;}
+
+  .subtitulo{font-size:12px;color:var(--text-muted);margin-bottom:16px;margin-top:-12px;}
+
+  /* Cards de data */
+  .data-card{
+    border:0.5px solid var(--border-strong);border-radius:12px;padding:14px 16px;
+    margin-bottom:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;
+    transition:border-color .15s,background .15s;
+  }
+  .data-card:hover{border-color:var(--accent);}
+  .data-card.sel{background:var(--accent-bg);border-color:var(--accent);}
+  .data-card .dia{font-size:15px;font-weight:600;color:var(--text-primary);}
+  .data-card.sel .dia{color:var(--accent-text);}
+  .data-card .limite{font-size:11px;color:var(--text-muted);margin-top:3px;}
+  .data-card.sel .limite{color:var(--accent);}
+  .data-card .tag-proximo{
+    font-size:10px;font-weight:600;background:var(--accent-bg);color:var(--accent-text);
+    border-radius:20px;padding:3px 10px;border:0.5px solid var(--accent);
+  }
+  .data-card.sel .tag-proximo{display:none;}
+  .check-icon{color:var(--accent);display:none;flex-shrink:0;}
+  .data-card.sel .check-icon{display:block;}
+  svg.check{width:20px;height:20px;}
+
+  .sem-datas{
+    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;color:var(--text-muted);gap:10px;
+  }
+  .sem-datas svg{width:40px;height:40px;opacity:.4;}
+  .sem-datas p{font-size:13px;line-height:1.5;}
+
+  .btn-confirmar{
+    width:100%;background:var(--text-primary);color:#fff;border:none;border-radius:var(--radius);
+    padding:14px;font-size:14px;font-weight:500;font-family:inherit;cursor:pointer;margin-top:auto;
+  }
+  .btn-confirmar:disabled{background:var(--border-strong);cursor:not-allowed;}
+
+  .loading{
+    flex:1;display:flex;align-items:center;justify-content:center;
+    color:var(--text-muted);font-size:13px;
+  }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="topbar">
+    <svg onclick="window.location.href='mod1-cad-catalogo.html'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    <h2>Escolha a data</h2>
+  </div>
+  <p class="subtitulo">Assados &amp; Menu Almoço · Selecione o domingo da encomenda</p>
+
+  <div id="conteudo">
+    <div class="loading">Carregando datas...</div>
+  </div>
+
+  <button class="btn-confirmar" id="btn-confirmar" disabled onclick="confirmarData()">Ver cardápio →</button>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="catalogo.js"></script>
+<script>
+let DATA_SELECIONADA = null;
+
+const NOMES_DIAS = ['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
+const NOMES_MESES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+
+function formatarDataExtenso(d){
+  const nomeDia = NOMES_DIAS[d.getDay()];
+  const dia = d.getDate();
+  const mes = NOMES_MESES[d.getMonth()];
+  const ano = d.getFullYear();
+  return `${nomeDia.charAt(0).toUpperCase() + nomeDia.slice(1)}, ${dia} de ${mes} de ${ano}`;
+}
+
+function formatarLimite(dataStr, horarioLimite){
+  const [ano, mes, dia] = dataStr.split('-');
+  return `Pedidos até ${dia}/${mes} às ${horarioLimite}`;
+}
+
+function selecionarData(dataStr, horarioLimite){
+  DATA_SELECIONADA = { dataStr, horarioLimite };
+  document.querySelectorAll('.data-card').forEach(c => c.classList.remove('sel'));
+  const card = document.querySelector(`[data-id="${dataStr}"]`);
+  if (card) card.classList.add('sel');
+  document.getElementById('btn-confirmar').disabled = false;
+}
+
+function confirmarData(){
+  if (!DATA_SELECIONADA) return;
+  // Persiste a data escolhida para o mod12 e mod13 usarem
+  localStorage.setItem('domleon_assados_data', JSON.stringify(DATA_SELECIONADA));
+  window.location.href = 'mod12-catalogo-assados.html';
+}
+
+(async function init(){
+  const catalogo = await carregarCatalogo();
+  const datas = calcularDatasAssados(catalogo.configAssados, 4);
+  const conteudo = document.getElementById('conteudo');
+
+  if (!datas || datas.length === 0){
+    conteudo.innerHTML = `
+      <div class="sem-datas">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="3" y="4" width="18" height="18" rx="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+          <line x1="10" y1="14" x2="14" y2="18"/>
+          <line x1="14" y1="14" x2="10" y2="18"/>
+        </svg>
+        <p>Não há datas disponíveis para encomenda no momento.<br>Volte em breve!</p>
+      </div>`;
+    return;
+  }
+
+  conteudo.innerHTML = '';
+  datas.forEach((item, idx) => {
+    const card = document.createElement('div');
+    card.className = 'data-card' + (idx === 0 ? ' sel' : '');
+    card.dataset.id = item.dataStr;
+    card.onclick = () => selecionarData(item.dataStr, item.horarioLimite);
+
+    card.innerHTML = `
+      <div>
+        <div class="dia">${formatarDataExtenso(item.data)}</div>
+        <div class="limite">${formatarLimite(item.dataStr, item.horarioLimite)}</div>
+      </div>
+      <div>
+        ${idx === 0 ? `<span class="tag-proximo">Próximo</span>` : ''}
+        <div class="check-icon">
+          <svg class="check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+        </div>
+      </div>`;
+
+    conteudo.appendChild(card);
+  });
+
+  // Seleciona a primeira data por padrão
+  if (datas.length > 0){
+    DATA_SELECIONADA = { dataStr: datas[0].dataStr, horarioLimite: datas[0].horarioLimite };
+    document.getElementById('btn-confirmar').disabled = false;
+  }
+})();
+</script>
+</body>
+</html>

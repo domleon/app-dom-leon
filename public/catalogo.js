@@ -102,6 +102,47 @@ function cardDisponivelAgora(configCard){
   return horaAtual >= horarioDia.inicio && horaAtual <= horarioDia.fim;
 }
 
+/* Calcula as próximas datas disponíveis para encomenda de Assados.
+   Retorna array de até maxDatas objetos { data: Date, dataStr: 'YYYY-MM-DD', horarioLimite: 'HH:MM' }
+   excluindo datas passadas (ou com horário limite vencido hoje) e datas excluídas pelo admin. */
+function calcularDatasAssados(configAssados, maxDatas){
+  if (!configAssados || !configAssados.dias || configAssados.dias.length === 0) return [];
+  const max = maxDatas || 4;
+  const exclusoes = new Set(configAssados.datasExcluidas || []);
+  const agora = new Date();
+  const horaAtual = String(agora.getHours()).padStart(2,'0') + ':' + String(agora.getMinutes()).padStart(2,'0');
+  const resultado = [];
+  
+  // Procura nos próximos 120 dias (4 meses de margem)
+  for (let i = 0; i <= 120 && resultado.length < max; i++){
+    const d = new Date(agora);
+    d.setHours(0,0,0,0);
+    d.setDate(d.getDate() + i);
+    
+    const diaSemana = d.getDay();
+    const configDia = configAssados.dias.find(cd => cd.diaSemana === diaSemana);
+    if (!configDia) continue;
+    
+    const ano = d.getFullYear();
+    const mes = String(d.getMonth()+1).padStart(2,'0');
+    const dia = String(d.getDate()).padStart(2,'0');
+    const dataStr = `${ano}-${mes}-${dia}`;
+    
+    if (exclusoes.has(dataStr)) continue;
+    
+    // Se é hoje, verificar se ainda não passou do horário limite
+    if (i === 0 && horaAtual > configDia.horarioLimite) continue;
+    
+    resultado.push({ data: d, dataStr, horarioLimite: configDia.horarioLimite });
+  }
+  return resultado;
+}
+
+/* Verifica se o card de Assados tem datas disponíveis */
+function assadosPossuiDatasDisponiveis(configAssados){
+  return calcularDatasAssados(configAssados, 1).length > 0;
+}
+
 function removerAcentos(txt){
   return (txt || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
@@ -166,7 +207,17 @@ const CATALOGO_PADRAO = {
   ],
 
   // Disponibilidade configurável dos 3 cards da tela inicial (habilitado + janela de horário por dia)
-  configCards: montarConfigCardsPadrao()
+  configCards: montarConfigCardsPadrao(),
+
+  // Configuração de datas de encomenda dos Assados:
+  // diasAssados: quais dias da semana geram datas (0=dom..6=sab), com horário limite de pedido
+  // datasAssadosExcluidas: array de strings 'YYYY-MM-DD' de datas manualmente desabilitadas pelo admin
+  configAssados: {
+    dias: [
+      { diaSemana: 0, horarioLimite: '11:00' } // Domingo, limite 11h
+    ],
+    datasExcluidas: []
+  }
 };
 
 /* Mapeia os ids antigos (por unidade) para os novos ids de porção equivalentes,
@@ -238,6 +289,10 @@ function migrarCatalogo(catalogo){
   }
   if (!catalogo.configCards) {
     catalogo.configCards = montarConfigCardsPadrao();
+    precisouMigrar = true;
+  }
+  if (!catalogo.configAssados) {
+    catalogo.configAssados = JSON.parse(JSON.stringify(CATALOGO_PADRAO.configAssados));
     precisouMigrar = true;
   }
 
