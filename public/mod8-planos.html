@@ -137,12 +137,6 @@
   .modal-overlay.open{display:flex;}
   .modal-box{background:var(--card);border-radius:14px;padding:22px;width:420px;max-width:90vw;max-height:90vh;overflow-y:auto;}
   .modal-box h3{font-size:16px;font-weight:600;margin-bottom:16px;font-family:'Fraunces',serif;}
-  /* Toggles da tabela de categoria */
-  .cat-toggle{width:36px;height:20px;border-radius:20px;background:var(--border-strong);position:relative;cursor:pointer;display:inline-block;transition:background .15s;vertical-align:middle;}
-  .cat-toggle.on{background:var(--accent);}
-  .cat-toggle-knob{position:absolute;width:16px;height:16px;background:#fff;border-radius:50%;top:2px;left:2px;transition:left .15s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
-  .cat-toggle.on .cat-toggle-knob{left:18px;}
-  .row-cat-off td{opacity:.45;}
   .field{margin-bottom:12px;}
   .field label{font-size:12px;font-weight:500;color:var(--text-secondary);display:block;margin-bottom:6px;}
   .field input, .field select{
@@ -409,81 +403,10 @@
 
 <!-- MODAL: CATEGORIA -->
 <div class="modal-overlay" id="modal-categoria">
-  <div class="modal-box" style="width:600px;max-width:95vw;">
+  <div class="modal-box">
     <h3 id="modal-categoria-titulo">Nova categoria</h3>
-
-    <div class="field">
-      <label>Nome da categoria</label>
-      <input type="text" id="categoria-nome">
-    </div>
-
-    <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin:16px 0 8px;">Operações & impacto nos itens</div>
-
-    <table style="width:100%;border-collapse:collapse;font-size:13px;">
-      <thead>
-        <tr style="background:var(--bg);">
-          <th style="text-align:left;padding:8px 12px;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);font-weight:600;border-bottom:0.5px solid var(--border);border-top:0.5px solid var(--border);">Operação</th>
-          <th style="text-align:left;padding:8px 12px;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);font-weight:600;border-bottom:0.5px solid var(--border);border-top:0.5px solid var(--border);">Onde aparece</th>
-          <th style="text-align:left;padding:8px 12px;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);font-weight:600;border-bottom:0.5px solid var(--border);border-top:0.5px solid var(--border);">Itens desta categoria</th>
-          <th style="padding:8px 12px;border-bottom:0.5px solid var(--border);border-top:0.5px solid var(--border);"></th>
-        </tr>
-      </thead>
-      <tbody id="tbody-operacoes-cat">
-        <tr style="border-bottom:0.5px solid var(--border);" id="row-cat-avulso">
-          <td style="padding:10px 12px;">
-            <div style="display:flex;align-items:center;gap:7px;">
-              <i class="ti ti-shopping-bag" style="font-size:15px;color:var(--accent-text);"></i>
-              <span style="font-weight:500;color:var(--accent-text);">Pedido avulso</span>
-            </div>
-          </td>
-          <td style="padding:10px 12px;font-size:12px;color:var(--text-muted);">Catálogo de compra avulsa</td>
-          <td style="padding:10px 12px;" id="impacto-avulso">
-            <span style="font-size:11px;background:var(--accent-bg);color:var(--accent-text);border-radius:20px;padding:2px 10px;font-weight:500;">— itens herdarão</span>
-          </td>
-          <td style="padding:10px 12px;text-align:right;">
-            <div class="cat-toggle on" id="toggle-cat-avulso" onclick="toggleCatOp('avulso')">
-              <div class="cat-toggle-knob"></div>
-            </div>
-          </td>
-        </tr>
-        <tr style="border-bottom:0.5px solid var(--border);" id="row-cat-assinatura">
-          <td style="padding:10px 12px;">
-            <div style="display:flex;align-items:center;gap:7px;">
-              <i class="ti ti-repeat" style="font-size:15px;color:var(--accent-text);"></i>
-              <span style="font-weight:500;color:var(--accent-text);">Assinatura mensal</span>
-            </div>
-          </td>
-          <td style="padding:10px 12px;font-size:12px;color:var(--text-muted);">Wizard Monte o seu</td>
-          <td style="padding:10px 12px;" id="impacto-assinatura">
-            <span style="font-size:11px;background:var(--accent-bg);color:var(--accent-text);border-radius:20px;padding:2px 10px;font-weight:500;">— itens herdarão</span>
-          </td>
-          <td style="padding:10px 12px;text-align:right;">
-            <div class="cat-toggle on" id="toggle-cat-assinatura" onclick="toggleCatOp('assinatura')">
-              <div class="cat-toggle-knob"></div>
-            </div>
-          </td>
-        </tr>
-        <tr id="row-cat-assados">
-          <td style="padding:10px 12px;">
-            <div style="display:flex;align-items:center;gap:7px;">
-              <i class="ti ti-tools-kitchen-2" style="font-size:15px;color:var(--text-muted);"></i>
-              <span style="color:var(--text-muted);">Assados & Menu Almoço</span>
-            </div>
-          </td>
-          <td style="padding:10px 12px;font-size:12px;color:var(--text-muted);">Cardápio de assados</td>
-          <td style="padding:10px 12px;" id="impacto-assados">
-            <span style="font-size:11px;color:var(--text-muted);">não herdará</span>
-          </td>
-          <td style="padding:10px 12px;text-align:right;">
-            <div class="cat-toggle" id="toggle-cat-assados" onclick="toggleCatOp('assados')">
-              <div class="cat-toggle-knob"></div>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-
-    <div class="modal-actions" style="margin-top:18px;">
+    <div class="field"><label>Nome da categoria</label><input type="text" id="categoria-nome"></div>
+    <div class="modal-actions">
       <button class="btn-secondary" onclick="fecharModal('modal-categoria')">Cancelar</button>
       <button class="btn-primary" onclick="salvarCategoria()">Salvar categoria</button>
     </div>
@@ -666,9 +589,7 @@ function renderizarItens(){
   }
 
   CATALOGO.categorias.forEach(cat => {
-    const nomeCategoria = nomeCat(cat);
-    const opsCategoria = opsCat(cat);
-    const itensCat = CATALOGO.itens.filter(i => i.categoria === nomeCategoria);
+    const itensCat = CATALOGO.itens.filter(i => i.categoria === cat);
     const bloco = document.createElement('div');
     bloco.className = 'categoria-block';
 
@@ -680,19 +601,13 @@ function renderizarItens(){
         const thumb = item.imagem
           ? `<span class="item-thumb"><img src="${item.imagem}"></span>`
           : `<span class="item-thumb"><i class="ti ti-photo" style="font-size:12px;"></i></span>`;
-        const mods = item.modalidades || { avulso: true, assinatura: true, assados: false };
+        const mods = item.modalidades || { avulso: true, assinatura: true };
         const precoAvulsoTxt = mods.avulso ? 'R$ ' + (item.precoAvulso || 0).toFixed(2).replace('.', ',') : '—';
         const precoAssinaturaTxt = mods.assinatura ? 'R$ ' + (item.precoAssinatura || 0).toFixed(2).replace('.', ',') : '—';
-        const precoAssadosTxt = mods.assados ? 'R$ ' + (item.precoAssados || 0).toFixed(2).replace('.', ',') : '—';
-        const linhaPrecos = [
-          mods.avulso ? 'Avulso: ' + precoAvulsoTxt : null,
-          mods.assinatura ? 'Assinatura: ' + precoAssinaturaTxt : null,
-          mods.assados ? 'Assados: ' + precoAssadosTxt : null
-        ].filter(Boolean).join('<br>');
         return `
           <tr>
             <td>${thumb}${item.nome}</td>
-            <td>${linhaPrecos}</td>
+            <td>Avulso: ${precoAvulsoTxt}<br>Assinatura: ${precoAssinaturaTxt}</td>
             <td>
               <span class="status-toggle" onclick="toggleStatusItem('${item.id}')">
                 <span class="status-dot ${item.ativo ? '' : 'off'}"></span>${item.ativo ? 'Ativo' : 'Pausado'}
@@ -707,7 +622,7 @@ function renderizarItens(){
     }
 
     bloco.innerHTML = `
-      <div class="categoria-header"><h3>${nomeCategoria}</h3></div>
+      <div class="categoria-header"><h3>${cat}</h3></div>
       <div class="table-card">
         <table>
           <thead><tr><th>Item</th><th>Preço (avulso / assinatura)</th><th>Disponível</th><th></th></tr></thead>
@@ -722,10 +637,9 @@ let itemEditandoId = null;
 
 function popularSelectCategorias(selectId, valorAtual){
   const select = document.getElementById(selectId);
-  select.innerHTML = CATALOGO.categorias.map(c => {
-    const nome = nomeCat(c);
-    return `<option value="${nome}" ${nome === valorAtual ? 'selected' : ''}>${nome}</option>`;
-  }).join('');
+  select.innerHTML = CATALOGO.categorias.map(c =>
+    `<option value="${c}" ${c === valorAtual ? 'selected' : ''}>${c}</option>`
+  ).join('');
 }
 
 function toggleModalidadesItem(){
@@ -793,9 +707,6 @@ function toggleStatusItem(itemId){
 }
 
 /* ---------- CATEGORIAS ---------- */
-function nomeCat(c){ return typeof c === 'string' ? c : c.nome; }
-function opsCat(c){ return typeof c === 'string' ? ['avulso','assinatura'] : (c.operacoes || []); }
-
 function renderizarCategorias(){
   const list = document.getElementById('cat-list');
   list.innerHTML = '';
@@ -803,25 +714,15 @@ function renderizarCategorias(){
     list.innerHTML = '<div class="empty-msg">Nenhuma categoria cadastrada ainda.</div>';
     return;
   }
-
-  const BADGE = {
-    avulso:     '<span style="font-size:10px;font-weight:500;background:#EFF6FF;color:#1D4ED8;border-radius:20px;padding:2px 8px;">Avulso</span>',
-    assinatura: '<span style="font-size:10px;font-weight:500;background:var(--accent-bg);color:var(--accent-text);border-radius:20px;padding:2px 8px;">Assinatura</span>',
-    assados:    '<span style="font-size:10px;font-weight:500;background:#FEF3C7;color:#92400E;border-radius:20px;padding:2px 8px;">Assados</span>'
-  };
-
   CATALOGO.categorias.forEach(cat => {
-    const nome = nomeCat(cat);
-    const ops = opsCat(cat);
-    const qtd = CATALOGO.itens.filter(i => i.categoria === nome).length;
-    const badges = ops.map(op => BADGE[op] || '').join(' ');
+    const qtd = CATALOGO.itens.filter(i => i.categoria === cat).length;
     const row = document.createElement('div');
     row.className = 'cat-row';
     row.innerHTML = `
-      <span>${nome} <span class="count">${qtd} item${qtd === 1 ? '' : 'ns'}</span> ${badges}</span>
+      <span>${cat}<span class="count">${qtd} item${qtd === 1 ? '' : 'ns'}</span></span>
       <div class="combo-actions" style="gap:6px;">
-        <div class="icon-btn" style="flex:none;width:30px;height:30px;padding:0;" onclick="abrirModalCategoria('${nome}')"><i class="ti ti-edit"></i></div>
-        <div class="icon-btn danger" style="flex:none;width:30px;height:30px;padding:0;" onclick="excluirCategoria('${nome}')"><i class="ti ti-trash"></i></div>
+        <div class="icon-btn" style="flex:none;width:30px;height:30px;padding:0;" onclick="abrirModalCategoria('${cat}')"><i class="ti ti-edit"></i></div>
+        <div class="icon-btn danger" style="flex:none;width:30px;height:30px;padding:0;" onclick="excluirCategoria('${cat}')"><i class="ti ti-trash"></i></div>
       </div>`;
     list.appendChild(row);
   });
@@ -833,74 +734,27 @@ function abrirModalCategoria(nomeAtual){
   categoriaEditandoNome = nomeAtual || null;
   document.getElementById('modal-categoria-titulo').textContent = nomeAtual ? 'Editar categoria' : 'Nova categoria';
   document.getElementById('categoria-nome').value = nomeAtual || '';
-
-  const cat = nomeAtual ? CATALOGO.categorias.find(c => nomeCat(c) === nomeAtual) : null;
-  const ops = cat ? opsCat(cat) : ['avulso','assinatura'];
-
-  ['avulso','assinatura','assados'].forEach(op => {
-    const toggle = document.getElementById('toggle-cat-' + op);
-    const row = document.getElementById('row-cat-' + op);
-    if (ops.includes(op)){
-      toggle.classList.add('on');
-      row.classList.remove('row-cat-off');
-    } else {
-      toggle.classList.remove('on');
-      row.classList.add('row-cat-off');
-    }
-    // Mostrar quantos itens serão impactados
-    if (nomeAtual){
-      const qtdItens = CATALOGO.itens.filter(i => i.categoria === nomeAtual).length;
-      const el = document.getElementById('impacto-' + op);
-      if (el){
-        const ativa = ops.includes(op);
-        el.innerHTML = ativa
-          ? `<span style="font-size:11px;background:var(--accent-bg);color:var(--accent-text);border-radius:20px;padding:2px 10px;font-weight:500;">${qtdItens} item${qtdItens!==1?'s':''} herdarão</span>`
-          : `<span style="font-size:11px;color:var(--text-muted);">não herdará</span>`;
-      }
-    }
-  });
-
   document.getElementById('modal-categoria').classList.add('open');
-}
-
-function toggleCatOp(op){
-  const toggle = document.getElementById('toggle-cat-' + op);
-  const row = document.getElementById('row-cat-' + op);
-  const isOn = toggle.classList.toggle('on');
-  if (isOn) row.classList.remove('row-cat-off');
-  else row.classList.add('row-cat-off');
 }
 
 function salvarCategoria(){
   const nome = document.getElementById('categoria-nome').value.trim();
   if (!nome){ alert('Digite um nome para a categoria.'); return; }
 
-  const operacoes = [];
-  if (document.getElementById('toggle-cat-avulso').classList.contains('on')) operacoes.push('avulso');
-  if (document.getElementById('toggle-cat-assinatura').classList.contains('on')) operacoes.push('assinatura');
-  if (document.getElementById('toggle-cat-assados').classList.contains('on')) operacoes.push('assados');
-  if (operacoes.length === 0){ alert('Marque ao menos uma operação.'); return; }
-
-  const novaCategoria = { nome, operacoes };
-
   if (categoriaEditandoNome){
-    const idx = CATALOGO.categorias.findIndex(c => nomeCat(c) === categoriaEditandoNome);
-    if (nome !== categoriaEditandoNome && CATALOGO.categorias.some(c => nomeCat(c) === nome)){
-      alert('Já existe uma categoria com esse nome.'); return;
+    if (nome !== categoriaEditandoNome && CATALOGO.categorias.includes(nome)){
+      alert('Já existe uma categoria com esse nome.');
+      return;
     }
-    CATALOGO.categorias[idx] = novaCategoria;
-    // Atualizar modalidades dos itens desta categoria
-    CATALOGO.itens.forEach(i => {
-      if (i.categoria === categoriaEditandoNome){
-        i.categoria = nome;
-        i.modalidades = { avulso: operacoes.includes('avulso'), assinatura: operacoes.includes('assinatura'), assados: operacoes.includes('assados') };
-      }
-    });
+    const idx = CATALOGO.categorias.indexOf(categoriaEditandoNome);
+    CATALOGO.categorias[idx] = nome;
+    CATALOGO.itens.forEach(i => { if (i.categoria === categoriaEditandoNome) i.categoria = nome; });
   } else {
-    if (CATALOGO.categorias.some(c => nomeCat(c) === nome)){
-      alert('Já existe uma categoria com esse nome.'); return;
+    if (CATALOGO.categorias.includes(nome)){
+      alert('Já existe uma categoria com esse nome.');
+      return;
     }
-    CATALOGO.categorias.push(novaCategoria);
+    CATALOGO.categorias.push(nome);
   }
   persistir();
   renderizarCategorias();
@@ -915,7 +769,7 @@ function excluirCategoria(nome){
     return;
   }
   if (confirm('Excluir a categoria "' + nome + '"?')){
-    CATALOGO.categorias = CATALOGO.categorias.filter(c => nomeCat(c) !== nome);
+    CATALOGO.categorias = CATALOGO.categorias.filter(c => c !== nome);
     persistir();
     renderizarCategorias();
   }
