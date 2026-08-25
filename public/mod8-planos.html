@@ -406,6 +406,20 @@
   <div class="modal-box">
     <h3 id="modal-categoria-titulo">Nova categoria</h3>
     <div class="field"><label>Nome da categoria</label><input type="text" id="categoria-nome"></div>
+    <div class="field">
+      <label>Disponível em quais operações?</label>
+      <div style="display:flex;gap:16px;margin-top:6px;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;">
+          <input type="checkbox" id="cat-op-avulso"> Pedido avulso
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;">
+          <input type="checkbox" id="cat-op-assinatura"> Assinatura mensal
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;">
+          <input type="checkbox" id="cat-op-assados"> Assados
+        </label>
+      </div>
+    </div>
     <div class="modal-actions">
       <button class="btn-secondary" onclick="fecharModal('modal-categoria')">Cancelar</button>
       <button class="btn-primary" onclick="salvarCategoria()">Salvar categoria</button>
@@ -589,7 +603,9 @@ function renderizarItens(){
   }
 
   CATALOGO.categorias.forEach(cat => {
-    const itensCat = CATALOGO.itens.filter(i => i.categoria === cat);
+    const nomeCategoria = nomeCat(cat);
+    const opsCategoria = opsCat(cat);
+    const itensCat = CATALOGO.itens.filter(i => i.categoria === nomeCategoria);
     const bloco = document.createElement('div');
     bloco.className = 'categoria-block';
 
@@ -601,13 +617,19 @@ function renderizarItens(){
         const thumb = item.imagem
           ? `<span class="item-thumb"><img src="${item.imagem}"></span>`
           : `<span class="item-thumb"><i class="ti ti-photo" style="font-size:12px;"></i></span>`;
-        const mods = item.modalidades || { avulso: true, assinatura: true };
+        const mods = item.modalidades || { avulso: true, assinatura: true, assados: false };
         const precoAvulsoTxt = mods.avulso ? 'R$ ' + (item.precoAvulso || 0).toFixed(2).replace('.', ',') : '—';
         const precoAssinaturaTxt = mods.assinatura ? 'R$ ' + (item.precoAssinatura || 0).toFixed(2).replace('.', ',') : '—';
+        const precoAssadosTxt = mods.assados ? 'R$ ' + (item.precoAssados || 0).toFixed(2).replace('.', ',') : '—';
+        const linhaPrecos = [
+          mods.avulso ? 'Avulso: ' + precoAvulsoTxt : null,
+          mods.assinatura ? 'Assinatura: ' + precoAssinaturaTxt : null,
+          mods.assados ? 'Assados: ' + precoAssadosTxt : null
+        ].filter(Boolean).join('<br>');
         return `
           <tr>
             <td>${thumb}${item.nome}</td>
-            <td>Avulso: ${precoAvulsoTxt}<br>Assinatura: ${precoAssinaturaTxt}</td>
+            <td>${linhaPrecos}</td>
             <td>
               <span class="status-toggle" onclick="toggleStatusItem('${item.id}')">
                 <span class="status-dot ${item.ativo ? '' : 'off'}"></span>${item.ativo ? 'Ativo' : 'Pausado'}
@@ -622,7 +644,7 @@ function renderizarItens(){
     }
 
     bloco.innerHTML = `
-      <div class="categoria-header"><h3>${cat}</h3></div>
+      <div class="categoria-header"><h3>${nomeCategoria}</h3></div>
       <div class="table-card">
         <table>
           <thead><tr><th>Item</th><th>Preço (avulso / assinatura)</th><th>Disponível</th><th></th></tr></thead>
@@ -637,9 +659,10 @@ let itemEditandoId = null;
 
 function popularSelectCategorias(selectId, valorAtual){
   const select = document.getElementById(selectId);
-  select.innerHTML = CATALOGO.categorias.map(c =>
-    `<option value="${c}" ${c === valorAtual ? 'selected' : ''}>${c}</option>`
-  ).join('');
+  select.innerHTML = CATALOGO.categorias.map(c => {
+    const nome = nomeCat(c);
+    return `<option value="${nome}" ${nome === valorAtual ? 'selected' : ''}>${nome}</option>`;
+  }).join('');
 }
 
 function toggleModalidadesItem(){
@@ -707,6 +730,9 @@ function toggleStatusItem(itemId){
 }
 
 /* ---------- CATEGORIAS ---------- */
+function nomeCat(c){ return typeof c === 'string' ? c : c.nome; }
+function opsCat(c){ return typeof c === 'string' ? ['avulso','assinatura'] : (c.operacoes || []); }
+
 function renderizarCategorias(){
   const list = document.getElementById('cat-list');
   list.innerHTML = '';
@@ -714,15 +740,25 @@ function renderizarCategorias(){
     list.innerHTML = '<div class="empty-msg">Nenhuma categoria cadastrada ainda.</div>';
     return;
   }
+
+  const BADGE = {
+    avulso:     '<span style="font-size:10px;font-weight:500;background:#EFF6FF;color:#1D4ED8;border-radius:20px;padding:2px 8px;">Avulso</span>',
+    assinatura: '<span style="font-size:10px;font-weight:500;background:var(--accent-bg);color:var(--accent-text);border-radius:20px;padding:2px 8px;">Assinatura</span>',
+    assados:    '<span style="font-size:10px;font-weight:500;background:#FEF3C7;color:#92400E;border-radius:20px;padding:2px 8px;">Assados</span>'
+  };
+
   CATALOGO.categorias.forEach(cat => {
-    const qtd = CATALOGO.itens.filter(i => i.categoria === cat).length;
+    const nome = nomeCat(cat);
+    const ops = opsCat(cat);
+    const qtd = CATALOGO.itens.filter(i => i.categoria === nome).length;
+    const badges = ops.map(op => BADGE[op] || '').join(' ');
     const row = document.createElement('div');
     row.className = 'cat-row';
     row.innerHTML = `
-      <span>${cat}<span class="count">${qtd} item${qtd === 1 ? '' : 'ns'}</span></span>
+      <span>${nome} <span class="count">${qtd} item${qtd === 1 ? '' : 'ns'}</span> ${badges}</span>
       <div class="combo-actions" style="gap:6px;">
-        <div class="icon-btn" style="flex:none;width:30px;height:30px;padding:0;" onclick="abrirModalCategoria('${cat}')"><i class="ti ti-edit"></i></div>
-        <div class="icon-btn danger" style="flex:none;width:30px;height:30px;padding:0;" onclick="excluirCategoria('${cat}')"><i class="ti ti-trash"></i></div>
+        <div class="icon-btn" style="flex:none;width:30px;height:30px;padding:0;" onclick="abrirModalCategoria('${nome}')"><i class="ti ti-edit"></i></div>
+        <div class="icon-btn danger" style="flex:none;width:30px;height:30px;padding:0;" onclick="excluirCategoria('${nome}')"><i class="ti ti-trash"></i></div>
       </div>`;
     list.appendChild(row);
   });
@@ -734,6 +770,13 @@ function abrirModalCategoria(nomeAtual){
   categoriaEditandoNome = nomeAtual || null;
   document.getElementById('modal-categoria-titulo').textContent = nomeAtual ? 'Editar categoria' : 'Nova categoria';
   document.getElementById('categoria-nome').value = nomeAtual || '';
+
+  const cat = nomeAtual ? CATALOGO.categorias.find(c => nomeCat(c) === nomeAtual) : null;
+  const ops = cat ? opsCat(cat) : ['avulso','assinatura'];
+  document.getElementById('cat-op-avulso').checked = ops.includes('avulso');
+  document.getElementById('cat-op-assinatura').checked = ops.includes('assinatura');
+  document.getElementById('cat-op-assados').checked = ops.includes('assados');
+
   document.getElementById('modal-categoria').classList.add('open');
 }
 
@@ -741,20 +784,32 @@ function salvarCategoria(){
   const nome = document.getElementById('categoria-nome').value.trim();
   if (!nome){ alert('Digite um nome para a categoria.'); return; }
 
+  const operacoes = [];
+  if (document.getElementById('cat-op-avulso').checked) operacoes.push('avulso');
+  if (document.getElementById('cat-op-assinatura').checked) operacoes.push('assinatura');
+  if (document.getElementById('cat-op-assados').checked) operacoes.push('assados');
+  if (operacoes.length === 0){ alert('Marque ao menos uma operação.'); return; }
+
+  const novaCategoria = { nome, operacoes };
+
   if (categoriaEditandoNome){
-    if (nome !== categoriaEditandoNome && CATALOGO.categorias.includes(nome)){
-      alert('Já existe uma categoria com esse nome.');
-      return;
+    const idx = CATALOGO.categorias.findIndex(c => nomeCat(c) === categoriaEditandoNome);
+    if (nome !== categoriaEditandoNome && CATALOGO.categorias.some(c => nomeCat(c) === nome)){
+      alert('Já existe uma categoria com esse nome.'); return;
     }
-    const idx = CATALOGO.categorias.indexOf(categoriaEditandoNome);
-    CATALOGO.categorias[idx] = nome;
-    CATALOGO.itens.forEach(i => { if (i.categoria === categoriaEditandoNome) i.categoria = nome; });
+    CATALOGO.categorias[idx] = novaCategoria;
+    // Atualizar modalidades dos itens desta categoria
+    CATALOGO.itens.forEach(i => {
+      if (i.categoria === categoriaEditandoNome){
+        i.categoria = nome;
+        i.modalidades = { avulso: operacoes.includes('avulso'), assinatura: operacoes.includes('assinatura'), assados: operacoes.includes('assados') };
+      }
+    });
   } else {
-    if (CATALOGO.categorias.includes(nome)){
-      alert('Já existe uma categoria com esse nome.');
-      return;
+    if (CATALOGO.categorias.some(c => nomeCat(c) === nome)){
+      alert('Já existe uma categoria com esse nome.'); return;
     }
-    CATALOGO.categorias.push(nome);
+    CATALOGO.categorias.push(novaCategoria);
   }
   persistir();
   renderizarCategorias();
@@ -769,7 +824,7 @@ function excluirCategoria(nome){
     return;
   }
   if (confirm('Excluir a categoria "' + nome + '"?')){
-    CATALOGO.categorias = CATALOGO.categorias.filter(c => c !== nome);
+    CATALOGO.categorias = CATALOGO.categorias.filter(c => nomeCat(c) !== nome);
     persistir();
     renderizarCategorias();
   }

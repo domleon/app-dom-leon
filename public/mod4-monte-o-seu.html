@@ -308,8 +308,8 @@ let voltandoParaResumo = false; // true quando veio da etapa 3 clicando num dia 
 (async function init(){
   CATALOGO = await carregarCatalogo();
 
-  CATALOGO.categorias.forEach(cat => { CATEGORIAS[cat] = []; });
-  CATALOGO.itens.filter(i => i.ativo && (!i.modalidades || i.modalidades.assinatura)).forEach(item => {
+  categoriasPorOperacao(CATALOGO, 'assinatura').forEach(cat => { CATEGORIAS[cat] = []; });
+  itensPorOperacao(CATALOGO, 'assinatura').forEach(item => {
     PRECOS[item.id] = item.precoAssinatura !== undefined ? item.precoAssinatura : item.preco;
     NOMES[item.id] = item.nome;
     IMAGENS[item.id] = item.imagem || null;

@@ -267,8 +267,8 @@ function verCarrinho(){
 /* ---------- Inicialização ---------- */
 (async function init(){
   CATALOGO = await carregarCatalogo();
-  CATALOGO.categorias.forEach(cat => { CATEGORIAS[cat] = []; });
-  CATALOGO.itens.filter(i => i.ativo && (!i.modalidades || i.modalidades.avulso)).forEach(item => {
+  categoriasPorOperacao(CATALOGO, 'avulso').forEach(cat => { CATEGORIAS[cat] = []; });
+  itensPorOperacao(CATALOGO, 'avulso').forEach(item => {
     ITENS[item.id] = item;
     if (!CATEGORIAS[item.categoria]) CATEGORIAS[item.categoria] = [];
     CATEGORIAS[item.categoria].push(item.id);

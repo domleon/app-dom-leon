@@ -102,47 +102,6 @@ function cardDisponivelAgora(configCard){
   return horaAtual >= horarioDia.inicio && horaAtual <= horarioDia.fim;
 }
 
-/* Calcula as próximas datas disponíveis para encomenda de Assados.
-   Retorna array de até maxDatas objetos { data: Date, dataStr: 'YYYY-MM-DD', horarioLimite: 'HH:MM' }
-   excluindo datas passadas (ou com horário limite vencido hoje) e datas excluídas pelo admin. */
-function calcularDatasAssados(configAssados, maxDatas){
-  if (!configAssados || !configAssados.dias || configAssados.dias.length === 0) return [];
-  const max = maxDatas || 4;
-  const exclusoes = new Set(configAssados.datasExcluidas || []);
-  const agora = new Date();
-  const horaAtual = String(agora.getHours()).padStart(2,'0') + ':' + String(agora.getMinutes()).padStart(2,'0');
-  const resultado = [];
-  
-  // Procura nos próximos 120 dias (4 meses de margem)
-  for (let i = 0; i <= 120 && resultado.length < max; i++){
-    const d = new Date(agora);
-    d.setHours(0,0,0,0);
-    d.setDate(d.getDate() + i);
-    
-    const diaSemana = d.getDay();
-    const configDia = configAssados.dias.find(cd => cd.diaSemana === diaSemana);
-    if (!configDia) continue;
-    
-    const ano = d.getFullYear();
-    const mes = String(d.getMonth()+1).padStart(2,'0');
-    const dia = String(d.getDate()).padStart(2,'0');
-    const dataStr = `${ano}-${mes}-${dia}`;
-    
-    if (exclusoes.has(dataStr)) continue;
-    
-    // Se é hoje, verificar se ainda não passou do horário limite
-    if (i === 0 && horaAtual > configDia.horarioLimite) continue;
-    
-    resultado.push({ data: d, dataStr, horarioLimite: configDia.horarioLimite });
-  }
-  return resultado;
-}
-
-/* Verifica se o card de Assados tem datas disponíveis */
-function assadosPossuiDatasDisponiveis(configAssados){
-  return calcularDatasAssados(configAssados, 1).length > 0;
-}
-
 function removerAcentos(txt){
   return (txt || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
@@ -155,7 +114,13 @@ function descricaoPorcao(unidadesAprox){
 }
 
 const CATALOGO_PADRAO = {
-  categorias: ['Pães', 'Laticínios & Padaria', 'Frutas & Extras'],
+  categorias: [
+    { nome: 'Pães',                operacoes: ['avulso', 'assinatura'] },
+    { nome: 'Laticínios & Padaria', operacoes: ['avulso', 'assinatura'] },
+    { nome: 'Frutas & Extras',      operacoes: ['avulso', 'assinatura'] },
+    { nome: 'Assados',              operacoes: ['assados'] },
+    { nome: 'Acompanhamentos',      operacoes: ['assados'] }
+  ],
   itens: [
     // Pães — vendidos por porção de peso (100g/250g), preço fixo, R$/kg exibido como referência
     { id: 'pao-frances-100g',  nome: 'Pão Francês 100g',          categoria: 'Pães', pesoGramas: 100, precoKg: 8.00,
@@ -177,15 +142,21 @@ const CATALOGO_PADRAO = {
       precoAvulso: 4.95, precoAssinatura: 4.95, modalidades: { avulso: true, assinatura: true },
       descricao: descricaoPorcao('4 a 5 fatias generosas'), ativo: true, imagem: null },
 
-    // Laticínios & Padaria e Frutas & Extras — seguem vendidos por unidade normalmente
-    { id: 'leite',          nome: 'Leite',                     categoria: 'Laticínios & Padaria', precoAvulso: 5.80,  precoAssinatura: 5.80,  modalidades: { avulso: true, assinatura: true }, ativo: true, imagem: null },
-    { id: 'torrada',        nome: 'Torrada',                   categoria: 'Laticínios & Padaria', precoAvulso: 5.90,  precoAssinatura: 5.90,  modalidades: { avulso: true, assinatura: true }, ativo: true, imagem: null },
-    { id: 'queijo',         nome: 'Queijo branco 200g',        categoria: 'Laticínios & Padaria', precoAvulso: 8.50,  precoAssinatura: 8.50,  modalidades: { avulso: true, assinatura: true }, ativo: true, imagem: null },
-    { id: 'manteiga',       nome: 'Manteiga 200g',             categoria: 'Laticínios & Padaria', precoAvulso: 7.00,  precoAssinatura: 7.00,  modalidades: { avulso: true, assinatura: true }, ativo: true, imagem: null },
-    { id: 'fruta',          nome: 'Fruta da estação',          categoria: 'Frutas & Extras',      precoAvulso: 2.50,  precoAssinatura: 2.50,  modalidades: { avulso: true, assinatura: true }, ativo: true, imagem: null },
-    { id: 'laranjas-kit6',  nome: 'Laranjas (kit c/ 6)',       categoria: 'Frutas & Extras',      precoAvulso: 10.00, precoAssinatura: 10.00, modalidades: { avulso: true, assinatura: true }, ativo: true, imagem: null },
-    { id: 'morango-cx',     nome: 'Caixa de morango',          categoria: 'Frutas & Extras',      precoAvulso: 12.00, precoAssinatura: 12.00, modalidades: { avulso: true, assinatura: true }, ativo: true, imagem: null },
-    { id: 'suco',           nome: 'Suco natural 300ml',        categoria: 'Frutas & Extras',      precoAvulso: 6.00,  precoAssinatura: 6.00,  modalidades: { avulso: true, assinatura: true }, ativo: true, imagem: null }
+    { id: 'leite',          nome: 'Leite',                     categoria: 'Laticínios & Padaria', precoAvulso: 5.80,  precoAssinatura: 5.80,  modalidades: { avulso: true, assinatura: true, assados: false }, ativo: true, imagem: null },
+    { id: 'torrada',        nome: 'Torrada',                   categoria: 'Laticínios & Padaria', precoAvulso: 5.90,  precoAssinatura: 5.90,  modalidades: { avulso: true, assinatura: true, assados: false }, ativo: true, imagem: null },
+    { id: 'queijo',         nome: 'Queijo branco 200g',        categoria: 'Laticínios & Padaria', precoAvulso: 8.50,  precoAssinatura: 8.50,  modalidades: { avulso: true, assinatura: true, assados: false }, ativo: true, imagem: null },
+    { id: 'manteiga',       nome: 'Manteiga 200g',             categoria: 'Laticínios & Padaria', precoAvulso: 7.00,  precoAssinatura: 7.00,  modalidades: { avulso: true, assinatura: true, assados: false }, ativo: true, imagem: null },
+    { id: 'fruta',          nome: 'Fruta da estação',          categoria: 'Frutas & Extras',      precoAvulso: 2.50,  precoAssinatura: 2.50,  modalidades: { avulso: true, assinatura: true, assados: false }, ativo: true, imagem: null },
+    { id: 'laranjas-kit6',  nome: 'Laranjas (kit c/ 6)',       categoria: 'Frutas & Extras',      precoAvulso: 10.00, precoAssinatura: 10.00, modalidades: { avulso: true, assinatura: true, assados: false }, ativo: true, imagem: null },
+    { id: 'morango-cx',     nome: 'Caixa de morango',          categoria: 'Frutas & Extras',      precoAvulso: 12.00, precoAssinatura: 12.00, modalidades: { avulso: true, assinatura: true, assados: false }, ativo: true, imagem: null },
+    { id: 'suco',           nome: 'Suco natural 300ml',        categoria: 'Frutas & Extras',      precoAvulso: 6.00,  precoAssinatura: 6.00,  modalidades: { avulso: true, assinatura: true, assados: false }, ativo: true, imagem: null },
+    // Assados (antes em itensAssados — agora unificados)
+    { id: 'frango-assado-inteiro', nome: 'Frango Assado Inteiro',       categoria: 'Assados',          precoAvulso: 0, precoAssinatura: 0, precoAssados: 45.00, modalidades: { avulso: false, assinatura: false, assados: true }, ativo: true, imagem: null },
+    { id: 'frango-assado-meio',    nome: 'Meio Frango Assado',          categoria: 'Assados',          precoAvulso: 0, precoAssinatura: 0, precoAssados: 25.00, modalidades: { avulso: false, assinatura: false, assados: true }, ativo: true, imagem: null },
+    { id: 'lasanha-familia',       nome: 'Lasanha à Bolonhesa (P/4)',   categoria: 'Assados',          precoAvulso: 0, precoAssinatura: 0, precoAssados: 38.00, modalidades: { avulso: false, assinatura: false, assados: true }, ativo: true, imagem: null },
+    { id: 'farofa-bacon',          nome: 'Farofa com Bacon 300g',       categoria: 'Acompanhamentos',  precoAvulso: 0, precoAssinatura: 0, precoAssados: 12.00, modalidades: { avulso: false, assinatura: false, assados: true }, ativo: true, imagem: null },
+    { id: 'batata-assada',         nome: 'Batata Assada c/ Ervas 400g', categoria: 'Acompanhamentos',  precoAvulso: 0, precoAssinatura: 0, precoAssados: 14.00, modalidades: { avulso: false, assinatura: false, assados: true }, ativo: true, imagem: null },
+    { id: 'vinagrete',             nome: 'Vinagrete 300g',              categoria: 'Acompanhamentos',  precoAvulso: 0, precoAssinatura: 0, precoAssados:  8.00, modalidades: { avulso: false, assinatura: false, assados: true }, ativo: true, imagem: null }
   ],
   combos: [
     { id: 'cafe', nome: 'Café da manhã completo', dias: ['seg', 'qua', 'sex'],               itensPadrao: { 'pao-frances-100g': 1, 'leite': 1, 'torrada': 1 }, imagem: null },
@@ -195,29 +166,8 @@ const CATALOGO_PADRAO = {
   bairros: montarBairrosPadrao(),
   taxaEntregaAssinatura: 2.99,
 
-  // Catálogo próprio do fluxo "Assados & Menu Almoço" — separado do catálogo de Pedido avulso
-  categoriasAssados: ['Assados', 'Acompanhamentos'],
-  itensAssados: [
-    { id: 'frango-assado-inteiro', nome: 'Frango Assado Inteiro',   categoria: 'Assados', precoAvulso: 45.00, ativo: true, imagem: null },
-    { id: 'frango-assado-meio',    nome: 'Meio Frango Assado',      categoria: 'Assados', precoAvulso: 25.00, ativo: true, imagem: null },
-    { id: 'lasanha-familia',       nome: 'Lasanha à Bolonhesa (P/4)', categoria: 'Assados', precoAvulso: 38.00, ativo: true, imagem: null },
-    { id: 'farofa-bacon',          nome: 'Farofa com Bacon 300g',   categoria: 'Acompanhamentos', precoAvulso: 12.00, ativo: true, imagem: null },
-    { id: 'batata-assada',         nome: 'Batata Assada c/ Ervas 400g', categoria: 'Acompanhamentos', precoAvulso: 14.00, ativo: true, imagem: null },
-    { id: 'vinagrete',             nome: 'Vinagrete 300g',          categoria: 'Acompanhamentos', precoAvulso: 8.00,  ativo: true, imagem: null }
-  ],
-
   // Disponibilidade configurável dos 3 cards da tela inicial (habilitado + janela de horário por dia)
-  configCards: montarConfigCardsPadrao(),
-
-  // Configuração de datas de encomenda dos Assados:
-  // diasAssados: quais dias da semana geram datas (0=dom..6=sab), com horário limite de pedido
-  // datasAssadosExcluidas: array de strings 'YYYY-MM-DD' de datas manualmente desabilitadas pelo admin
-  configAssados: {
-    dias: [
-      { diaSemana: 0, horarioLimite: '11:00' } // Domingo, limite 11h
-    ],
-    datasExcluidas: []
-  }
+  configCards: montarConfigCardsPadrao()
 };
 
 /* Mapeia os ids antigos (por unidade) para os novos ids de porção equivalentes,
@@ -280,21 +230,64 @@ function migrarCatalogo(catalogo){
   }
 
   if (!catalogo.categoriasAssados) {
-    catalogo.categoriasAssados = JSON.parse(JSON.stringify(CATALOGO_PADRAO.categoriasAssados));
+    catalogo.categoriasAssados = ['Assados', 'Acompanhamentos'];
     precisouMigrar = true;
   }
   if (!catalogo.itensAssados) {
-    catalogo.itensAssados = JSON.parse(JSON.stringify(CATALOGO_PADRAO.itensAssados));
+    catalogo.itensAssados = [];
     precisouMigrar = true;
   }
   if (!catalogo.configCards) {
     catalogo.configCards = montarConfigCardsPadrao();
     precisouMigrar = true;
   }
-  if (!catalogo.configAssados) {
-    catalogo.configAssados = JSON.parse(JSON.stringify(CATALOGO_PADRAO.configAssados));
+
+  // NOVA MIGRAÇÃO: categorias string[] → objeto[] com operacoes
+  const todasStrings = (catalogo.categorias || []).every(c => typeof c === 'string');
+  if (todasStrings && catalogo.categorias.length > 0){
+    const catAssados = new Set(catalogo.categoriasAssados || []);
+    catalogo.categorias = catalogo.categorias.map(nome => ({
+      nome,
+      operacoes: catAssados.has(nome) ? ['assados'] : ['avulso', 'assinatura']
+    }));
+    // Adicionar categorias de assados que ainda não estão na lista
+    (catalogo.categoriasAssados || []).forEach(nome => {
+      if (!catalogo.categorias.some(c => c.nome === nome)){
+        catalogo.categorias.push({ nome, operacoes: ['assados'] });
+      }
+    });
     precisouMigrar = true;
   }
+
+  // NOVA MIGRAÇÃO: itensAssados → absorvidos em catalogo.itens com modalidades.assados
+  if (catalogo.itensAssados && catalogo.itensAssados.length > 0){
+    const idsExistentes = new Set((catalogo.itens || []).map(i => i.id));
+    catalogo.itensAssados.forEach(item => {
+      if (!idsExistentes.has(item.id)){
+        catalogo.itens.push({
+          ...item,
+          precoAssados: item.precoAvulso || 0,
+          precoAvulso: 0,
+          precoAssinatura: 0,
+          modalidades: { avulso: false, assinatura: false, assados: true }
+        });
+      }
+    });
+    catalogo.itensAssados = []; // esvazia após migrar
+    precisouMigrar = true;
+  }
+
+  // Garante modalidades.assados em itens antigos
+  (catalogo.itens || []).forEach(item => {
+    if (item.modalidades && item.modalidades.assados === undefined){
+      item.modalidades.assados = false;
+      precisouMigrar = true;
+    }
+    if (item.precoAssados === undefined){
+      item.precoAssados = 0;
+      precisouMigrar = true;
+    }
+  });
 
   return precisouMigrar;
 }
@@ -357,12 +350,41 @@ async function registrarInteresseBairro(nomeBairro, contato){
 
 function gerarIdUnico(nome, listaExistente){
   let base = nome.toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove acentos
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
   if (!base) base = 'item';
   let id = base, n = 2;
   while (listaExistente.some(x => x.id === id)) { id = base + '-' + n; n++; }
   return id;
+}
+
+/* ---------- Helpers de acesso por operação ---------- */
+
+/* Retorna nomes de categorias que incluem a operação informada ('avulso','assinatura','assados') */
+function categoriasPorOperacao(catalogo, operacao){
+  return (catalogo.categorias || [])
+    .filter(c => {
+      if (typeof c === 'string') return operacao !== 'assados'; // categorias antigas (string) → avulso+assinatura
+      return (c.operacoes || []).includes(operacao);
+    })
+    .map(c => typeof c === 'string' ? c : c.nome);
+}
+
+/* Retorna itens ativos que pertencem à operação informada */
+function itensPorOperacao(catalogo, operacao){
+  return (catalogo.itens || []).filter(item => {
+    if (!item.ativo) return false;
+    if (item.modalidades) return !!item.modalidades[operacao];
+    // fallback: itens antigos sem modalidades → avulso + assinatura
+    return operacao !== 'assados';
+  });
+}
+
+/* Preço correto do item para a operação */
+function precoPorOperacao(item, operacao){
+  if (operacao === 'assados') return item.precoAssados || item.precoAvulso || 0;
+  if (operacao === 'assinatura') return item.precoAssinatura || item.precoAvulso || 0;
+  return item.precoAvulso || 0;
 }
 
 function arquivoParaBase64(file, callback){
