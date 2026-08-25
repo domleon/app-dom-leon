@@ -288,13 +288,12 @@ let itemEditandoId = null;
 
 function popularCategorias(){
   const sel = document.getElementById('item-categoria');
-  sel.innerHTML = CATALOGO.categorias.map(c => `<option value="${c}">${c}</option>`).join('');
-
-  // Também popular categorias de Assados
-  const catAssados = (CATALOGO.categoriasAssados || []);
-  if (catAssados.length > 0){
-    sel.innerHTML += `<optgroup label="── Assados ──">${catAssados.map(c => `<option value="${c}">${c}</option>`).join('')}</optgroup>`;
-  }
+  // Categorias agora são objetos {nome, operacoes} — usar nomeCat helper
+  const nomeCat = c => typeof c === 'string' ? c : c.nome;
+  sel.innerHTML = CATALOGO.categorias.map(c => {
+    const nome = nomeCat(c);
+    return `<option value="${nome}">${nome}</option>`;
+  }).join('');
 }
 
 function carregarItem(item){
@@ -408,30 +407,18 @@ async function salvarItem(){
   const modalidades = { avulso, assinatura, assados };
 
   if (itemEditandoId){
-    // Verificar se é item de assados ou de catálogo normal
-    const itemNormal = CATALOGO.itens.find(i => i.id === itemEditandoId);
-    const itemAssados = (CATALOGO.itensAssados || []).find(i => i.id === itemEditandoId);
-
-    if (itemNormal){
-      Object.assign(itemNormal, { nome, categoria, descricao, ativo, imagem, modalidades, precoAvulso, precoAssinatura, precoAssados });
-    } else if (itemAssados){
-      Object.assign(itemAssados, { nome, categoria, descricao, ativo, imagem, precoAvulso: precoAssados });
+    const item = CATALOGO.itens.find(i => i.id === itemEditandoId);
+    if (item){
+      Object.assign(item, { nome, categoria, descricao, ativo, imagem, modalidades, precoAvulso, precoAssinatura, precoAssados });
     }
   } else {
     const novoItem = {
-      id: gerarIdUnico(nome, [...(CATALOGO.itens || []), ...(CATALOGO.itensAssados || [])]),
+      id: gerarIdUnico(nome, CATALOGO.itens || []),
       nome, categoria, descricao, ativo, imagem, modalidades,
       precoAvulso, precoAssinatura, precoAssados
     };
-
-    // Se for categoria de assados, salvar em itensAssados; senão em itens
-    const catAssados = CATALOGO.categoriasAssados || [];
-    if (catAssados.includes(categoria)){
-      if (!CATALOGO.itensAssados) CATALOGO.itensAssados = [];
-      CATALOGO.itensAssados.push({ ...novoItem, precoAvulso: precoAssados });
-    } else {
-      CATALOGO.itens.push(novoItem);
-    }
+    // Tudo vai para CATALOGO.itens — as modalidades definem onde aparece
+    CATALOGO.itens.push(novoItem);
   }
 
   await salvarCatalogo(CATALOGO);
@@ -443,7 +430,6 @@ async function salvarItem(){
 async function excluirItem(){
   if (!confirm(`Excluir "${document.getElementById('item-nome').value}"? Ele deixa de aparecer no Monte o seu e em combos.`)) return;
   CATALOGO.itens = (CATALOGO.itens || []).filter(i => i.id !== itemEditandoId);
-  CATALOGO.itensAssados = (CATALOGO.itensAssados || []).filter(i => i.id !== itemEditandoId);
   (CATALOGO.combos || []).forEach(c => delete c.itensPadrao[itemEditandoId]);
   await salvarCatalogo(CATALOGO);
   mostrarToast('Item excluído.');
