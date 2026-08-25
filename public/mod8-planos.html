@@ -932,6 +932,150 @@ function renderizarDisponibilidade(){
       </table>`;
     container.appendChild(card);
   });
+
+  // Seção extra: Datas de encomenda dos Assados
+  renderizarDatasAssados();
+}
+
+function renderizarDatasAssados(){
+  const container = document.getElementById('disponibilidade-container');
+  if (!container) return;
+
+  const old = document.getElementById('secao-datas-assados');
+  if (old) old.remove();
+
+  const cfg = CATALOGO.configAssados || { dias: [], datasExcluidas: [] };
+  const DIAS_SEMANA = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+
+  const linhasDias = cfg.dias.map((d, idx) => `
+    <tr>
+      <td>${DIAS_SEMANA[d.diaSemana] || '—'}</td>
+      <td><input type="time" value="${d.horarioLimite}" onchange="alterarHorarioAssados(${idx}, this.value)"></td>
+      <td><button class="btn-del-assados" onclick="removerDiaAssados(${idx})">✕</button></td>
+    </tr>`).join('') || `<tr><td colspan="3" style="color:var(--text-muted);font-size:12px;text-align:center;padding:8px;">Nenhum dia configurado</td></tr>`;
+
+  const datasExcluidas = (cfg.datasExcluidas || []).map(ds => {
+    const [ano, mes, dia] = ds.split('-');
+    return `<span class="data-excluida-tag">${dia}/${mes}/${ano} <span onclick="reativarData('${ds}')" style="cursor:pointer;margin-left:4px;">✕</span></span>`;
+  }).join('') || '<span style="font-size:12px;color:var(--text-muted);">Nenhuma data bloqueada</span>';
+
+  const secao = document.createElement('div');
+  secao.id = 'secao-datas-assados';
+  secao.className = 'disp-card';
+  secao.style.borderTop = '2px solid var(--accent)';
+  secao.innerHTML = `
+    <div class="disp-card-header">
+      <h3>Datas de encomenda — Assados</h3>
+      <span style="font-size:11px;font-weight:600;background:var(--accent-bg);color:var(--accent-text);border-radius:20px;padding:2px 10px;border:0.5px solid var(--accent);">NOVO</span>
+    </div>
+    <div class="disp-card-sub">Configura quais dias da semana geram datas de encomenda. O sistema calcula automaticamente as próximas 4 datas futuras. Cada data some quando o horário limite é atingido.</div>
+
+    <div style="margin-top:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <span style="font-size:12px;font-weight:500;color:var(--text-secondary);">Dias habilitados para encomenda</span>
+        <button class="btn-add-dia-assados" onclick="abrirAddDiaAssados()">+ Adicionar dia</button>
+      </div>
+      <table class="disp-dias-table">
+        <thead><tr><th>Dia da semana</th><th>Horário limite de pedido</th><th></th></tr></thead>
+        <tbody id="tbody-dias-assados">${linhasDias}</tbody>
+      </table>
+    </div>
+
+    <div id="form-add-dia-assados" style="display:none;background:var(--bg);border-radius:10px;padding:12px;margin-top:10px;">
+      <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+        <div>
+          <label style="font-size:11px;color:var(--text-muted);display:block;margin-bottom:4px;">Dia da semana</label>
+          <select id="select-dia-semana" style="height:34px;border:0.5px solid var(--border-strong);border-radius:8px;padding:0 10px;font-size:13px;font-family:inherit;background:var(--bg);">
+            <option value="0">Domingo</option>
+            <option value="1">Segunda-feira</option>
+            <option value="2">Terça-feira</option>
+            <option value="3">Quarta-feira</option>
+            <option value="4">Quinta-feira</option>
+            <option value="5">Sexta-feira</option>
+            <option value="6">Sábado</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:11px;color:var(--text-muted);display:block;margin-bottom:4px;">Horário limite</label>
+          <input type="time" id="input-limite-assados" value="11:00" style="height:34px;border:0.5px solid var(--border-strong);border-radius:8px;padding:0 10px;font-size:13px;font-family:inherit;background:var(--bg);">
+        </div>
+        <button style="background:var(--text-primary);color:#fff;border:none;border-radius:8px;padding:0 16px;height:34px;font-size:13px;font-family:inherit;cursor:pointer;" onclick="salvarDiaAssados()">Salvar</button>
+        <button style="background:transparent;color:var(--text-muted);border:0.5px solid var(--border-strong);border-radius:8px;padding:0 12px;height:34px;font-size:13px;cursor:pointer;" onclick="fecharAddDiaAssados()">Cancelar</button>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;">
+      <div style="font-size:12px;font-weight:500;color:var(--text-secondary);margin-bottom:8px;">Datas bloqueadas manualmente</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px;" id="lista-datas-excluidas">${datasExcluidas}</div>
+      <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;">
+        <div>
+          <label style="font-size:11px;color:var(--text-muted);display:block;margin-bottom:4px;">Bloquear data específica</label>
+          <input type="date" id="input-data-excluir" style="height:34px;border:0.5px solid var(--border-strong);border-radius:8px;padding:0 10px;font-size:13px;font-family:inherit;background:var(--bg);">
+        </div>
+        <button style="background:var(--warn-text);color:#fff;border:none;border-radius:8px;padding:0 14px;height:34px;font-size:13px;font-family:inherit;cursor:pointer;" onclick="bloquearData()">Bloquear</button>
+      </div>
+    </div>`;
+  container.appendChild(secao);
+
+  if (!document.getElementById('style-assados-extra')){
+    const s = document.createElement('style');
+    s.id = 'style-assados-extra';
+    s.textContent = `
+      .btn-add-dia-assados{font-size:12px;font-weight:500;color:var(--accent-text);background:var(--accent-bg);border:0.5px solid var(--accent);border-radius:8px;padding:5px 12px;cursor:pointer;}
+      .btn-del-assados{background:transparent;border:0.5px solid var(--border-strong);border-radius:6px;width:26px;height:26px;cursor:pointer;color:var(--text-muted);font-size:11px;}
+      .btn-del-assados:hover{background:#FEE2E2;color:#DC2626;border-color:#FCA5A5;}
+      .data-excluida-tag{background:var(--warn-bg);color:var(--warn-text);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:500;display:inline-flex;align-items:center;gap:4px;}`;
+    document.head.appendChild(s);
+  }
+}
+
+function abrirAddDiaAssados(){ document.getElementById('form-add-dia-assados').style.display = 'block'; }
+function fecharAddDiaAssados(){ document.getElementById('form-add-dia-assados').style.display = 'none'; }
+
+function salvarDiaAssados(){
+  const diaSemana = parseInt(document.getElementById('select-dia-semana').value, 10);
+  const horarioLimite = document.getElementById('input-limite-assados').value;
+  if (!horarioLimite){ alert('Informe o horário limite.'); return; }
+  if (!CATALOGO.configAssados) CATALOGO.configAssados = { dias: [], datasExcluidas: [] };
+  if (CATALOGO.configAssados.dias.some(d => d.diaSemana === diaSemana)){
+    alert('Esse dia da semana já está configurado.'); return;
+  }
+  CATALOGO.configAssados.dias.push({ diaSemana, horarioLimite });
+  CATALOGO.configAssados.dias.sort((a, b) => a.diaSemana - b.diaSemana);
+  persistir();
+  fecharAddDiaAssados();
+  renderizarDatasAssados();
+}
+
+function removerDiaAssados(idx){
+  if (!confirm('Remover esse dia?')) return;
+  CATALOGO.configAssados.dias.splice(idx, 1);
+  persistir();
+  renderizarDatasAssados();
+}
+
+function alterarHorarioAssados(idx, valor){
+  CATALOGO.configAssados.dias[idx].horarioLimite = valor;
+  persistir();
+}
+
+function bloquearData(){
+  const dataStr = document.getElementById('input-data-excluir').value;
+  if (!dataStr){ alert('Selecione uma data.'); return; }
+  if (!CATALOGO.configAssados) CATALOGO.configAssados = { dias: [], datasExcluidas: [] };
+  if (!CATALOGO.configAssados.datasExcluidas) CATALOGO.configAssados.datasExcluidas = [];
+  if (!CATALOGO.configAssados.datasExcluidas.includes(dataStr)){
+    CATALOGO.configAssados.datasExcluidas.push(dataStr);
+    CATALOGO.configAssados.datasExcluidas.sort();
+    persistir();
+  }
+  renderizarDatasAssados();
+}
+
+function reativarData(dataStr){
+  CATALOGO.configAssados.datasExcluidas = CATALOGO.configAssados.datasExcluidas.filter(d => d !== dataStr);
+  persistir();
+  renderizarDatasAssados();
 }
 
 function toggleHabilitadoCard(chave){
