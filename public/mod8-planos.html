@@ -137,6 +137,12 @@
   .modal-overlay.open{display:flex;}
   .modal-box{background:var(--card);border-radius:14px;padding:22px;width:420px;max-width:90vw;max-height:90vh;overflow-y:auto;}
   .modal-box h3{font-size:16px;font-weight:600;margin-bottom:16px;font-family:'Fraunces',serif;}
+  /* Toggles da tabela de categoria */
+  .cat-toggle{width:36px;height:20px;border-radius:20px;background:var(--border-strong);position:relative;cursor:pointer;display:inline-block;transition:background .15s;vertical-align:middle;}
+  .cat-toggle.on{background:var(--accent);}
+  .cat-toggle-knob{position:absolute;width:16px;height:16px;background:#fff;border-radius:50%;top:2px;left:2px;transition:left .15s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+  .cat-toggle.on .cat-toggle-knob{left:18px;}
+  .row-cat-off td{opacity:.45;}
   .field{margin-bottom:12px;}
   .field label{font-size:12px;font-weight:500;color:var(--text-secondary);display:block;margin-bottom:6px;}
   .field input, .field select{
@@ -403,24 +409,81 @@
 
 <!-- MODAL: CATEGORIA -->
 <div class="modal-overlay" id="modal-categoria">
-  <div class="modal-box">
+  <div class="modal-box" style="width:600px;max-width:95vw;">
     <h3 id="modal-categoria-titulo">Nova categoria</h3>
-    <div class="field"><label>Nome da categoria</label><input type="text" id="categoria-nome"></div>
+
     <div class="field">
-      <label>Disponível em quais operações?</label>
-      <div style="display:flex;gap:16px;margin-top:6px;">
-        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;">
-          <input type="checkbox" id="cat-op-avulso"> Pedido avulso
-        </label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;">
-          <input type="checkbox" id="cat-op-assinatura"> Assinatura mensal
-        </label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;">
-          <input type="checkbox" id="cat-op-assados"> Assados
-        </label>
-      </div>
+      <label>Nome da categoria</label>
+      <input type="text" id="categoria-nome">
     </div>
-    <div class="modal-actions">
+
+    <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin:16px 0 8px;">Operações & impacto nos itens</div>
+
+    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <thead>
+        <tr style="background:var(--bg);">
+          <th style="text-align:left;padding:8px 12px;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);font-weight:600;border-bottom:0.5px solid var(--border);border-top:0.5px solid var(--border);">Operação</th>
+          <th style="text-align:left;padding:8px 12px;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);font-weight:600;border-bottom:0.5px solid var(--border);border-top:0.5px solid var(--border);">Onde aparece</th>
+          <th style="text-align:left;padding:8px 12px;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);font-weight:600;border-bottom:0.5px solid var(--border);border-top:0.5px solid var(--border);">Itens desta categoria</th>
+          <th style="padding:8px 12px;border-bottom:0.5px solid var(--border);border-top:0.5px solid var(--border);"></th>
+        </tr>
+      </thead>
+      <tbody id="tbody-operacoes-cat">
+        <tr style="border-bottom:0.5px solid var(--border);" id="row-cat-avulso">
+          <td style="padding:10px 12px;">
+            <div style="display:flex;align-items:center;gap:7px;">
+              <i class="ti ti-shopping-bag" style="font-size:15px;color:var(--accent-text);"></i>
+              <span style="font-weight:500;color:var(--accent-text);">Pedido avulso</span>
+            </div>
+          </td>
+          <td style="padding:10px 12px;font-size:12px;color:var(--text-muted);">Catálogo de compra avulsa</td>
+          <td style="padding:10px 12px;" id="impacto-avulso">
+            <span style="font-size:11px;background:var(--accent-bg);color:var(--accent-text);border-radius:20px;padding:2px 10px;font-weight:500;">— itens herdarão</span>
+          </td>
+          <td style="padding:10px 12px;text-align:right;">
+            <div class="cat-toggle on" id="toggle-cat-avulso" onclick="toggleCatOp('avulso')">
+              <div class="cat-toggle-knob"></div>
+            </div>
+          </td>
+        </tr>
+        <tr style="border-bottom:0.5px solid var(--border);" id="row-cat-assinatura">
+          <td style="padding:10px 12px;">
+            <div style="display:flex;align-items:center;gap:7px;">
+              <i class="ti ti-repeat" style="font-size:15px;color:var(--accent-text);"></i>
+              <span style="font-weight:500;color:var(--accent-text);">Assinatura mensal</span>
+            </div>
+          </td>
+          <td style="padding:10px 12px;font-size:12px;color:var(--text-muted);">Wizard Monte o seu</td>
+          <td style="padding:10px 12px;" id="impacto-assinatura">
+            <span style="font-size:11px;background:var(--accent-bg);color:var(--accent-text);border-radius:20px;padding:2px 10px;font-weight:500;">— itens herdarão</span>
+          </td>
+          <td style="padding:10px 12px;text-align:right;">
+            <div class="cat-toggle on" id="toggle-cat-assinatura" onclick="toggleCatOp('assinatura')">
+              <div class="cat-toggle-knob"></div>
+            </div>
+          </td>
+        </tr>
+        <tr id="row-cat-assados">
+          <td style="padding:10px 12px;">
+            <div style="display:flex;align-items:center;gap:7px;">
+              <i class="ti ti-tools-kitchen-2" style="font-size:15px;color:var(--text-muted);"></i>
+              <span style="color:var(--text-muted);">Assados & Menu Almoço</span>
+            </div>
+          </td>
+          <td style="padding:10px 12px;font-size:12px;color:var(--text-muted);">Cardápio de assados</td>
+          <td style="padding:10px 12px;" id="impacto-assados">
+            <span style="font-size:11px;color:var(--text-muted);">não herdará</span>
+          </td>
+          <td style="padding:10px 12px;text-align:right;">
+            <div class="cat-toggle" id="toggle-cat-assados" onclick="toggleCatOp('assados')">
+              <div class="cat-toggle-knob"></div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="modal-actions" style="margin-top:18px;">
       <button class="btn-secondary" onclick="fecharModal('modal-categoria')">Cancelar</button>
       <button class="btn-primary" onclick="salvarCategoria()">Salvar categoria</button>
     </div>
@@ -773,11 +836,39 @@ function abrirModalCategoria(nomeAtual){
 
   const cat = nomeAtual ? CATALOGO.categorias.find(c => nomeCat(c) === nomeAtual) : null;
   const ops = cat ? opsCat(cat) : ['avulso','assinatura'];
-  document.getElementById('cat-op-avulso').checked = ops.includes('avulso');
-  document.getElementById('cat-op-assinatura').checked = ops.includes('assinatura');
-  document.getElementById('cat-op-assados').checked = ops.includes('assados');
+
+  ['avulso','assinatura','assados'].forEach(op => {
+    const toggle = document.getElementById('toggle-cat-' + op);
+    const row = document.getElementById('row-cat-' + op);
+    if (ops.includes(op)){
+      toggle.classList.add('on');
+      row.classList.remove('row-cat-off');
+    } else {
+      toggle.classList.remove('on');
+      row.classList.add('row-cat-off');
+    }
+    // Mostrar quantos itens serão impactados
+    if (nomeAtual){
+      const qtdItens = CATALOGO.itens.filter(i => i.categoria === nomeAtual).length;
+      const el = document.getElementById('impacto-' + op);
+      if (el){
+        const ativa = ops.includes(op);
+        el.innerHTML = ativa
+          ? `<span style="font-size:11px;background:var(--accent-bg);color:var(--accent-text);border-radius:20px;padding:2px 10px;font-weight:500;">${qtdItens} item${qtdItens!==1?'s':''} herdarão</span>`
+          : `<span style="font-size:11px;color:var(--text-muted);">não herdará</span>`;
+      }
+    }
+  });
 
   document.getElementById('modal-categoria').classList.add('open');
+}
+
+function toggleCatOp(op){
+  const toggle = document.getElementById('toggle-cat-' + op);
+  const row = document.getElementById('row-cat-' + op);
+  const isOn = toggle.classList.toggle('on');
+  if (isOn) row.classList.remove('row-cat-off');
+  else row.classList.add('row-cat-off');
 }
 
 function salvarCategoria(){
@@ -785,9 +876,9 @@ function salvarCategoria(){
   if (!nome){ alert('Digite um nome para a categoria.'); return; }
 
   const operacoes = [];
-  if (document.getElementById('cat-op-avulso').checked) operacoes.push('avulso');
-  if (document.getElementById('cat-op-assinatura').checked) operacoes.push('assinatura');
-  if (document.getElementById('cat-op-assados').checked) operacoes.push('assados');
+  if (document.getElementById('toggle-cat-avulso').classList.contains('on')) operacoes.push('avulso');
+  if (document.getElementById('toggle-cat-assinatura').classList.contains('on')) operacoes.push('assinatura');
+  if (document.getElementById('toggle-cat-assados').classList.contains('on')) operacoes.push('assados');
   if (operacoes.length === 0){ alert('Marque ao menos uma operação.'); return; }
 
   const novaCategoria = { nome, operacoes };
