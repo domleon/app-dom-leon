@@ -69,10 +69,11 @@
   .combo-admin-card .dias{font-size:11px;color:var(--accent-text);font-weight:500;margin-bottom:6px;}
   .combo-actions{display:flex;gap:8px;}
   .icon-btn{
-    flex:1;height:32px;border-radius:8px;border:0.5px solid var(--border-strong);
+    width:32px;height:32px;border-radius:8px;border:0.5px solid var(--border-strong);
     background:var(--bg);display:flex;align-items:center;justify-content:center;gap:6px;
-    font-size:12px;cursor:pointer;color:var(--text-secondary);
+    font-size:12px;cursor:pointer;color:var(--text-secondary);flex-shrink:0;padding:0;
   }
+  .icon-btn.with-text{width:auto;padding:0 12px;}
   .icon-btn.danger:hover{background:var(--danger-bg);color:var(--danger-text);border-color:var(--danger-bg);}
   .icon-btn:hover{background:var(--border);}
 
@@ -137,6 +138,16 @@
   .modal-overlay.open{display:flex;}
   .modal-box{background:var(--card);border-radius:14px;padding:22px;width:420px;max-width:90vw;max-height:90vh;overflow-y:auto;}
   .modal-box h3{font-size:16px;font-weight:600;margin-bottom:16px;font-family:'Fraunces',serif;}
+  .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+  .modal-header h3{margin-bottom:0;}
+  .btn-modal-close{width:28px;height:28px;border-radius:8px;border:0.5px solid var(--border-strong);background:var(--bg);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--text-muted);}
+  .btn-modal-close:hover{background:var(--border);}
+  /* Toggles da tabela de categoria */
+  .cat-toggle{width:36px;height:20px;border-radius:20px;background:var(--border-strong);position:relative;cursor:pointer;display:inline-block;transition:background .15s;vertical-align:middle;}
+  .cat-toggle.on{background:var(--accent);}
+  .cat-toggle-knob{position:absolute;width:16px;height:16px;background:#fff;border-radius:50%;top:2px;left:2px;transition:left .15s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+  .cat-toggle.on .cat-toggle-knob{left:18px;}
+  .row-cat-off td{opacity:.45;}
   .field{margin-bottom:12px;}
   .field label{font-size:12px;font-weight:500;color:var(--text-secondary);display:block;margin-bottom:6px;}
   .field input, .field select{
@@ -279,7 +290,10 @@
 <!-- MODAL: BAIRRO -->
 <div class="modal-overlay" id="modal-bairro">
   <div class="modal-box">
-    <h3 id="modal-bairro-titulo">Editar bairro</h3>
+    <div class="modal-header">
+      <h3 id="modal-bairro-titulo">Editar bairro</h3>
+      <button class="btn-modal-close" onclick="fecharModal('modal-bairro')"><i class="ti ti-x"></i></button>
+    </div>
     <div class="field"><label>Bairro</label><input type="text" id="bairro-nome" disabled style="background:var(--bg);"></div>
     <div class="field">
       <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
@@ -305,7 +319,10 @@
 <!-- MODAL: COMBO -->
 <div class="modal-overlay" id="modal-combo">
   <div class="modal-box">
-    <h3 id="modal-combo-titulo">Novo combo</h3>
+    <div class="modal-header">
+      <h3 id="modal-combo-titulo">Novo combo</h3>
+      <button class="btn-modal-close" onclick="fecharModal('modal-combo')"><i class="ti ti-x"></i></button>
+    </div>
 
     <div class="img-upload">
       <div class="img-preview" id="combo-img-preview"><i class="ti ti-photo"></i></div>
@@ -362,7 +379,10 @@
 <!-- MODAL: ITEM -->
 <div class="modal-overlay" id="modal-item">
   <div class="modal-box">
-    <h3 id="modal-item-titulo">Novo item</h3>
+    <div class="modal-header">
+      <h3 id="modal-item-titulo">Novo item</h3>
+      <button class="btn-modal-close" onclick="fecharModal('modal-item')"><i class="ti ti-x"></i></button>
+    </div>
 
     <div class="img-upload">
       <div class="img-preview" id="item-img-preview"><i class="ti ti-photo"></i></div>
@@ -403,10 +423,84 @@
 
 <!-- MODAL: CATEGORIA -->
 <div class="modal-overlay" id="modal-categoria">
-  <div class="modal-box">
-    <h3 id="modal-categoria-titulo">Nova categoria</h3>
-    <div class="field"><label>Nome da categoria</label><input type="text" id="categoria-nome"></div>
-    <div class="modal-actions">
+  <div class="modal-box" style="width:600px;max-width:95vw;">
+    <div class="modal-header">
+      <h3 id="modal-categoria-titulo">Nova categoria</h3>
+      <button class="btn-modal-close" onclick="fecharModal('modal-categoria')"><i class="ti ti-x"></i></button>
+    </div>
+
+    <div class="field">
+      <label>Nome da categoria</label>
+      <input type="text" id="categoria-nome">
+    </div>
+
+    <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin:16px 0 8px;">Operações & impacto nos itens</div>
+
+    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <thead>
+        <tr style="background:var(--bg);">
+          <th style="text-align:left;padding:8px 12px;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);font-weight:600;border-bottom:0.5px solid var(--border);border-top:0.5px solid var(--border);">Operação</th>
+          <th style="text-align:left;padding:8px 12px;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);font-weight:600;border-bottom:0.5px solid var(--border);border-top:0.5px solid var(--border);">Onde aparece</th>
+          <th style="text-align:left;padding:8px 12px;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);font-weight:600;border-bottom:0.5px solid var(--border);border-top:0.5px solid var(--border);">Itens desta categoria</th>
+          <th style="padding:8px 12px;border-bottom:0.5px solid var(--border);border-top:0.5px solid var(--border);"></th>
+        </tr>
+      </thead>
+      <tbody id="tbody-operacoes-cat">
+        <tr style="border-bottom:0.5px solid var(--border);" id="row-cat-avulso">
+          <td style="padding:10px 12px;">
+            <div style="display:flex;align-items:center;gap:7px;">
+              <i class="ti ti-shopping-bag" style="font-size:15px;color:var(--accent-text);"></i>
+              <span style="font-weight:500;color:var(--accent-text);">Pedido avulso</span>
+            </div>
+          </td>
+          <td style="padding:10px 12px;font-size:12px;color:var(--text-muted);">Catálogo de compra avulsa</td>
+          <td style="padding:10px 12px;" id="impacto-avulso">
+            <span style="font-size:11px;background:var(--accent-bg);color:var(--accent-text);border-radius:20px;padding:2px 10px;font-weight:500;">— itens herdarão</span>
+          </td>
+          <td style="padding:10px 12px;text-align:right;">
+            <div class="cat-toggle on" id="toggle-cat-avulso" onclick="toggleCatOp('avulso')">
+              <div class="cat-toggle-knob"></div>
+            </div>
+          </td>
+        </tr>
+        <tr style="border-bottom:0.5px solid var(--border);" id="row-cat-assinatura">
+          <td style="padding:10px 12px;">
+            <div style="display:flex;align-items:center;gap:7px;">
+              <i class="ti ti-repeat" style="font-size:15px;color:var(--accent-text);"></i>
+              <span style="font-weight:500;color:var(--accent-text);">Assinatura mensal</span>
+            </div>
+          </td>
+          <td style="padding:10px 12px;font-size:12px;color:var(--text-muted);">Wizard Monte o seu</td>
+          <td style="padding:10px 12px;" id="impacto-assinatura">
+            <span style="font-size:11px;background:var(--accent-bg);color:var(--accent-text);border-radius:20px;padding:2px 10px;font-weight:500;">— itens herdarão</span>
+          </td>
+          <td style="padding:10px 12px;text-align:right;">
+            <div class="cat-toggle on" id="toggle-cat-assinatura" onclick="toggleCatOp('assinatura')">
+              <div class="cat-toggle-knob"></div>
+            </div>
+          </td>
+        </tr>
+        <tr id="row-cat-assados">
+          <td style="padding:10px 12px;">
+            <div style="display:flex;align-items:center;gap:7px;">
+              <i class="ti ti-tools-kitchen-2" style="font-size:15px;color:var(--text-muted);"></i>
+              <span style="color:var(--text-muted);">Assados & Menu Almoço</span>
+            </div>
+          </td>
+          <td style="padding:10px 12px;font-size:12px;color:var(--text-muted);">Cardápio de assados</td>
+          <td style="padding:10px 12px;" id="impacto-assados">
+            <span style="font-size:11px;color:var(--text-muted);">não herdará</span>
+          </td>
+          <td style="padding:10px 12px;text-align:right;">
+            <div class="cat-toggle" id="toggle-cat-assados" onclick="toggleCatOp('assados')">
+              <div class="cat-toggle-knob"></div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="modal-actions" style="margin-top:18px;">
       <button class="btn-secondary" onclick="fecharModal('modal-categoria')">Cancelar</button>
       <button class="btn-primary" onclick="salvarCategoria()">Salvar categoria</button>
     </div>
@@ -467,8 +561,8 @@ function renderizarCombos(){
       <div class="dias">${diasTxt || 'sem dias definidos'}</div>
       <div class="itens">${itensTxt || 'sem itens definidos'}</div>
       <div class="combo-actions">
-        <div class="icon-btn" onclick="abrirModalCombo('${combo.id}')"><i class="ti ti-edit"></i>Editar</div>
-        <div class="icon-btn danger" onclick="excluirCombo('${combo.id}')"><i class="ti ti-trash"></i>Excluir</div>
+        <div class="icon-btn with-text" onclick="abrirModalCombo('${combo.id}')"><i class="ti ti-edit"></i>Editar</div>
+        <div class="icon-btn with-text danger" onclick="excluirCombo('${combo.id}')"><i class="ti ti-trash"></i>Excluir</div>
       </div>`;
     grid.appendChild(card);
   });
@@ -517,11 +611,12 @@ function renderizarItensComboModal(){
   const container = document.getElementById('combo-itens-modal');
   container.innerHTML = '';
   CATALOGO.categorias.forEach(cat => {
-    const itensCat = CATALOGO.itens.filter(i => i.categoria === cat && (!i.modalidades || i.modalidades.assinatura));
+    const nomeCategoria = nomeCat(cat);
+    const itensCat = CATALOGO.itens.filter(i => i.categoria === nomeCategoria && (!i.modalidades || i.modalidades.assinatura));
     if (itensCat.length === 0) return;
     const titulo = document.createElement('div');
     titulo.className = 'itens-combo-cat';
-    titulo.textContent = cat;
+    titulo.textContent = nomeCategoria;
     container.appendChild(titulo);
     itensCat.forEach(item => {
       const qtd = comboItensSelecionados[item.id] || 0;
@@ -589,7 +684,9 @@ function renderizarItens(){
   }
 
   CATALOGO.categorias.forEach(cat => {
-    const itensCat = CATALOGO.itens.filter(i => i.categoria === cat);
+    const nomeCategoria = nomeCat(cat);
+    const opsCategoria = opsCat(cat);
+    const itensCat = CATALOGO.itens.filter(i => i.categoria === nomeCategoria);
     const bloco = document.createElement('div');
     bloco.className = 'categoria-block';
 
@@ -601,13 +698,19 @@ function renderizarItens(){
         const thumb = item.imagem
           ? `<span class="item-thumb"><img src="${item.imagem}"></span>`
           : `<span class="item-thumb"><i class="ti ti-photo" style="font-size:12px;"></i></span>`;
-        const mods = item.modalidades || { avulso: true, assinatura: true };
+        const mods = item.modalidades || { avulso: true, assinatura: true, assados: false };
         const precoAvulsoTxt = mods.avulso ? 'R$ ' + (item.precoAvulso || 0).toFixed(2).replace('.', ',') : '—';
         const precoAssinaturaTxt = mods.assinatura ? 'R$ ' + (item.precoAssinatura || 0).toFixed(2).replace('.', ',') : '—';
+        const precoAssadosTxt = mods.assados ? 'R$ ' + (item.precoAssados || 0).toFixed(2).replace('.', ',') : '—';
+        const linhaPrecos = [
+          mods.avulso ? 'Avulso: ' + precoAvulsoTxt : null,
+          mods.assinatura ? 'Assinatura: ' + precoAssinaturaTxt : null,
+          mods.assados ? 'Assados: ' + precoAssadosTxt : null
+        ].filter(Boolean).join('<br>');
         return `
           <tr>
             <td>${thumb}${item.nome}</td>
-            <td>Avulso: ${precoAvulsoTxt}<br>Assinatura: ${precoAssinaturaTxt}</td>
+            <td>${linhaPrecos}</td>
             <td>
               <span class="status-toggle" onclick="toggleStatusItem('${item.id}')">
                 <span class="status-dot ${item.ativo ? '' : 'off'}"></span>${item.ativo ? 'Ativo' : 'Pausado'}
@@ -622,7 +725,7 @@ function renderizarItens(){
     }
 
     bloco.innerHTML = `
-      <div class="categoria-header"><h3>${cat}</h3></div>
+      <div class="categoria-header"><h3>${nomeCategoria}</h3></div>
       <div class="table-card">
         <table>
           <thead><tr><th>Item</th><th>Preço (avulso / assinatura)</th><th>Disponível</th><th></th></tr></thead>
@@ -637,9 +740,10 @@ let itemEditandoId = null;
 
 function popularSelectCategorias(selectId, valorAtual){
   const select = document.getElementById(selectId);
-  select.innerHTML = CATALOGO.categorias.map(c =>
-    `<option value="${c}" ${c === valorAtual ? 'selected' : ''}>${c}</option>`
-  ).join('');
+  select.innerHTML = CATALOGO.categorias.map(c => {
+    const nome = nomeCat(c);
+    return `<option value="${nome}" ${nome === valorAtual ? 'selected' : ''}>${nome}</option>`;
+  }).join('');
 }
 
 function toggleModalidadesItem(){
@@ -707,6 +811,9 @@ function toggleStatusItem(itemId){
 }
 
 /* ---------- CATEGORIAS ---------- */
+function nomeCat(c){ return typeof c === 'string' ? c : c.nome; }
+function opsCat(c){ return typeof c === 'string' ? ['avulso','assinatura'] : (c.operacoes || []); }
+
 function renderizarCategorias(){
   const list = document.getElementById('cat-list');
   list.innerHTML = '';
@@ -714,15 +821,25 @@ function renderizarCategorias(){
     list.innerHTML = '<div class="empty-msg">Nenhuma categoria cadastrada ainda.</div>';
     return;
   }
+
+  const BADGE = {
+    avulso:     '<span style="font-size:10px;font-weight:500;background:#EFF6FF;color:#1D4ED8;border-radius:20px;padding:2px 8px;">Avulso</span>',
+    assinatura: '<span style="font-size:10px;font-weight:500;background:var(--accent-bg);color:var(--accent-text);border-radius:20px;padding:2px 8px;">Assinatura</span>',
+    assados:    '<span style="font-size:10px;font-weight:500;background:#FEF3C7;color:#92400E;border-radius:20px;padding:2px 8px;">Assados</span>'
+  };
+
   CATALOGO.categorias.forEach(cat => {
-    const qtd = CATALOGO.itens.filter(i => i.categoria === cat).length;
+    const nome = nomeCat(cat);
+    const ops = opsCat(cat);
+    const qtd = CATALOGO.itens.filter(i => i.categoria === nome).length;
+    const badges = ops.map(op => BADGE[op] || '').join(' ');
     const row = document.createElement('div');
     row.className = 'cat-row';
     row.innerHTML = `
-      <span>${cat}<span class="count">${qtd} item${qtd === 1 ? '' : 'ns'}</span></span>
+      <span>${nome} <span class="count">${qtd} item${qtd === 1 ? '' : 'ns'}</span> ${badges}</span>
       <div class="combo-actions" style="gap:6px;">
-        <div class="icon-btn" style="flex:none;width:30px;height:30px;padding:0;" onclick="abrirModalCategoria('${cat}')"><i class="ti ti-edit"></i></div>
-        <div class="icon-btn danger" style="flex:none;width:30px;height:30px;padding:0;" onclick="excluirCategoria('${cat}')"><i class="ti ti-trash"></i></div>
+        <div class="icon-btn" style="flex:none;width:30px;height:30px;padding:0;" onclick="abrirModalCategoria('${nome}')"><i class="ti ti-edit"></i></div>
+        <div class="icon-btn danger" style="flex:none;width:30px;height:30px;padding:0;" onclick="excluirCategoria('${nome}')"><i class="ti ti-trash"></i></div>
       </div>`;
     list.appendChild(row);
   });
@@ -734,27 +851,74 @@ function abrirModalCategoria(nomeAtual){
   categoriaEditandoNome = nomeAtual || null;
   document.getElementById('modal-categoria-titulo').textContent = nomeAtual ? 'Editar categoria' : 'Nova categoria';
   document.getElementById('categoria-nome').value = nomeAtual || '';
+
+  const cat = nomeAtual ? CATALOGO.categorias.find(c => nomeCat(c) === nomeAtual) : null;
+  const ops = cat ? opsCat(cat) : ['avulso','assinatura'];
+
+  ['avulso','assinatura','assados'].forEach(op => {
+    const toggle = document.getElementById('toggle-cat-' + op);
+    const row = document.getElementById('row-cat-' + op);
+    if (ops.includes(op)){
+      toggle.classList.add('on');
+      row.classList.remove('row-cat-off');
+    } else {
+      toggle.classList.remove('on');
+      row.classList.add('row-cat-off');
+    }
+    // Mostrar quantos itens serão impactados
+    if (nomeAtual){
+      const qtdItens = CATALOGO.itens.filter(i => i.categoria === nomeAtual).length;
+      const el = document.getElementById('impacto-' + op);
+      if (el){
+        const ativa = ops.includes(op);
+        el.innerHTML = ativa
+          ? `<span style="font-size:11px;background:var(--accent-bg);color:var(--accent-text);border-radius:20px;padding:2px 10px;font-weight:500;">${qtdItens} item${qtdItens!==1?'s':''} herdarão</span>`
+          : `<span style="font-size:11px;color:var(--text-muted);">não herdará</span>`;
+      }
+    }
+  });
+
   document.getElementById('modal-categoria').classList.add('open');
+}
+
+function toggleCatOp(op){
+  const toggle = document.getElementById('toggle-cat-' + op);
+  const row = document.getElementById('row-cat-' + op);
+  const isOn = toggle.classList.toggle('on');
+  if (isOn) row.classList.remove('row-cat-off');
+  else row.classList.add('row-cat-off');
 }
 
 function salvarCategoria(){
   const nome = document.getElementById('categoria-nome').value.trim();
   if (!nome){ alert('Digite um nome para a categoria.'); return; }
 
+  const operacoes = [];
+  if (document.getElementById('toggle-cat-avulso').classList.contains('on')) operacoes.push('avulso');
+  if (document.getElementById('toggle-cat-assinatura').classList.contains('on')) operacoes.push('assinatura');
+  if (document.getElementById('toggle-cat-assados').classList.contains('on')) operacoes.push('assados');
+  if (operacoes.length === 0){ alert('Marque ao menos uma operação.'); return; }
+
+  const novaCategoria = { nome, operacoes };
+
   if (categoriaEditandoNome){
-    if (nome !== categoriaEditandoNome && CATALOGO.categorias.includes(nome)){
-      alert('Já existe uma categoria com esse nome.');
-      return;
+    const idx = CATALOGO.categorias.findIndex(c => nomeCat(c) === categoriaEditandoNome);
+    if (nome !== categoriaEditandoNome && CATALOGO.categorias.some(c => nomeCat(c) === nome)){
+      alert('Já existe uma categoria com esse nome.'); return;
     }
-    const idx = CATALOGO.categorias.indexOf(categoriaEditandoNome);
-    CATALOGO.categorias[idx] = nome;
-    CATALOGO.itens.forEach(i => { if (i.categoria === categoriaEditandoNome) i.categoria = nome; });
+    CATALOGO.categorias[idx] = novaCategoria;
+    // Atualizar modalidades dos itens desta categoria
+    CATALOGO.itens.forEach(i => {
+      if (i.categoria === categoriaEditandoNome){
+        i.categoria = nome;
+        i.modalidades = { avulso: operacoes.includes('avulso'), assinatura: operacoes.includes('assinatura'), assados: operacoes.includes('assados') };
+      }
+    });
   } else {
-    if (CATALOGO.categorias.includes(nome)){
-      alert('Já existe uma categoria com esse nome.');
-      return;
+    if (CATALOGO.categorias.some(c => nomeCat(c) === nome)){
+      alert('Já existe uma categoria com esse nome.'); return;
     }
-    CATALOGO.categorias.push(nome);
+    CATALOGO.categorias.push(novaCategoria);
   }
   persistir();
   renderizarCategorias();
@@ -769,7 +933,7 @@ function excluirCategoria(nome){
     return;
   }
   if (confirm('Excluir a categoria "' + nome + '"?')){
-    CATALOGO.categorias = CATALOGO.categorias.filter(c => c !== nome);
+    CATALOGO.categorias = CATALOGO.categorias.filter(c => nomeCat(c) !== nome);
     persistir();
     renderizarCategorias();
   }
@@ -944,8 +1108,9 @@ function renderizarDatasAssados(){
   const old = document.getElementById('secao-datas-assados');
   if (old) old.remove();
 
-  const cfg = CATALOGO.configAssados || { dias: [], datasExcluidas: [] };
+  const cfg = CATALOGO.configAssados || { dias: [], datasExcluidas: [], datasAvulsas: [] };
   const DIAS_SEMANA = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+  const DIAS_ABREV = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 
   const linhasDias = cfg.dias.map((d, idx) => `
     <tr>
@@ -953,6 +1118,21 @@ function renderizarDatasAssados(){
       <td><input type="time" value="${d.horarioLimite}" onchange="alterarHorarioAssados(${idx}, this.value)"></td>
       <td><button class="btn-del-assados" onclick="removerDiaAssados(${idx})">✕</button></td>
     </tr>`).join('') || `<tr><td colspan="3" style="color:var(--text-muted);font-size:12px;text-align:center;padding:8px;">Nenhum dia configurado</td></tr>`;
+
+  // Chips de datas avulsas
+  const avulsas = cfg.datasAvulsas || [];
+  const chipsAvulsas = avulsas.map(av => {
+    const d = new Date(av.data + 'T12:00:00');
+    const nomeDia = DIAS_ABREV[d.getDay()];
+    const dia = String(d.getDate()).padStart(2,'0');
+    const mes = String(d.getMonth()+1).padStart(2,'0');
+    const ano = d.getFullYear();
+    const anoStr = ano !== new Date().getFullYear() ? `/${ano}` : '';
+    return `<span style="display:inline-flex;align-items:center;gap:6px;background:#FAEEDA;border:0.5px solid #FCD34D;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:500;color:#854F0B;">
+      <i class="ti ti-calendar" style="font-size:12px;"></i>${nomeDia}, ${dia}/${mes}${anoStr} · até ${av.horarioLimite}
+      <span onclick="removerDataAvulsa('${av.data}')" style="cursor:pointer;opacity:.7;font-size:13px;margin-left:2px;" title="Remover">✕</span>
+    </span>`;
+  }).join('') || '<span style="font-size:12px;color:var(--text-muted);">Nenhuma data avulsa adicionada</span>';
 
   const datasExcluidas = (cfg.datasExcluidas || []).map(ds => {
     const [ano, mes, dia] = ds.split('-');
@@ -1005,6 +1185,14 @@ function renderizarDatasAssados(){
     </div>
 
     <div style="margin-top:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <span style="font-size:12px;font-weight:500;color:var(--text-secondary);">Datas avulsas <span style="font-size:11px;font-weight:400;color:var(--text-muted);">(feriados, eventos especiais)</span></span>
+        <button class="btn-add-dia-assados" onclick="abrirPopupDataAvulsa()">+ Adicionar data avulsa</button>
+      </div>
+      <div id="lista-datas-avulsas" style="display:flex;flex-wrap:wrap;gap:6px;">${chipsAvulsas}</div>
+    </div>
+
+    <div style="margin-top:16px;">
       <div style="font-size:12px;font-weight:500;color:var(--text-secondary);margin-bottom:8px;">Datas bloqueadas manualmente</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px;" id="lista-datas-excluidas">${datasExcluidas}</div>
       <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;">
@@ -1029,7 +1217,45 @@ function renderizarDatasAssados(){
   }
 }
 
-function abrirAddDiaAssados(){ document.getElementById('form-add-dia-assados').style.display = 'block'; }
+function abrirPopupDataAvulsa(){
+  const hoje = new Date().toISOString().split('T')[0];
+  document.getElementById('popup-data-avulsa-input').min = hoje;
+  document.getElementById('popup-data-avulsa-input').value = '';
+  document.getElementById('popup-limite-avulsa').value = '11:00';
+  document.getElementById('popup-data-avulsa').classList.add('open');
+}
+
+function fecharPopupDataAvulsa(){
+  document.getElementById('popup-data-avulsa').classList.remove('open');
+}
+
+function confirmarDataAvulsa(){
+  const dataStr = document.getElementById('popup-data-avulsa-input').value;
+  const limite = document.getElementById('popup-limite-avulsa').value;
+  if (!dataStr){ alert('Selecione uma data.'); return; }
+
+  // Guardar no configAssados.datasAvulsas
+  if (!CATALOGO.configAssados) CATALOGO.configAssados = { dias: [], datasExcluidas: [], datasAvulsas: [] };
+  if (!CATALOGO.configAssados.datasAvulsas) CATALOGO.configAssados.datasAvulsas = [];
+
+  if (CATALOGO.configAssados.datasAvulsas.some(d => d.data === dataStr)){
+    alert('Essa data já foi adicionada.'); return;
+  }
+
+  CATALOGO.configAssados.datasAvulsas.push({ data: dataStr, horarioLimite: limite });
+  CATALOGO.configAssados.datasAvulsas.sort((a, b) => a.data.localeCompare(b.data));
+  persistir();
+  fecharPopupDataAvulsa();
+  renderizarDatasAssados();
+}
+
+function removerDataAvulsa(dataStr){
+  CATALOGO.configAssados.datasAvulsas = (CATALOGO.configAssados.datasAvulsas || []).filter(d => d.data !== dataStr);
+  persistir();
+  renderizarDatasAssados();
+}
+
+
 function fecharAddDiaAssados(){ document.getElementById('form-add-dia-assados').style.display = 'none'; }
 
 function salvarDiaAssados(){
@@ -1107,6 +1333,32 @@ function alterarHorarioCard(chave, dia, campo, valor){
   if (tab) showPanel(tab);
 })();
 </script>
+
+<!-- POPUP: DATA AVULSA ASSADOS -->
+<div class="modal-overlay" id="popup-data-avulsa" onclick="if(event.target===this)fecharPopupDataAvulsa()">
+  <div class="modal-box" style="width:340px;">
+    <div class="modal-header">
+      <h3>Adicionar data avulsa</h3>
+      <button class="btn-modal-close" onclick="fecharPopupDataAvulsa()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="field">
+      <label>Data da encomenda</label>
+      <input type="date" id="popup-data-avulsa-input" style="width:100%;height:38px;border:0.5px solid var(--border-strong);border-radius:var(--radius);padding:0 12px;font-size:13px;font-family:inherit;background:var(--bg);color:var(--text-primary);">
+    </div>
+    <div class="field">
+      <label>Horário limite de pedido</label>
+      <input type="time" id="popup-limite-avulsa" value="11:00" style="width:100%;height:38px;border:0.5px solid var(--border-strong);border-radius:var(--radius);padding:0 12px;font-size:13px;font-family:inherit;background:var(--bg);color:var(--text-primary);">
+    </div>
+    <p style="font-size:11px;color:var(--text-muted);margin-bottom:16px;line-height:1.5;">
+      <i class="ti ti-info-circle" style="font-size:12px;"></i>
+      A data ficará disponível para encomenda e some automaticamente após o horário limite.
+    </p>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="fecharPopupDataAvulsa()">Cancelar</button>
+      <button class="btn-primary" onclick="confirmarDataAvulsa()">Adicionar data</button>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
