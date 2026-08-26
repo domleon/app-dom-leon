@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dom Leon Admin — Parceiros</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/dist/tabler-icons.min.css">
+<style>
+  :root{
+    --bg:#F5F0E8;--card:#FFFFFF;--border:#E3D8C4;--border-strong:#C7B79A;
+    --text-primary:#3B2314;--text-secondary:#6B5B47;--text-muted:#8A7860;
+    --accent:#B8873B;--accent-bg:#FBF3E2;--accent-text:#6B4E1E;
+    --danger-bg:#FEE2E2;--danger-text:#DC2626;--danger-border:#FCA5A5;
+    --radius:10px;--radius-lg:16px;--sidebar-w:220px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text-primary);min-height:100vh;display:flex;}
+
+  .sidebar{width:var(--sidebar-w);flex-shrink:0;background:var(--card);border-right:0.5px solid var(--border);padding:20px 14px;height:100vh;position:sticky;top:0;}
+  .sidebar-brand{display:flex;align-items:center;gap:10px;padding:6px 8px 20px;border-bottom:0.5px solid var(--border);margin-bottom:16px;}
+  .sidebar-brand span{font-size:15px;font-weight:600;font-family:'Fraunces',serif;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius);font-size:13px;color:var(--text-secondary);cursor:pointer;margin-bottom:2px;}
+  .nav-item i{font-size:18px;}
+  .nav-item.active{background:var(--accent-bg);color:var(--accent-text);font-weight:500;}
+  .nav-item:hover:not(.active){background:var(--bg);}
+
+  .main{flex:1;padding:28px 32px;max-width:1200px;}
+
+  .page-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;padding-bottom:18px;border-bottom:0.5px solid var(--border);}
+  .page-header h1{font-size:21px;font-weight:600;font-family:'Fraunces',serif;}
+  .page-header p{font-size:13px;color:var(--text-secondary);margin-top:2px;}
+
+  .btn-primary{height:38px;padding:0 18px;background:var(--text-primary);color:#fff;border:none;border-radius:var(--radius);font-size:13px;font-family:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+  .btn-primary:hover{opacity:.9;}
+  .btn-secondary{height:38px;padding:0 14px;background:transparent;color:var(--text-secondary);border:0.5px solid var(--border-strong);border-radius:var(--radius);font-size:13px;font-family:inherit;cursor:pointer;}
+
+  .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+  .search-box{display:flex;align-items:center;gap:8px;border:0.5px solid var(--border-strong);border-radius:var(--radius);padding:8px 12px;background:var(--card);width:280px;}
+  .search-box input{border:none;outline:none;background:transparent;font-size:13px;font-family:inherit;color:var(--text-primary);flex:1;}
+  .filtros{display:flex;gap:6px;}
+  .filtro-btn{height:34px;padding:0 14px;border:0.5px solid var(--border-strong);border-radius:var(--radius);background:var(--card);font-size:12px;color:var(--text-secondary);cursor:pointer;font-family:inherit;transition:all .15s;}
+  .filtro-btn.active{background:var(--accent-bg);border-color:var(--accent);color:var(--accent-text);font-weight:500;}
+
+  /* Tabela de parceiros */
+  .table-card{background:var(--card);border:0.5px solid var(--border);border-radius:12px;overflow:hidden;}
+  .table-card table{width:100%;border-collapse:collapse;font-size:13px;}
+  .table-card th{text-align:left;padding:10px 16px;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);font-weight:600;border-bottom:0.5px solid var(--border);background:var(--bg);}
+  .table-card td{padding:14px 16px;border-bottom:0.5px solid var(--border);vertical-align:middle;}
+  .table-card tr:last-child td{border-bottom:none;}
+  .table-card tr:hover td{background:var(--bg);}
+  .table-card tr.inativo td{opacity:.55;}
+
+  .pc-info{display:flex;align-items:center;gap:12px;}
+  .pc-avatar{width:36px;height:36px;border-radius:9px;background:var(--accent-bg);border:0.5px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;font-family:sans-serif;}
+  .pc-avatar.off{background:var(--bg);border-color:var(--border-strong);}
+  .pc-nome{font-size:13px;font-weight:500;color:var(--text-primary);}
+  .pc-resp{font-size:11px;color:var(--text-muted);}
+
+  .contato-col{display:flex;flex-direction:column;gap:3px;}
+  .contato-row{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text-secondary);}
+  .contato-row i{font-size:12px;color:var(--text-muted);}
+
+  .tags-wrap{display:flex;flex-wrap:wrap;gap:4px;}
+  .tag-bairro{font-size:10px;background:var(--bg);border:0.5px solid var(--border-strong);border-radius:20px;padding:2px 8px;color:var(--text-secondary);}
+  .tag-item{font-size:10px;background:#EFF6FF;border:0.5px solid #BFDBFE;border-radius:20px;padding:2px 8px;color:#1D4ED8;}
+  .tag-mais{font-size:10px;background:var(--bg);border:0.5px solid var(--border-strong);border-radius:20px;padding:2px 8px;color:var(--text-muted);}
+
+  .badge-ativo{font-size:10px;font-weight:600;background:#DCFCE7;color:#166534;border-radius:20px;padding:2px 10px;}
+  .badge-inativo{font-size:10px;font-weight:600;background:var(--bg);color:var(--text-muted);border:0.5px solid var(--border-strong);border-radius:20px;padding:2px 10px;}
+
+  .row-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;}
+  .icon-btn{width:30px;height:30px;border-radius:8px;border:0.5px solid var(--border-strong);background:var(--bg);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);flex-shrink:0;}
+  .icon-btn:hover{background:var(--border);}
+  .icon-btn.danger:hover{background:var(--danger-bg);color:var(--danger-text);border-color:var(--danger-border);}
+  .btn-editar{height:30px;padding:0 12px;border:0.5px solid var(--border-strong);border-radius:8px;background:var(--bg);font-size:12px;color:var(--text-secondary);cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;}
+  .btn-editar:hover{background:var(--border);}
+
+  .rodape{display:flex;justify-content:space-between;align-items:center;padding:12px 0;margin-top:8px;}
+  .rodape span{font-size:12px;color:var(--text-muted);}
+
+  /* Empty state */
+  .empty-state{text-align:center;padding:60px 20px;color:var(--text-muted);}
+  .empty-state i{font-size:40px;opacity:.3;display:block;margin-bottom:12px;}
+  .empty-state p{font-size:14px;color:var(--text-secondary);margin-bottom:4px;}
+  .empty-state small{font-size:12px;}
+
+  /* Toast */
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--text-primary);color:#fff;border-radius:10px;padding:12px 18px;font-size:13px;display:none;align-items:center;gap:8px;z-index:999;box-shadow:0 4px 12px rgba(0,0,0,.15);}
+  .toast.show{display:flex;}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="sidebar-brand">
+    <i class="ti ti-bread" style="font-size:20px;color:var(--accent-text);"></i>
+    <span>Dom Leon Admin</span>
+  </div>
+  <div class="nav-item" onclick="location.href='mod3-admin-assinantes.html'"><i class="ti ti-layout-dashboard"></i>Dashboard</div>
+  <div class="nav-item" onclick="location.href='mod3-admin-assinantes.html'"><i class="ti ti-users"></i>Assinantes</div>
+  <div class="nav-item" onclick="location.href='mod3-admin-assinantes.html?tab=producao'"><i class="ti ti-clipboard-list"></i>Produção do dia</div>
+  <div class="nav-item" onclick="location.href='mod8-planos.html'"><i class="ti ti-package"></i>Planos</div>
+  <div class="nav-item" onclick="location.href='mod5-entrega.html'"><i class="ti ti-truck-delivery"></i>Logística</div>
+  <div class="nav-item active"><i class="ti ti-building-store"></i>Parceiros</div>
+  <div class="nav-item"><i class="ti ti-cash"></i>Financeiro</div>
+  <div class="nav-item" onclick="location.href='mod7-relatorios.html'"><i class="ti ti-chart-bar"></i>Relatórios</div>
+</div>
+
+<div class="main">
+  <div class="page-header">
+    <div>
+      <h1>Parceiros</h1>
+      <p>Fornecedores e entregadores terceiros vinculados a itens e bairros</p>
+    </div>
+    <button class="btn-primary" onclick="novoParceiro()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Novo parceiro
+    </button>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-box">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="busca-input" placeholder="Buscar parceiro, bairro ou item..." oninput="renderizarTabela()">
+    </div>
+    <div class="filtros">
+      <button class="filtro-btn active" onclick="setFiltro('todos', this)">Todos</button>
+      <button class="filtro-btn" onclick="setFiltro('ativos', this)">Ativos</button>
+      <button class="filtro-btn" onclick="setFiltro('inativos', this)">Inativos</button>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:26%;">Parceiro</th>
+          <th style="width:18%;">Contato</th>
+          <th style="width:20%;">Bairros</th>
+          <th style="width:20%;">Itens</th>
+          <th style="width:8%;text-align:center;">Status</th>
+          <th style="width:8%;"></th>
+        </tr>
+      </thead>
+      <tbody id="tbody-parceiros"></tbody>
+    </table>
+  </div>
+
+  <div class="rodape">
+    <span id="rodape-contagem"></span>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+  <span id="toast-msg"></span>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="catalogo.js"></script>
+<script>
+let CATALOGO = null;
+let FILTRO = 'todos';
+let PARCEIROS = [];
+
+/* ---------- Inicialização ---------- */
+(async function init(){
+  CATALOGO = await carregarCatalogo();
+  if (!CATALOGO.parceiros) CATALOGO.parceiros = [];
+  PARCEIROS = CATALOGO.parceiros;
+  renderizarTabela();
+})();
+
+/* ---------- Filtro ---------- */
+function setFiltro(f, el){
+  FILTRO = f;
+  document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderizarTabela();
+}
+
+/* ---------- Renderizar tabela ---------- */
+function renderizarTabela(){
+  const busca = (document.getElementById('busca-input').value || '').toLowerCase().trim();
+  const tbody = document.getElementById('tbody-parceiros');
+
+  let lista = PARCEIROS.filter(p => {
+    if (FILTRO === 'ativos' && !p.ativo) return false;
+    if (FILTRO === 'inativos' && p.ativo) return false;
+    if (busca){
+      const texto = [p.nome, p.responsavel, p.telefone, p.email,
+        ...(p.bairros || []), ...(p.itens || [])].join(' ').toLowerCase();
+      if (!texto.includes(busca)) return false;
+    }
+    return true;
+  });
+
+  tbody.innerHTML = '';
+
+  if (lista.length === 0){
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:50px;color:var(--text-muted);font-size:13px;">
+      ${busca ? 'Nenhum parceiro encontrado para "' + busca + '"' : 'Nenhum parceiro cadastrado ainda.'}
+    </td></tr>`;
+    document.getElementById('rodape-contagem').textContent = '';
+    return;
+  }
+
+  lista.forEach(p => {
+    const bairros = p.bairros || [];
+    const itens = p.itens || [];
+    const MAX = 2;
+
+    const tagsB = bairros.slice(0, MAX).map(b => `<span class="tag-bairro">${b}</span>`).join('');
+    const maisB = bairros.length > MAX ? `<span class="tag-mais">+${bairros.length - MAX}</span>` : '';
+    const tagsI = itens.slice(0, MAX).map(i => `<span class="tag-item">${i}</span>`).join('');
+    const maisI = itens.length > MAX ? `<span class="tag-mais">+${itens.length - MAX}</span>` : '';
+
+    const tr = document.createElement('tr');
+    if (!p.ativo) tr.classList.add('inativo');
+    tr.innerHTML = `
+      <td>
+        <div class="pc-info">
+          <div class="pc-avatar ${p.ativo ? '' : 'off'}">${p.emoji || '🏢'}</div>
+          <div>
+            <div class="pc-nome">${p.nome}</div>
+            <div class="pc-resp">${p.responsavel || '—'}</div>
+          </div>
+        </div>
+      </td>
+      <td>
+        <div class="contato-col">
+          ${p.telefone ? `<div class="contato-row"><i class="ti ti-phone"></i>${p.telefone}</div>` : ''}
+          ${p.email ? `<div class="contato-row"><i class="ti ti-mail"></i>${p.email}</div>` : ''}
+          ${!p.telefone && !p.email ? '<span style="color:var(--text-muted);font-size:12px;">—</span>' : ''}
+        </div>
+      </td>
+      <td><div class="tags-wrap">${tagsB || '<span style="color:var(--text-muted);font-size:12px;">Nenhum</span>'}${maisB}</div></td>
+      <td><div class="tags-wrap">${tagsI || '<span style="color:var(--text-muted);font-size:12px;">Nenhum</span>'}${maisI}</div></td>
+      <td style="text-align:center;">
+        <span class="${p.ativo ? 'badge-ativo' : 'badge-inativo'}">${p.ativo ? 'Ativo' : 'Inativo'}</span>
+      </td>
+      <td>
+        <div class="row-actions">
+          <div class="icon-btn danger" onclick="excluirParceiro('${p.id}')" title="Excluir">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          </div>
+          <button class="btn-editar" onclick="editarParceiro('${p.id}')">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Editar
+          </button>
+        </div>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+
+  const ativos = PARCEIROS.filter(p => p.ativo).length;
+  document.getElementById('rodape-contagem').textContent =
+    `${lista.length} parceiro${lista.length !== 1 ? 's' : ''} encontrado${lista.length !== 1 ? 's' : ''} · ${ativos} ativo${ativos !== 1 ? 's' : ''}`;
+}
+
+/* ---------- Ações ---------- */
+function novoParceiro(){
+  location.href = 'mod-parceiro-cadastro.html';
+}
+
+function editarParceiro(id){
+  location.href = 'mod-parceiro-cadastro.html?id=' + id;
+}
+
+async function excluirParceiro(id){
+  const p = PARCEIROS.find(x => x.id === id);
+  if (!p) return;
+  if (!confirm(`Excluir o parceiro "${p.nome}"? Esta ação não pode ser desfeita.`)) return;
+  CATALOGO.parceiros = CATALOGO.parceiros.filter(x => x.id !== id);
+  PARCEIROS = CATALOGO.parceiros;
+  await salvarCatalogo(CATALOGO);
+  renderizarTabela();
+  mostrarToast('Parceiro excluído.');
+}
+
+function mostrarToast(msg){
+  const t = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>

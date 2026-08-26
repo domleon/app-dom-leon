@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dom Leon Admin — Parceiro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/dist/tabler-icons.min.css">
+<style>
+  :root{
+    --bg:#F5F0E8;--card:#FFFFFF;--border:#E3D8C4;--border-strong:#C7B79A;
+    --text-primary:#3B2314;--text-secondary:#6B5B47;--text-muted:#8A7860;
+    --accent:#B8873B;--accent-bg:#FBF3E2;--accent-text:#6B4E1E;
+    --danger-bg:#FEE2E2;--danger-text:#DC2626;--danger-border:#FCA5A5;
+    --radius:10px;--sidebar-w:220px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text-primary);min-height:100vh;display:flex;}
+
+  /* Sidebar */
+  .sidebar{width:var(--sidebar-w);flex-shrink:0;background:var(--card);border-right:0.5px solid var(--border);padding:20px 14px;height:100vh;position:sticky;top:0;}
+  .sidebar-brand{display:flex;align-items:center;gap:10px;padding:6px 8px 20px;border-bottom:0.5px solid var(--border);margin-bottom:16px;}
+  .sidebar-brand span{font-size:15px;font-weight:600;font-family:'Fraunces',serif;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius);font-size:13px;color:var(--text-secondary);cursor:pointer;margin-bottom:2px;}
+  .nav-item i{font-size:18px;}
+  .nav-item.active{background:var(--accent-bg);color:var(--accent-text);font-weight:500;}
+  .nav-item:hover:not(.active){background:var(--bg);}
+
+  /* Main */
+  .main{flex:1;padding:28px 32px;}
+
+  /* Header */
+  .breadcrumb{font-size:12px;color:var(--text-muted);margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+  .breadcrumb a{color:var(--text-muted);text-decoration:none;cursor:pointer;}
+  .breadcrumb a:hover{color:var(--accent-text);}
+  .page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;padding-bottom:18px;border-bottom:0.5px solid var(--border);}
+  .page-title{font-size:21px;font-weight:600;font-family:'Fraunces',serif;}
+  .header-actions{display:flex;gap:8px;align-items:center;}
+
+  /* Botões */
+  .btn-primary{height:38px;padding:0 18px;background:var(--text-primary);color:#fff;border:none;border-radius:var(--radius);font-size:13px;font-family:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+  .btn-primary:hover{opacity:.9;}
+  .btn-secondary{height:38px;padding:0 16px;background:transparent;color:var(--text-secondary);border:0.5px solid var(--border-strong);border-radius:var(--radius);font-size:13px;font-family:inherit;cursor:pointer;}
+  .btn-secondary:hover{background:var(--bg);}
+  .btn-danger{height:38px;padding:0 14px;background:transparent;color:var(--danger-text);border:0.5px solid var(--danger-border);border-radius:var(--radius);font-size:13px;font-family:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+  .btn-danger:hover{background:var(--danger-bg);}
+
+  /* Grid de layout */
+  .grid{display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start;}
+
+  /* Cards de seção */
+  .sec-card{background:var(--card);border:0.5px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px;}
+  .sec-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:14px;}
+
+  /* Campos */
+  .field{margin-bottom:14px;}
+  .field:last-child{margin-bottom:0;}
+  .field label{font-size:12px;font-weight:500;color:var(--text-secondary);display:block;margin-bottom:5px;}
+  .field input,.field textarea,.field select{
+    width:100%;border:0.5px solid var(--border-strong);border-radius:var(--radius);
+    padding:0 12px;font-size:13px;font-family:inherit;background:var(--bg);color:var(--text-primary);height:38px;
+  }
+  .field textarea{height:84px;padding:10px 12px;resize:none;line-height:1.5;}
+  .field input:focus,.field textarea:focus{outline:none;border-color:var(--accent);}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+  /* Vínculos */
+  .vinc-search{display:flex;align-items:center;gap:8px;border:0.5px solid var(--border-strong);border-radius:var(--radius);padding:8px 12px;background:var(--bg);margin-bottom:8px;}
+  .vinc-search input{border:none;outline:none;background:transparent;font-size:13px;font-family:inherit;color:var(--text-primary);flex:1;}
+  .vinc-count{font-size:11px;color:var(--text-muted);margin-bottom:8px;}
+
+  .vinc-lista{display:flex;flex-direction:column;gap:4px;max-height:200px;overflow-y:auto;}
+  .vi{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:8px;border:0.5px solid var(--border);cursor:pointer;transition:background .1s;}
+  .vi:hover{background:var(--bg);}
+  .vi.sel{background:var(--accent-bg);border-color:var(--accent);}
+  .vi .vn{font-size:12px;font-weight:500;color:var(--text-primary);}
+  .vi.sel .vn{color:var(--accent-text);}
+  .vi .vs{font-size:10px;color:var(--text-muted);margin-top:2px;}
+  .vi.sel .vs{color:var(--accent-text);opacity:.75;}
+  .vi-chk{width:16px;height:16px;border-radius:4px;border:0.5px solid var(--border-strong);background:var(--card);flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+  .vi.sel .vi-chk{background:var(--accent);border-color:var(--accent);}
+
+  .chips-wrap{display:flex;flex-wrap:wrap;gap:4px;margin-top:10px;padding-top:10px;border-top:0.5px solid var(--border);min-height:28px;}
+  .chips-label{font-size:11px;color:var(--text-muted);margin-bottom:5px;}
+  .chip-b{font-size:11px;background:var(--bg);border:0.5px solid var(--border-strong);border-radius:20px;padding:3px 10px;color:var(--text-secondary);display:inline-flex;align-items:center;gap:4px;}
+  .chip-i{font-size:11px;background:#EFF6FF;border:0.5px solid #BFDBFE;border-radius:20px;padding:3px 10px;color:#1D4ED8;display:inline-flex;align-items:center;gap:4px;}
+  .chip-x{cursor:pointer;opacity:.6;font-size:12px;line-height:1;}
+  .chip-x:hover{opacity:1;}
+
+  /* Toggle */
+  .toggle-row{display:flex;align-items:center;justify-content:space-between;}
+  .toggle-row span{font-size:13px;color:var(--text-secondary);}
+  .toggle{width:38px;height:22px;border-radius:20px;background:var(--accent);position:relative;cursor:pointer;transition:background .15s;flex-shrink:0;}
+  .toggle.off{background:var(--border-strong);}
+  .toggle::after{content:'';position:absolute;width:18px;height:18px;background:#fff;border-radius:50%;top:2px;right:2px;transition:right .15s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+  .toggle.off::after{right:auto;left:2px;}
+
+  /* Resumo */
+  .rsm-row{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--bg);border-radius:8px;margin-bottom:8px;}
+  .rsm-row .rl{font-size:12px;color:var(--text-secondary);}
+  .rsm-row .rv{font-size:20px;font-weight:600;color:var(--text-primary);}
+  .rsm-row.acc{background:var(--accent-bg);}
+  .rsm-row.acc .rl{color:var(--accent-text);}
+  .rsm-row.acc .rv{color:var(--accent-text);}
+  .info-box{font-size:11px;color:var(--text-muted);line-height:1.5;padding:10px 12px;background:var(--bg);border-radius:8px;border:0.5px solid var(--border);}
+
+  /* Toast */
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--text-primary);color:#fff;border-radius:10px;padding:12px 18px;font-size:13px;display:none;align-items:center;gap:8px;z-index:999;box-shadow:0 4px 12px rgba(0,0,0,.15);}
+  .toast.show{display:flex;}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="sidebar-brand">
+    <i class="ti ti-bread" style="font-size:20px;color:var(--accent-text);"></i>
+    <span>Dom Leon Admin</span>
+  </div>
+  <div class="nav-item" onclick="location.href='mod3-admin-assinantes.html'"><i class="ti ti-layout-dashboard"></i>Dashboard</div>
+  <div class="nav-item" onclick="location.href='mod3-admin-assinantes.html'"><i class="ti ti-users"></i>Assinantes</div>
+  <div class="nav-item" onclick="location.href='mod3-admin-assinantes.html?tab=producao'"><i class="ti ti-clipboard-list"></i>Produção do dia</div>
+  <div class="nav-item" onclick="location.href='mod8-planos.html'"><i class="ti ti-package"></i>Planos</div>
+  <div class="nav-item" onclick="location.href='mod5-entrega.html'"><i class="ti ti-truck-delivery"></i>Logística</div>
+  <div class="nav-item active"><i class="ti ti-building-store"></i>Parceiros</div>
+  <div class="nav-item"><i class="ti ti-cash"></i>Financeiro</div>
+  <div class="nav-item" onclick="location.href='mod7-relatorios.html'"><i class="ti ti-chart-bar"></i>Relatórios</div>
+</div>
+
+<div class="main">
+  <div class="breadcrumb">
+    <a onclick="location.href='mod-parceiros.html'">Parceiros</a>
+    <i class="ti ti-chevron-right" style="font-size:12px;"></i>
+    <span id="breadcrumb-titulo">Novo parceiro</span>
+  </div>
+
+  <div class="page-header">
+    <div class="page-title" id="page-title">Novo parceiro</div>
+    <div class="header-actions">
+      <button class="btn-danger" id="btn-excluir" style="display:none;" onclick="excluirParceiro()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        Excluir parceiro
+      </button>
+      <button class="btn-secondary" onclick="location.href='mod-parceiros.html'">Descartar</button>
+      <button class="btn-primary" onclick="salvarParceiro()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        Salvar parceiro
+      </button>
+    </div>
+  </div>
+
+  <div class="grid">
+
+    <!-- Coluna esquerda -->
+    <div>
+
+      <!-- Dados -->
+      <div class="sec-card">
+        <div class="sec-title">Dados do parceiro</div>
+        <div class="field-row" style="margin-bottom:14px;">
+          <div class="field" style="margin-bottom:0;">
+            <label>Nome / razão social</label>
+            <input type="text" id="p-nome" placeholder="Ex: Distribuidora Gás Sul">
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label>Responsável</label>
+            <input type="text" id="p-responsavel" placeholder="Ex: Carlos Mota">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field" style="margin-bottom:0;">
+            <label>Telefone / WhatsApp</label>
+            <input type="text" id="p-telefone" placeholder="(15) 99999-0000">
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label>E-mail</label>
+            <input type="email" id="p-email" placeholder="contato@parceiro.com">
+          </div>
+        </div>
+      </div>
+
+      <!-- Bairros -->
+      <div class="sec-card">
+        <div class="sec-title">Bairros atendidos</div>
+        <div class="vinc-search">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="busca-bairros" placeholder="Filtrar bairros..." oninput="filtrarLista('bairros')">
+        </div>
+        <div class="vinc-count" id="count-bairros">0 selecionados</div>
+        <div class="vinc-lista" id="lista-bairros"></div>
+        <div class="chips-label" style="margin-top:10px;padding-top:10px;border-top:0.5px solid var(--border);font-size:11px;color:var(--text-muted);">Selecionados:</div>
+        <div class="chips-wrap" id="chips-bairros">
+          <span style="font-size:12px;color:var(--text-muted);">Nenhum bairro selecionado</span>
+        </div>
+      </div>
+
+      <!-- Itens -->
+      <div class="sec-card">
+        <div class="sec-title">Itens fornecidos</div>
+        <div class="vinc-search">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="busca-itens" placeholder="Filtrar itens por nome ou categoria..." oninput="filtrarLista('itens')">
+        </div>
+        <div class="vinc-count" id="count-itens">0 selecionados</div>
+        <div class="vinc-lista" id="lista-itens"></div>
+        <div class="chips-label" style="margin-top:10px;padding-top:10px;border-top:0.5px solid var(--border);font-size:11px;color:var(--text-muted);">Selecionados:</div>
+        <div class="chips-wrap" id="chips-itens">
+          <span style="font-size:12px;color:var(--text-muted);">Nenhum item selecionado</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Coluna direita -->
+    <div>
+
+      <!-- Status -->
+      <div class="sec-card">
+        <div class="sec-title">Status</div>
+        <div class="toggle-row">
+          <span>Parceiro ativo</span>
+          <div class="toggle" id="toggle-ativo" onclick="this.classList.toggle('off')"></div>
+        </div>
+      </div>
+
+      <!-- Resumo -->
+      <div class="sec-card">
+        <div class="sec-title">Resumo do vínculo</div>
+        <div class="rsm-row">
+          <span class="rl">Bairros selecionados</span>
+          <span class="rv" id="rv-bairros">0</span>
+        </div>
+        <div class="rsm-row acc">
+          <span class="rl">Itens vinculados</span>
+          <span class="rv" id="rv-itens">0</span>
+        </div>
+        <div class="info-box" style="margin-top:8px;">
+          <i class="ti ti-info-circle" style="font-size:12px;vertical-align:middle;margin-right:3px;"></i>
+          Itens e bairros não selecionados continuam sendo atendidos pela operação padrão da Dom Leon.
+        </div>
+      </div>
+
+      <!-- Observações -->
+      <div class="sec-card">
+        <div class="sec-title">Observações</div>
+        <div class="field" style="margin-bottom:0;">
+          <textarea id="p-obs" placeholder="Anotações internas sobre este parceiro..."></textarea>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+  <span id="toast-msg"></span>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="catalogo.js"></script>
+<script>
+let CATALOGO = null;
+let parceiroEditandoId = null;
+let BAIRROS_SEL = new Set();
+let ITENS_SEL = new Set();
+let TODOS_BAIRROS = [];
+let TODOS_ITENS = [];
+
+/* ---------- Inicialização ---------- */
+(async function init(){
+  CATALOGO = await carregarCatalogo();
+  if (!CATALOGO.parceiros) CATALOGO.parceiros = [];
+
+  // Carregar bairros do catálogo
+  TODOS_BAIRROS = (CATALOGO.bairros || []).map(b => b.nome || b);
+
+  // Carregar itens do catálogo
+  TODOS_ITENS = (CATALOGO.itens || []).filter(i => i.ativo).map(i => ({
+    id: i.id,
+    nome: i.nome,
+    categoria: i.categoria || '—'
+  }));
+
+  const params = new URLSearchParams(location.search);
+  parceiroEditandoId = params.get('id') || null;
+
+  if (parceiroEditandoId){
+    const p = CATALOGO.parceiros.find(x => x.id === parceiroEditandoId);
+    if (p) carregarParceiro(p);
+  }
+
+  renderizarListaBairros('');
+  renderizarListaItens('');
+  atualizarResumo();
+})();
+
+/* ---------- Carregar dados ao editar ---------- */
+function carregarParceiro(p){
+  document.getElementById('breadcrumb-titulo').textContent = p.nome;
+  document.getElementById('page-title').textContent = p.nome;
+  document.getElementById('btn-excluir').style.display = 'flex';
+
+  document.getElementById('p-nome').value = p.nome || '';
+  document.getElementById('p-responsavel').value = p.responsavel || '';
+  document.getElementById('p-telefone').value = p.telefone || '';
+  document.getElementById('p-email').value = p.email || '';
+  document.getElementById('p-obs').value = p.obs || '';
+
+  if (!p.ativo) document.getElementById('toggle-ativo').classList.add('off');
+
+  BAIRROS_SEL = new Set(p.bairros || []);
+  ITENS_SEL = new Set(p.itens || []);
+}
+
+/* ---------- Renderizar listas de vínculos ---------- */
+function renderizarListaBairros(filtro){
+  const lista = document.getElementById('lista-bairros');
+  const termo = filtro.toLowerCase();
+  const filtrados = TODOS_BAIRROS.filter(b => !termo || b.toLowerCase().includes(termo));
+  lista.innerHTML = '';
+
+  if (filtrados.length === 0){
+    lista.innerHTML = '<div style="padding:10px;text-align:center;font-size:12px;color:var(--text-muted);">Nenhum bairro encontrado</div>';
+    return;
+  }
+
+  filtrados.forEach(b => {
+    const sel = BAIRROS_SEL.has(b);
+    const el = document.createElement('div');
+    el.className = 'vi' + (sel ? ' sel' : '');
+    el.dataset.nome = b;
+    el.onclick = () => toggleVinc('bairros', b, el);
+    el.innerHTML = `
+      <div><div class="vn">${b}</div></div>
+      <div class="vi-chk">${sel ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : ''}</div>`;
+    lista.appendChild(el);
+  });
+
+  atualizarChips('bairros');
+  atualizarResumo();
+}
+
+function renderizarListaItens(filtro){
+  const lista = document.getElementById('lista-itens');
+  const termo = filtro.toLowerCase();
+  const filtrados = TODOS_ITENS.filter(i =>
+    !termo || i.nome.toLowerCase().includes(termo) || i.categoria.toLowerCase().includes(termo)
+  );
+  lista.innerHTML = '';
+
+  if (filtrados.length === 0){
+    lista.innerHTML = '<div style="padding:10px;text-align:center;font-size:12px;color:var(--text-muted);">Nenhum item encontrado</div>';
+    return;
+  }
+
+  filtrados.forEach(item => {
+    const sel = ITENS_SEL.has(item.id);
+    const el = document.createElement('div');
+    el.className = 'vi' + (sel ? ' sel' : '');
+    el.dataset.id = item.id;
+    el.onclick = () => toggleVinc('itens', item.id, el);
+    el.innerHTML = `
+      <div>
+        <div class="vn">${item.nome}</div>
+        <div class="vs">${item.categoria}</div>
+      </div>
+      <div class="vi-chk">${sel ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : ''}</div>`;
+    lista.appendChild(el);
+  });
+
+  atualizarChips('itens');
+  atualizarResumo();
+}
+
+function filtrarLista(tipo){
+  const val = document.getElementById('busca-' + tipo).value;
+  if (tipo === 'bairros') renderizarListaBairros(val);
+  else renderizarListaItens(val);
+}
+
+/* ---------- Toggle seleção ---------- */
+function toggleVinc(tipo, valor, el){
+  const conjunto = tipo === 'bairros' ? BAIRROS_SEL : ITENS_SEL;
+  if (conjunto.has(valor)){
+    conjunto.delete(valor);
+    el.classList.remove('sel');
+    el.querySelector('.vi-chk').innerHTML = '';
+  } else {
+    conjunto.add(valor);
+    el.classList.add('sel');
+    el.querySelector('.vi-chk').innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>';
+  }
+  atualizarChips(tipo);
+  atualizarContador(tipo);
+  atualizarResumo();
+}
+
+/* ---------- Chips ---------- */
+function atualizarChips(tipo){
+  const wrap = document.getElementById('chips-' + tipo);
+  const conjunto = tipo === 'bairros' ? BAIRROS_SEL : ITENS_SEL;
+  const cls = tipo === 'bairros' ? 'chip-b' : 'chip-i';
+
+  if (conjunto.size === 0){
+    wrap.innerHTML = `<span style="font-size:12px;color:var(--text-muted);">Nenhum ${tipo === 'bairros' ? 'bairro' : 'item'} selecionado</span>`;
+    return;
+  }
+
+  wrap.innerHTML = '';
+
+  // Para itens, mostrar nome; para bairros, já é o nome
+  const items = tipo === 'bairros'
+    ? [...conjunto].map(v => ({ id: v, nome: v }))
+    : [...conjunto].map(id => ({ id, nome: TODOS_ITENS.find(i => i.id === id)?.nome || id }));
+
+  items.forEach(({ id, nome }) => {
+    const chip = document.createElement('span');
+    chip.className = cls;
+    chip.innerHTML = `${nome} <span class="chip-x" onclick="removerVinc('${tipo}','${id}')">✕</span>`;
+    wrap.appendChild(chip);
+  });
+}
+
+function removerVinc(tipo, valor){
+  const conjunto = tipo === 'bairros' ? BAIRROS_SEL : ITENS_SEL;
+  conjunto.delete(valor);
+  // Atualizar item na lista se visível
+  const sel = tipo === 'bairros'
+    ? document.querySelector(`#lista-bairros .vi[data-nome="${valor}"]`)
+    : document.querySelector(`#lista-itens .vi[data-id="${valor}"]`);
+  if (sel){
+    sel.classList.remove('sel');
+    sel.querySelector('.vi-chk').innerHTML = '';
+  }
+  atualizarChips(tipo);
+  atualizarContador(tipo);
+  atualizarResumo();
+}
+
+function atualizarContador(tipo){
+  const conjunto = tipo === 'bairros' ? BAIRROS_SEL : ITENS_SEL;
+  const total = tipo === 'bairros' ? TODOS_BAIRROS.length : TODOS_ITENS.length;
+  document.getElementById('count-' + tipo).textContent =
+    `${conjunto.size} de ${total} selecionado${conjunto.size !== 1 ? 's' : ''}`;
+}
+
+function atualizarResumo(){
+  document.getElementById('rv-bairros').textContent = BAIRROS_SEL.size;
+  document.getElementById('rv-itens').textContent = ITENS_SEL.size;
+  document.getElementById('count-bairros').textContent =
+    `${BAIRROS_SEL.size} de ${TODOS_BAIRROS.length} selecionado${BAIRROS_SEL.size !== 1 ? 's' : ''}`;
+  document.getElementById('count-itens').textContent =
+    `${ITENS_SEL.size} de ${TODOS_ITENS.length} selecionado${ITENS_SEL.size !== 1 ? 's' : ''}`;
+}
+
+/* ---------- Salvar ---------- */
+async function salvarParceiro(){
+  const nome = document.getElementById('p-nome').value.trim();
+  if (!nome){ alert('Informe o nome do parceiro.'); return; }
+
+  const ativo = !document.getElementById('toggle-ativo').classList.contains('off');
+
+  const dados = {
+    nome,
+    responsavel: document.getElementById('p-responsavel').value.trim(),
+    telefone: document.getElementById('p-telefone').value.trim(),
+    email: document.getElementById('p-email').value.trim(),
+    obs: document.getElementById('p-obs').value.trim(),
+    ativo,
+    bairros: [...BAIRROS_SEL],
+    itens: [...ITENS_SEL],
+    emoji: '🏢'
+  };
+
+  if (parceiroEditandoId){
+    const idx = CATALOGO.parceiros.findIndex(p => p.id === parceiroEditandoId);
+    if (idx !== -1) CATALOGO.parceiros[idx] = { ...CATALOGO.parceiros[idx], ...dados };
+  } else {
+    dados.id = gerarIdUnico(nome, CATALOGO.parceiros);
+    CATALOGO.parceiros.push(dados);
+  }
+
+  await salvarCatalogo(CATALOGO);
+  mostrarToast('Parceiro salvo com sucesso!');
+  setTimeout(() => location.href = 'mod-parceiros.html', 900);
+}
+
+/* ---------- Excluir ---------- */
+async function excluirParceiro(){
+  const nome = document.getElementById('p-nome').value || 'este parceiro';
+  if (!confirm(`Excluir "${nome}"? Esta ação não pode ser desfeita.`)) return;
+  CATALOGO.parceiros = CATALOGO.parceiros.filter(p => p.id !== parceiroEditandoId);
+  await salvarCatalogo(CATALOGO);
+  location.href = 'mod-parceiros.html';
+}
+
+/* ---------- Toast ---------- */
+function mostrarToast(msg){
+  const t = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
