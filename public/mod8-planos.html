@@ -145,7 +145,18 @@
   .modal-header h3{margin-bottom:0;}
   .btn-modal-close{width:28px;height:28px;border-radius:8px;border:0.5px solid var(--border-strong);background:var(--bg);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--text-muted);}
   .btn-modal-close:hover{background:var(--border);}
-  /* Toggles da tabela de categoria */
+  /* Toggles de bairro */
+  .bairro-toggle-row{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:10px;background:var(--bg);border:0.5px solid var(--border);cursor:pointer;transition:background .15s,border-color .15s;}
+  .bairro-toggle-row.on{background:var(--accent-bg);border-color:var(--accent);}
+  .bairro-toggle-label{font-size:13px;font-weight:500;color:var(--text-secondary);}
+  .bairro-toggle-row.on .bairro-toggle-label{color:var(--accent-text);}
+  .bairro-toggle-sub{font-size:11px;color:var(--text-muted);margin-top:3px;}
+  .bairro-toggle-row.on .bairro-toggle-sub{color:var(--accent-text);opacity:.7;}
+  .bairro-tog{width:36px;height:20px;border-radius:20px;background:var(--border-strong);position:relative;flex-shrink:0;transition:background .15s;pointer-events:none;}
+  .bairro-tog.on{background:var(--accent);}
+  .bairro-tog::after{content:'';position:absolute;width:16px;height:16px;background:#fff;border-radius:50%;top:2px;left:2px;transition:left .15s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+  .bairro-tog.on::after{left:18px;}
+  .bairro-toggle-row.disabled{opacity:.4;pointer-events:none;}
   .cat-toggle{width:36px;height:20px;border-radius:20px;background:var(--border-strong);position:relative;cursor:pointer;display:inline-block;transition:background .15s;vertical-align:middle;}
   .cat-toggle.on{background:var(--accent);}
   .cat-toggle-knob{position:absolute;width:16px;height:16px;background:#fff;border-radius:50%;top:2px;left:2px;transition:left .15s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
@@ -296,29 +307,59 @@
 
 <!-- MODAL: BAIRRO -->
 <div class="modal-overlay" id="modal-bairro">
-  <div class="modal-box">
+  <div class="modal-box" style="width:520px;">
     <div class="modal-header">
-      <h3 id="modal-bairro-titulo">Editar bairro</h3>
-      <button class="btn-modal-close" onclick="fecharModal('modal-bairro')"><i class="ti ti-x"></i></button>
+      <h3 id="modal-bairro-titulo">Novo bairro</h3>
+      <button class="btn-modal-close" onclick="fecharModal('modal-bairro')">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     </div>
-    <div class="field"><label>Nome do bairro</label><input type="text" id="bairro-nome" placeholder="Ex: Centro"></div>
-    <div class="field">
-      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-        <input type="checkbox" id="bairro-atendido" onchange="toggleCamposBairro()"> Atendido (entrega disponível)
-      </label>
-    </div>
-    <div id="campos-bairro-atendido">
-      <div class="field">
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-          <input type="checkbox" id="bairro-gratis" onchange="toggleFreteGratis()"> Entrega grátis nesse bairro
-        </label>
+
+    <div style="padding:20px 22px;">
+      <div class="field" style="margin-bottom:18px;">
+        <label>Nome do bairro</label>
+        <input type="text" id="bairro-nome" placeholder="Ex: Centro">
       </div>
-      <div class="field" id="campo-bairro-frete"><label>Frete (R$)</label><input type="text" id="bairro-frete" placeholder="0,00"></div>
-      <div class="field"><label>Pedido mínimo (R$)</label><input type="text" id="bairro-minimo" placeholder="0,00"></div>
+
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:10px;">Configuração de entrega</div>
+
+      <!-- Toggle: Entrega disponível -->
+      <div class="bairro-toggle-row" id="row-atendido" onclick="toggleBairroRow('atendido')">
+        <div>
+          <div class="bairro-toggle-label">Entrega disponível</div>
+          <div class="bairro-toggle-sub">Clientes deste bairro podem receber pedidos</div>
+        </div>
+        <div class="bairro-tog on" id="tog-atendido"></div>
+      </div>
+
+      <!-- Toggle: Entrega grátis -->
+      <div class="bairro-toggle-row" id="row-gratis" onclick="toggleBairroRow('gratis')" style="margin-top:8px;">
+        <div>
+          <div class="bairro-toggle-label" style="display:flex;align-items:center;gap:8px;">
+            Entrega grátis
+            <span id="badge-gratis" style="font-size:10px;font-weight:600;background:#DCFCE7;color:#166534;border-radius:20px;padding:2px 8px;display:none;">GRÁTIS</span>
+          </div>
+          <div class="bairro-toggle-sub">Sem cobrança de frete para este bairro</div>
+        </div>
+        <div class="bairro-tog" id="tog-gratis"></div>
+      </div>
+
+      <!-- Campos frete e mínimo -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px;" id="campos-bairro-atendido">
+        <div class="field" id="campo-bairro-frete" style="margin-bottom:0;">
+          <label>Frete (R$)</label>
+          <input type="text" id="bairro-frete" placeholder="0,00">
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label>Pedido mínimo (R$)</label>
+          <input type="text" id="bairro-minimo" placeholder="0,00">
+        </div>
+      </div>
     </div>
-    <div class="modal-actions">
+
+    <div class="modal-actions" style="padding:0 22px 18px;border-top:0.5px solid var(--border);padding-top:14px;">
       <button class="btn-secondary" onclick="fecharModal('modal-bairro')">Cancelar</button>
-      <button class="btn-primary" onclick="salvarBairro()">Salvar</button>
+      <button class="btn-primary" onclick="salvarBairro()">Salvar bairro</button>
     </div>
   </div>
 </div>
@@ -1028,12 +1069,18 @@ function abrirModalNovoBairro(){
   document.getElementById('modal-bairro-titulo').textContent = 'Novo bairro';
   document.getElementById('bairro-nome').value = '';
   document.getElementById('bairro-nome').disabled = false;
-  document.getElementById('bairro-atendido').checked = true;
-  document.getElementById('bairro-gratis').checked = false;
+  document.getElementById('bairro-nome').style.background = '';
+  // Toggles: entrega ON, grátis OFF
+  document.getElementById('tog-atendido').classList.add('on');
+  document.getElementById('row-atendido').classList.add('on');
+  document.getElementById('tog-gratis').classList.remove('on');
+  document.getElementById('row-gratis').classList.remove('on');
+  document.getElementById('row-gratis').classList.remove('disabled');
+  document.getElementById('badge-gratis').style.display = 'none';
   document.getElementById('bairro-frete').value = '';
   document.getElementById('bairro-minimo').value = '';
-  toggleCamposBairro();
-  toggleFreteGratis();
+  document.getElementById('campos-bairro-atendido').style.display = 'grid';
+  document.getElementById('campo-bairro-frete').style.display = 'block';
   document.getElementById('modal-bairro').classList.add('open');
 }
 
@@ -1053,22 +1100,62 @@ function abrirModalBairro(nome){
   document.getElementById('bairro-nome').value = bairro.nome;
   document.getElementById('bairro-nome').disabled = true;
   document.getElementById('bairro-nome').style.background = 'var(--bg)';
-  document.getElementById('bairro-atendido').checked = bairro.atendido;
-  document.getElementById('bairro-gratis').checked = !!bairro.gratis;
-  document.getElementById('bairro-frete').value = (bairro.atendido && !bairro.gratis && bairro.frete) ? bairro.frete.toFixed(2).replace('.', ',') : '';
-  document.getElementById('bairro-minimo').value = bairro.atendido ? (bairro.minimo || 0).toFixed(2).replace('.', ',') : '';
-  toggleCamposBairro();
-  toggleFreteGratis();
+
+  // Toggle atendido
+  const atendido = !!bairro.atendido;
+  document.getElementById('tog-atendido').classList.toggle('on', atendido);
+  document.getElementById('row-atendido').classList.toggle('on', atendido);
+
+  // Toggle grátis
+  const gratis = atendido && !!bairro.gratis;
+  document.getElementById('tog-gratis').classList.toggle('on', gratis);
+  document.getElementById('row-gratis').classList.toggle('on', gratis);
+  document.getElementById('row-gratis').classList.toggle('disabled', !atendido);
+  document.getElementById('badge-gratis').style.display = gratis ? 'inline-block' : 'none';
+
+  // Campos
+  document.getElementById('campos-bairro-atendido').style.display = atendido ? 'grid' : 'none';
+  document.getElementById('campo-bairro-frete').style.display = (atendido && !gratis) ? 'block' : 'none';
+  document.getElementById('bairro-frete').value = (atendido && !gratis && bairro.frete) ? bairro.frete.toFixed(2).replace('.', ',') : '';
+  document.getElementById('bairro-minimo').value = atendido ? (bairro.minimo || 0).toFixed(2).replace('.', ',') : '';
+
   document.getElementById('modal-bairro').classList.add('open');
+}
+function toggleBairroRow(qual){
+  if (qual === 'atendido'){
+    const tog = document.getElementById('tog-atendido');
+    const row = document.getElementById('row-atendido');
+    const on = tog.classList.toggle('on');
+    row.classList.toggle('on', on);
+    // Se desligar entrega, desligar grátis também e esconder campos
+    if (!on){
+      document.getElementById('tog-gratis').classList.remove('on');
+      document.getElementById('row-gratis').classList.remove('on');
+      document.getElementById('badge-gratis').style.display = 'none';
+    }
+    document.getElementById('campos-bairro-atendido').style.display = on ? 'grid' : 'none';
+    document.getElementById('row-gratis').classList.toggle('disabled', !on);
+  } else {
+    const atendidoOn = document.getElementById('tog-atendido').classList.contains('on');
+    if (!atendidoOn) return;
+    const tog = document.getElementById('tog-gratis');
+    const row = document.getElementById('row-gratis');
+    const on = tog.classList.toggle('on');
+    row.classList.toggle('on', on);
+    document.getElementById('badge-gratis').style.display = on ? 'inline-block' : 'none';
+    document.getElementById('campo-bairro-frete').style.display = on ? 'none' : 'block';
+  }
 }
 
 function toggleCamposBairro(){
-  const atendido = document.getElementById('bairro-atendido').checked;
-  document.getElementById('campos-bairro-atendido').style.display = atendido ? 'block' : 'none';
+  // mantido para compatibilidade retroativa — usa nova lógica
+  const atendido = document.getElementById('tog-atendido').classList.contains('on');
+  document.getElementById('campos-bairro-atendido').style.display = atendido ? 'grid' : 'none';
 }
 
 function toggleFreteGratis(){
-  const gratis = document.getElementById('bairro-gratis').checked;
+  // mantido para compatibilidade retroativa — usa nova lógica
+  const gratis = document.getElementById('tog-gratis').classList.contains('on');
   document.getElementById('campo-bairro-frete').style.display = gratis ? 'none' : 'block';
 }
 
@@ -1076,8 +1163,8 @@ function salvarBairro(){
   const nomeInput = document.getElementById('bairro-nome').value.trim();
   if (!nomeInput){ alert('Informe o nome do bairro.'); return; }
 
-  const atendido = document.getElementById('bairro-atendido').checked;
-  const gratis = document.getElementById('bairro-gratis').checked;
+  const atendido = document.getElementById('tog-atendido').classList.contains('on');
+  const gratis = document.getElementById('tog-gratis').classList.contains('on');
   const frete = atendido && !gratis ? (parseFloat(document.getElementById('bairro-frete').value.replace(',', '.')) || 0) : 0;
   const minimo = atendido ? (parseFloat(document.getElementById('bairro-minimo').value.replace(',', '.')) || 0) : 0;
 
