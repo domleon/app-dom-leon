@@ -235,7 +235,7 @@ let itemEditandoId = null;
 /* ---------- Inicialização ---------- */
 (async function init(){
   CATALOGO = await carregarCatalogo();
-  popularCategorias();
+  popularCategorias([]);
 
   const params = new URLSearchParams(window.location.search);
   itemEditandoId = params.get('id') || null;
@@ -249,14 +249,41 @@ let itemEditandoId = null;
   }
 })();
 
-function popularCategorias(){
+function popularCategorias(projetosAtivos){
   const sel = document.getElementById('item-categoria');
-  // Categorias agora são objetos {nome, operacoes} — usar nomeCat helper
+  const valorAtual = sel.value;
+
   const nomeCat = c => typeof c === 'string' ? c : c.nome;
-  sel.innerHTML = CATALOGO.categorias.map(c => {
-    const nome = nomeCat(c);
-    return `<option value="${nome}">${nome}</option>`;
-  }).join('');
+  const opsCat  = c => typeof c === 'string' ? ['avulso','assinatura'] : (c.operacoes || []);
+
+  let categorias;
+  if (!projetosAtivos || projetosAtivos.length === 0){
+    // Nenhum projeto ativo — mostra todas
+    categorias = CATALOGO.categorias.map(c => nomeCat(c));
+  } else {
+    // Fluxos dos projetos ativos
+    const fluxosAtivos = new Set(
+      projetosAtivos.map(pid => {
+        const proj = (CATALOGO.projetos || []).find(p => p.id === pid);
+        return proj ? proj.fluxo : pid;
+      })
+    );
+    // Filtrar categorias compatíveis com ao menos um fluxo ativo
+    categorias = CATALOGO.categorias
+      .filter(c => {
+        const ops = opsCat(c);
+        return ops.length === 0 || ops.some(op => fluxosAtivos.has(op));
+      })
+      .map(c => nomeCat(c));
+  }
+
+  sel.innerHTML = '<option value="">Selecione a categoria</option>' +
+    categorias.map(nome => `<option value="${nome}">${nome}</option>`).join('');
+
+  // Restaurar seleção anterior se ainda disponível
+  if (valorAtual && [...sel.options].some(o => o.value === valorAtual)){
+    sel.value = valorAtual;
+  }
 }
 
 /* ---------- Renderizar projetos dinamicamente ---------- */
@@ -291,23 +318,25 @@ function renderizarOperacoes(item){
       </div>
     </div>`;
   }).join('');
+  // Atualizar categorias disponíveis conforme projetos ativos
+  popularCategorias(getProjetosAtivos());
 }
 
-function carregarItem(item){
   document.getElementById('breadcrumb-titulo').textContent = item.nome;
   document.getElementById('page-title').textContent = item.nome;
   document.getElementById('btn-excluir').style.display = 'flex';
 
   document.getElementById('item-nome').value = item.nome || '';
   document.getElementById('item-descricao').value = item.descricao || '';
-  document.getElementById('item-categoria').value = item.categoria || '';
 
   const toggleAtivo = document.getElementById('toggle-ativo');
   if (item.ativo === false) toggleAtivo.classList.remove('on');
   else toggleAtivo.classList.add('on');
 
-  // Renderizar operações com dados do item
+  // Renderizar operações com dados do item — categorias serão filtradas após
   renderizarOperacoes(item);
+  // Restaurar categoria após filtro
+  setTimeout(() => { document.getElementById('item-categoria').value = item.categoria || ''; }, 10);
 
   // Imagem
   if (item.imagem){
@@ -325,6 +354,17 @@ function toggleOp(projetoId){
   if (!card) return;
   const ativa = card.classList.toggle('ativa');
   toggle.classList.toggle('on', ativa);
+  // Atualizar categorias disponíveis conforme projetos ativos
+  popularCategorias(getProjetosAtivos());
+}
+
+function getProjetosAtivos(){
+  return (CATALOGO.projetos || [])
+    .filter(p => {
+      const card = document.getElementById('op-' + p.id);
+      return card && card.classList.contains('ativa');
+    })
+    .map(p => p.id);
 }
 
 /* ---------- Toggle ativo ---------- */
