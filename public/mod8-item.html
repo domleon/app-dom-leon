@@ -235,6 +235,14 @@ let itemEditandoId = null;
 /* ---------- Inicialização ---------- */
 (async function init(){
   CATALOGO = await carregarCatalogo();
+
+  // Guard: garantir arrays mínimos
+  if (!CATALOGO.projetos || CATALOGO.projetos.length === 0){
+    CATALOGO.projetos = montarProjetosPadrao();
+  }
+  if (!CATALOGO.categorias) CATALOGO.categorias = [];
+  if (!CATALOGO.itens) CATALOGO.itens = [];
+
   popularCategorias([]);
 
   const params = new URLSearchParams(window.location.search);
@@ -257,9 +265,16 @@ function popularCategorias(projetosAtivos){
   const opsCat  = c => typeof c === 'string' ? ['avulso','assinatura'] : (c.operacoes || []);
 
   let categorias;
+  const todasCats = CATALOGO.categorias || [];
+
+  if (todasCats.length === 0){
+    sel.innerHTML = '<option value="">Nenhuma categoria cadastrada</option>';
+    return;
+  }
+
   if (!projetosAtivos || projetosAtivos.length === 0){
     // Nenhum projeto ativo — mostra todas
-    categorias = CATALOGO.categorias.map(c => nomeCat(c));
+    categorias = todasCats.map(c => nomeCat(c));
   } else {
     // Fluxos dos projetos ativos
     const fluxosAtivos = new Set(
@@ -269,7 +284,7 @@ function popularCategorias(projetosAtivos){
       })
     );
     // Filtrar categorias compatíveis com ao menos um fluxo ativo
-    categorias = CATALOGO.categorias
+    categorias = todasCats
       .filter(c => {
         const ops = opsCat(c);
         return ops.length === 0 || ops.some(op => fluxosAtivos.has(op));
@@ -293,6 +308,13 @@ function renderizarOperacoes(item){
   const projetos = (CATALOGO.projetos || []).filter(p => p.ativo).sort((a,b) => (a.ordem||0)-(b.ordem||0));
 
   if (projetos.length === 0){
+    // Fallback: mostrar os 3 projetos padrão mesmo sem Firestore migrado
+    const padrao = montarProjetosPadrao ? montarProjetosPadrao() : [];
+    if (padrao.length > 0){
+      CATALOGO.projetos = padrao;
+      renderizarOperacoes(item);
+      return;
+    }
     container.innerHTML = '<p style="color:var(--text-muted);font-size:13px;">Nenhum projeto cadastrado ainda. Crie projetos em Admin → Projetos.</p>';
     return;
   }
