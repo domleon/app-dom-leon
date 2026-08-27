@@ -68,6 +68,7 @@
     color:var(--text-muted);font-size:13px;
   }
 </style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/dist/tabler-icons.min.css">
 </head>
 <body>
 <div class="phone">
@@ -123,7 +124,7 @@ function confirmarData(){
 
 (async function init(){
   const catalogo = await carregarCatalogo();
-  const datas = calcularDatasAssados(catalogo.configAssados, 4);
+  const datas = calcularDatasAssados(getConfigAssados(catalogo), 4);
   const conteudo = document.getElementById('conteudo');
 
   if (!datas || datas.length === 0){
