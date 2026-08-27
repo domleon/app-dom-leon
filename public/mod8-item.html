@@ -264,7 +264,6 @@ function popularCategorias(projetosAtivos){
   const nomeCat = c => typeof c === 'string' ? c : c.nome;
   const opsCat  = c => typeof c === 'string' ? ['avulso','assinatura'] : (c.operacoes || []);
 
-  let categorias;
   const todasCats = CATALOGO.categorias || [];
 
   if (todasCats.length === 0){
@@ -272,6 +271,7 @@ function popularCategorias(projetosAtivos){
     return;
   }
 
+  let categorias;
   if (!projetosAtivos || projetosAtivos.length === 0){
     // Nenhum projeto ativo — mostra todas
     categorias = todasCats.map(c => nomeCat(c));
@@ -283,11 +283,16 @@ function popularCategorias(projetosAtivos){
         return proj ? proj.fluxo : pid;
       })
     );
-    // Filtrar categorias compatíveis com ao menos um fluxo ativo
     categorias = todasCats
       .filter(c => {
+        const nome = nomeCat(c);
+        // SEMPRE preservar categoria já selecionada
+        if (nome === valorAtual) return true;
         const ops = opsCat(c);
-        return ops.length === 0 || ops.some(op => fluxosAtivos.has(op));
+        // Se categoria não tem operações definidas, aparece sempre
+        if (!ops || ops.length === 0) return true;
+        // Aparece se compatível com ao menos um fluxo ativo
+        return ops.some(op => fluxosAtivos.has(op));
       })
       .map(c => nomeCat(c));
   }
@@ -295,7 +300,7 @@ function popularCategorias(projetosAtivos){
   sel.innerHTML = '<option value="">Selecione a categoria</option>' +
     categorias.map(nome => `<option value="${nome}">${nome}</option>`).join('');
 
-  // Restaurar seleção anterior se ainda disponível
+  // Restaurar seleção anterior se disponível
   if (valorAtual && [...sel.options].some(o => o.value === valorAtual)){
     sel.value = valorAtual;
   }
