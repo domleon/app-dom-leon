@@ -510,9 +510,9 @@ function showScreen(name){
 let TIMER_CARD_INTERVAL = null;
 
 const FLUXO_ONCLICK = {
-  avulso:     () => abrirEscolhaBairro(),
-  assinatura: () => showScreen('catalogo'),
-  assados:    () => window.location.href = 'mod14-data-assados.html'
+  avulso:     (projetoId) => { localStorage.setItem('domleon_projeto_id', projetoId); abrirEscolhaBairro(); },
+  assinatura: (projetoId) => { localStorage.setItem('domleon_projeto_id', projetoId); showScreen('catalogo'); },
+  assados:    (projetoId) => { localStorage.setItem('domleon_projeto_id', projetoId); window.location.href = 'mod14-data-assados.html'; }
 };
 
 const NOMES_DIAS_EXTENSO = {
@@ -558,7 +558,7 @@ async function aplicarDisponibilidadeCards(){
 
     if (cardDisponivel){
       const acao = FLUXO_ONCLICK[projeto.fluxo];
-      if (acao) card.onclick = acao;
+      if (acao) card.onclick = () => acao(projeto.id);
     } else {
       _renderizarExtraFechado(projeto, catalogo, card);
     }
