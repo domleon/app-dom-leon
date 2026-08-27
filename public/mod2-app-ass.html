@@ -623,7 +623,14 @@ function selecionarPagamento(el, tipo){
     montarGridConsolidado(itensConsolidados);
   }
 
+  // Atualizar totais APÓS o grid estar montado
   atualizarTotalComTaxa();
+
+  // Garantir que pagamento-preco esteja preenchido mesmo antes de entrar na tela de pagamento
+  const totalFormatado = document.getElementById('plano-preco').textContent;
+  if (totalFormatado && totalFormatado !== '—'){
+    document.getElementById('pagamento-preco').textContent = totalFormatado;
+  }
 })();
 
 /* Converte string de data 'DD/MM' ou 'DD/MM/YYYY' para objeto Date (ano atual se não informado) */
@@ -733,7 +740,15 @@ function buscarPrecoItem(nomeBuscado, catalogo){
       || buscaNormalizada.includes(nomeNormalizado);
   });
 
-  return (item && item.precoAssinatura) ? item.precoAssinatura : 0;
+  if (!item) return 0;
+
+  // Tentar novo formato projetos{} primeiro
+  const projetoId = localStorage.getItem('domleon_projeto_id') || 'assinatura';
+  if (item.projetos && item.projetos[projetoId] !== undefined){
+    return item.projetos[projetoId].preco || 0;
+  }
+  // Fallback legado
+  return item.precoAssinatura || item.precoAvulso || item.preco || 0;
 }
 
 function montarGridConsolidado(itensArray){
@@ -778,9 +793,27 @@ function montarGridConsolidado(itensArray){
 // Botão "Continuar" no plano leva para a tela de pagamento (mesma página)
 document.addEventListener('DOMContentLoaded', function() {
   const btnContinuar = document.querySelector('#screen-plano .btn-primary.small');
-  if (btnContinuar) btnContinuar.onclick = function() { showScreen('pagamento'); };
+  if (btnContinuar) btnContinuar.onclick = function() {
+    showScreen('pagamento');
+    // Garantir que o total apareça na tela de pagamento
+    const total = document.getElementById('plano-preco').textContent;
+    document.getElementById('pagamento-preco').textContent = total || '—';
+  };
   const btnConfirmar = document.querySelector('#screen-pagamento .btn-primary.small');
-  if (btnConfirmar) btnConfirmar.onclick = function() { showScreen('sucesso'); };
+  if (btnConfirmar) btnConfirmar.onclick = function() {
+    const pagamentoSelecionado = document.querySelector('#pagamento-row .option-pill.selected');
+    if (!pagamentoSelecionado){
+      alert('Selecione uma forma de pagamento.'); return;
+    }
+    const tipo = pagamentoSelecionado.textContent.trim().toLowerCase();
+    if (tipo.includes('cartão') || tipo.includes('cartao')){
+      const num = document.querySelector('#card-form input[placeholder*="0000"]');
+      if (!num || num.value.replace(/\s/g,'').length < 13){
+        alert('Informe o número do cartão.'); return;
+      }
+    }
+    showScreen('sucesso');
+  };
 });
 </script>
 

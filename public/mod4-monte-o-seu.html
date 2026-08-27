@@ -311,7 +311,7 @@ let voltandoParaResumo = false; // true quando veio da etapa 3 clicando num dia 
   const projetoIdAssinatura = localStorage.getItem('domleon_projeto_id') || 'assinatura';
   categoriasPorProjeto(CATALOGO, projetoIdAssinatura).forEach(cat => { CATEGORIAS[cat] = []; });
   itensPorProjeto(CATALOGO, projetoIdAssinatura).forEach(item => {
-    PRECOS[item.id] = item.precoAssinatura !== undefined ? item.precoAssinatura : item.preco;
+    PRECOS[item.id] = precoPorProjeto(item, projetoIdAssinatura, CATALOGO) || item.precoAssinatura || item.preco || 0;
     NOMES[item.id] = item.nome;
     IMAGENS[item.id] = item.imagem || null;
     if (!CATEGORIAS[item.categoria]) CATEGORIAS[item.categoria] = [];
