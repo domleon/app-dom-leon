@@ -171,7 +171,8 @@ function renderizarCategorias(filtroTexto){
         ? `<img src="${item.imagem}" alt="${item.nome}">`
         : `<i class="ti ti-photo" style="font-size:18px;"></i>`;
       const nomeHtml = filtro ? destacarTexto(item.nome, filtroTexto) : item.nome;
-      const precoAvulso = item.precoAvulso !== undefined ? item.precoAvulso : item.preco;
+      const projetoId = localStorage.getItem('domleon_projeto_id') || 'avulso';
+      const precoAvulso = precoPorProjeto(item, projetoId, CATALOGO) || item.precoAvulso || item.preco || 0;
       const infoKg = item.precoKg ? ` · R$ ${item.precoKg.toFixed(2).replace('.', ',')}/kg` : '';
 
       const row = document.createElement('div');
@@ -236,7 +237,7 @@ function calcularSubtotal(){
   let total = 0;
   for (const itemId in CARRINHO){
     const item = ITENS[itemId];
-    if (item) total += CARRINHO[itemId] * (item.precoAvulso !== undefined ? item.precoAvulso : item.preco);
+    if (item) total += CARRINHO[itemId] * (precoPorProjeto(item, localStorage.getItem('domleon_projeto_id') || 'avulso', CATALOGO) || item.precoAvulso || item.preco || 0);
   }
   return total;
 }
@@ -267,8 +268,9 @@ function verCarrinho(){
 /* ---------- Inicialização ---------- */
 (async function init(){
   CATALOGO = await carregarCatalogo();
-  categoriasPorOperacao(CATALOGO, 'avulso').forEach(cat => { CATEGORIAS[cat] = []; });
-  itensPorOperacao(CATALOGO, 'avulso').forEach(item => {
+  const projetoId = localStorage.getItem('domleon_projeto_id') || 'avulso';
+  categoriasPorProjeto(CATALOGO, projetoId).forEach(cat => { CATEGORIAS[cat] = []; });
+  itensPorProjeto(CATALOGO, projetoId).forEach(item => {
     ITENS[item.id] = item;
     if (!CATEGORIAS[item.categoria]) CATEGORIAS[item.categoria] = [];
     CATEGORIAS[item.categoria].push(item.id);
