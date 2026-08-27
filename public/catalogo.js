@@ -71,12 +71,60 @@ function montarSemanaHorarios(overrides){
   return semana;
 }
 
+function montarProjetosPadrao(){
+  return [
+    {
+      id: 'avulso',
+      nome: 'Faça seu pedido',
+      descricao: 'Receba seus produtos sem sair de casa',
+      icone: null,
+      fluxo: 'avulso',
+      ordem: 1,
+      ativo: true,
+      disponibilidade: montarSemanaHorarios()
+    },
+    {
+      id: 'assados',
+      nome: 'Assados & Menu Almoço',
+      descricao: 'Encomende assados e refeições com antecedência',
+      icone: null,
+      fluxo: 'assados',
+      ordem: 2,
+      ativo: true,
+      disponibilidade: montarSemanaHorarios({
+        seg: { ativo: false, inicio: '00:00', fim: '23:59' },
+        ter: { ativo: false, inicio: '00:00', fim: '23:59' },
+        qua: { ativo: false, inicio: '00:00', fim: '23:59' },
+        qui: { ativo: false, inicio: '00:00', fim: '23:59' },
+        sex: { ativo: false, inicio: '00:00', fim: '23:59' },
+        sab: { ativo: true,  inicio: '08:00', fim: '14:00' },
+        dom: { ativo: true,  inicio: '08:00', fim: '14:00' }
+      }),
+      configAssados: {
+        dias: [{ diaSemana: 0, horarioLimite: '11:00' }],
+        datasExcluidas: [],
+        datasAvulsas: []
+      }
+    },
+    {
+      id: 'assinatura',
+      nome: 'Assinatura mensal',
+      descricao: 'Monte sua cesta semanal e receba todo mês',
+      icone: null,
+      fluxo: 'assinatura',
+      ordem: 3,
+      ativo: true,
+      disponibilidade: montarSemanaHorarios()
+    }
+  ];
+}
+
+/* Mantido temporariamente para compatibilidade retroativa com código legado */
 function montarConfigCardsPadrao(){
   return {
-    avulso: { habilitado: true, horarios: montarSemanaHorarios() },
+    avulso:     { habilitado: true, horarios: montarSemanaHorarios() },
     assinatura: { habilitado: true, horarios: montarSemanaHorarios() },
-    // Assados & Menu Almoço: por padrão só sábado e domingo, das 8h às 14h (almoço de fim de semana)
-    assados: { habilitado: true, horarios: montarSemanaHorarios({
+    assados:    { habilitado: true, horarios: montarSemanaHorarios({
       seg: { ativo: false, inicio: '00:00', fim: '23:59' },
       ter: { ativo: false, inicio: '00:00', fim: '23:59' },
       qua: { ativo: false, inicio: '00:00', fim: '23:59' },
@@ -88,19 +136,45 @@ function montarConfigCardsPadrao(){
   };
 }
 
-/* Confere se um card está disponível agora mesmo (habilitado + dentro da janela do dia de hoje) */
-function cardDisponivelAgora(configCard){
-  if (!configCard || !configCard.habilitado) return false;
-  const agora = new Date();
-  const diaJs = agora.getDay(); // 0=dom..6=sab
-  const mapaDiaJs = {0:'dom', 1:'seg', 2:'ter', 3:'qua', 4:'qui', 5:'sex', 6:'sab'};
-  const diaChave = mapaDiaJs[diaJs];
-  const horarioDia = (configCard.horarios || {})[diaChave];
-  if (!horarioDia || !horarioDia.ativo) return false;
-
-  const horaAtual = String(agora.getHours()).padStart(2, '0') + ':' + String(agora.getMinutes()).padStart(2, '0');
-  return horaAtual >= horarioDia.inicio && horaAtual <= horarioDia.fim;
+/* Confere se um projeto está disponível agora (ativo + dentro da janela do dia de hoje).
+   Aceita tanto o formato novo { ativo, disponibilidade } quanto o legado { habilitado, horarios } */
+function cardDisponivelAgora(projetoOuConfig){
+  if (!projetoOuConfig) return false;
+  if (projetoOuConfig.disponibilidade !== undefined){
+    if (!projetoOuConfig.ativo) return false;
+    return _dentroJanela(projetoOuConfig.disponibilidade);
+  }
+  if (!projetoOuConfig.habilitado) return false;
+  return _dentroJanela(projetoOuConfig.horarios);
 }
+
+function _dentroJanela(horarios){
+  if (!horarios) return false;
+  const agora = new Date();
+  const mapaDiaJs = {0:'dom',1:'seg',2:'ter',3:'qua',4:'qui',5:'sex',6:'sab'};
+  const diaChave = mapaDiaJs[agora.getDay()];
+  const h = horarios[diaChave];
+  if (!h || !h.ativo) return false;
+  const horaAtual = String(agora.getHours()).padStart(2,'0') + ':' + String(agora.getMinutes()).padStart(2,'0');
+  return horaAtual >= h.inicio && horaAtual <= h.fim;
+}
+
+/* Retorna projeto pelo fluxo ('avulso' | 'assinatura' | 'assados') */
+function projetoPorFluxo(catalogo, fluxo){
+  return (catalogo.projetos || []).find(p => p.fluxo === fluxo) || null;
+}
+
+/* Retorna projeto pelo id */
+function projetoPorId(catalogo, id){
+  return (catalogo.projetos || []).find(p => p.id === id) || null;
+}
+
+/* Retorna configAssados a partir do projeto de assados */
+function getConfigAssados(catalogo){
+  const proj = projetoPorFluxo(catalogo, 'assados');
+  return (proj && proj.configAssados) ? proj.configAssados : { dias: [], datasExcluidas: [], datasAvulsas: [] };
+}
+
 
 function removerAcentos(txt){
   return (txt || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -159,14 +233,7 @@ const CATALOGO_PADRAO = {
   ],
   bairros: montarBairrosPadrao(),
   taxaEntregaAssinatura: 2.99,
-
-  // Catálogo próprio do fluxo "Assados & Menu Almoço" — separado do catálogo de Pedido avulso
-  configCards: montarConfigCardsPadrao(),
-  configAssados: {
-    dias: [{ diaSemana: 0, horarioLimite: '11:00' }],
-    datasExcluidas: [],
-    datasAvulsas: []
-  }
+  projetos: montarProjetosPadrao()
 };
 
 /* Mapeia os ids antigos (por unidade) para os novos ids de porção equivalentes,
@@ -282,12 +349,49 @@ function migrarCatalogo(catalogo){
 
   // MIGRAÇÃO: configAssados
   if (!catalogo.configAssados) {
-    catalogo.configAssados = JSON.parse(JSON.stringify(CATALOGO_PADRAO.configAssados));
+    catalogo.configAssados = JSON.parse(JSON.stringify(CATALOGO_PADRAO.projetos.find(p=>p.id==='assados').configAssados));
     precisouMigrar = true;
   }
   if (!catalogo.configAssados.datasAvulsas) {
     catalogo.configAssados.datasAvulsas = [];
     precisouMigrar = true;
+  }
+
+  // MIGRAÇÃO PRINCIPAL: configCards + configAssados → projetos[]
+  if (!catalogo.projetos || catalogo.projetos.length === 0) {
+    const projetosPadrao = montarProjetosPadrao();
+
+    // Preservar disponibilidade do configCards se existir
+    if (catalogo.configCards) {
+      const mapaFluxo = { avulso: 'avulso', assados: 'assados', assinatura: 'assinatura' };
+      projetosPadrao.forEach(proj => {
+        const cfg = catalogo.configCards[mapaFluxo[proj.fluxo]];
+        if (cfg && cfg.horarios) {
+          proj.disponibilidade = cfg.horarios;
+          proj.ativo = cfg.habilitado !== false;
+        }
+      });
+    }
+
+    // Preservar configAssados no projeto de assados
+    if (catalogo.configAssados) {
+      const projAssados = projetosPadrao.find(p => p.fluxo === 'assados');
+      if (projAssados) projAssados.configAssados = catalogo.configAssados;
+    }
+
+    catalogo.projetos = projetosPadrao;
+    precisouMigrar = true;
+  } else {
+    // Garantir que projeto de assados sempre tem configAssados
+    const projAssados = catalogo.projetos.find(p => p.fluxo === 'assados');
+    if (projAssados && !projAssados.configAssados) {
+      projAssados.configAssados = catalogo.configAssados || { dias: [], datasExcluidas: [], datasAvulsas: [] };
+      precisouMigrar = true;
+    }
+    if (projAssados && projAssados.configAssados && !projAssados.configAssados.datasAvulsas) {
+      projAssados.configAssados.datasAvulsas = [];
+      precisouMigrar = true;
+    }
   }
 
   return precisouMigrar;
@@ -435,8 +539,12 @@ function calcularDatasAssados(configAssados, maxDatas){
     .slice(0, max);
 }
 
-function assadosPossuiDatasDisponiveis(configAssados){
-  return calcularDatasAssados(configAssados, 1).length > 0;
+function assadosPossuiDatasDisponiveis(configAssadosOuCatalogo){
+  // Aceita tanto configAssados diretamente quanto o catalogo inteiro
+  const cfg = (configAssadosOuCatalogo && configAssadosOuCatalogo.projetos)
+    ? getConfigAssados(configAssadosOuCatalogo)
+    : configAssadosOuCatalogo;
+  return calcularDatasAssados(cfg, 1).length > 0;
 }
 
 function arquivoParaBase64(file, callback){
