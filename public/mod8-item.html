@@ -208,54 +208,11 @@
 
       <!-- Operações & Preços -->
       <div class="sec-card">
-        <div class="sec-title">Operações & preços</div>
-        <p style="font-size:12px;color:var(--text-muted);margin-bottom:14px;">Ative as operações em que este item estará disponível e defina o preço para cada uma.</p>
-
-        <!-- Pedido Avulso -->
-        <div class="op-card ativa" id="op-avulso">
-          <div class="op-header" onclick="toggleOp('avulso')">
-            <div class="toggle on" id="toggle-avulso" onclick="event.stopPropagation();toggleOp('avulso')"></div>
-            <i class="ti ti-shopping-bag"></i>
-            <span class="op-label">Pedido avulso</span>
-          </div>
-          <div class="op-body">
-            <div class="preco-input">
-              <span>R$</span>
-              <input type="number" id="item-preco-avulso" placeholder="0,00" min="0" step="0.01">
-            </div>
-          </div>
+        <div class="sec-title">Projetos & preços</div>
+        <p style="font-size:12px;color:var(--text-muted);margin-bottom:14px;">Ative os projetos em que este item estará disponível e defina o preço para cada um.</p>
+        <div id="operacoes-container">
+          <!-- gerado dinamicamente a partir de CATALOGO.projetos[] -->
         </div>
-
-        <!-- Assinatura Mensal -->
-        <div class="op-card ativa" id="op-assinatura">
-          <div class="op-header" onclick="toggleOp('assinatura')">
-            <div class="toggle on" id="toggle-assinatura" onclick="event.stopPropagation();toggleOp('assinatura')"></div>
-            <i class="ti ti-repeat"></i>
-            <span class="op-label">Assinatura mensal</span>
-          </div>
-          <div class="op-body">
-            <div class="preco-input">
-              <span>R$</span>
-              <input type="number" id="item-preco-assinatura" placeholder="0,00" min="0" step="0.01">
-            </div>
-          </div>
-        </div>
-
-        <!-- Assados -->
-        <div class="op-card" id="op-assados">
-          <div class="op-header" onclick="toggleOp('assados')">
-            <div class="toggle" id="toggle-assados" onclick="event.stopPropagation();toggleOp('assados')"></div>
-            <i class="ti ti-tools-kitchen-2"></i>
-            <span class="op-label">Assados & Menu Almoço</span>
-          </div>
-          <div class="op-body">
-            <div class="preco-input">
-              <span>R$</span>
-              <input type="number" id="item-preco-assados" placeholder="0,00" min="0" step="0.01">
-            </div>
-          </div>
-        </div>
-
       </div>
 
     </div>
@@ -286,6 +243,9 @@ let itemEditandoId = null;
   if (itemEditandoId){
     const item = CATALOGO.itens.find(i => i.id === itemEditandoId);
     if (item) carregarItem(item);
+    else renderizarOperacoes(null);
+  } else {
+    renderizarOperacoes(null);
   }
 })();
 
@@ -299,6 +259,40 @@ function popularCategorias(){
   }).join('');
 }
 
+/* ---------- Renderizar projetos dinamicamente ---------- */
+function renderizarOperacoes(item){
+  const container = document.getElementById('operacoes-container');
+  if (!container) return;
+  const projetos = (CATALOGO.projetos || []).filter(p => p.ativo).sort((a,b) => (a.ordem||0)-(b.ordem||0));
+
+  if (projetos.length === 0){
+    container.innerHTML = '<p style="color:var(--text-muted);font-size:13px;">Nenhum projeto cadastrado ainda. Crie projetos em Admin → Projetos.</p>';
+    return;
+  }
+
+  const FLUXO_ICONE = { avulso:'ti-shopping-bag', assinatura:'ti-repeat', assados:'ti-tools-kitchen-2' };
+
+  container.innerHTML = projetos.map(p => {
+    const proj = (item && item.projetos && item.projetos[p.id]) || { ativo: false, preco: 0 };
+    const ativa = proj.ativo;
+    const preco = proj.preco || 0;
+    return `
+    <div class="op-card ${ativa ? 'ativa' : ''}" id="op-${p.id}">
+      <div class="op-header" onclick="toggleOp('${p.id}')">
+        <div class="toggle ${ativa ? 'on' : ''}" id="toggle-${p.id}" onclick="event.stopPropagation();toggleOp('${p.id}')"></div>
+        <i class="ti ${FLUXO_ICONE[p.fluxo] || 'ti-layout-grid'}"></i>
+        <span class="op-label">${p.nome}</span>
+      </div>
+      <div class="op-body">
+        <div class="preco-input">
+          <span>R$</span>
+          <input type="number" id="item-preco-${p.id}" placeholder="0,00" min="0" step="0.01" value="${preco > 0 ? preco.toFixed(2) : ''}">
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
 function carregarItem(item){
   document.getElementById('breadcrumb-titulo').textContent = item.nome;
   document.getElementById('page-title').textContent = item.nome;
@@ -308,21 +302,12 @@ function carregarItem(item){
   document.getElementById('item-descricao').value = item.descricao || '';
   document.getElementById('item-categoria').value = item.categoria || '';
 
-  // Status ativo
   const toggleAtivo = document.getElementById('toggle-ativo');
   if (item.ativo === false) toggleAtivo.classList.remove('on');
   else toggleAtivo.classList.add('on');
 
-  // Modalidades
-  const mods = item.modalidades || { avulso: true, assinatura: true };
-  if (!mods.avulso) setOp('avulso', false);
-  if (!mods.assinatura) setOp('assinatura', false);
-  if (mods.assados) setOp('assados', true);
-
-  // Preços
-  if (item.precoAvulso) document.getElementById('item-preco-avulso').value = item.precoAvulso.toFixed(2);
-  if (item.precoAssinatura) document.getElementById('item-preco-assinatura').value = item.precoAssinatura.toFixed(2);
-  if (item.precoAssados) document.getElementById('item-preco-assados').value = item.precoAssados.toFixed(2);
+  // Renderizar operações com dados do item
+  renderizarOperacoes(item);
 
   // Imagem
   if (item.imagem){
@@ -333,24 +318,13 @@ function carregarItem(item){
   }
 }
 
-/* ---------- Toggle de operação ---------- */
-function toggleOp(op){
-  const card = document.getElementById('op-' + op);
-  const toggle = document.getElementById('toggle-' + op);
-  const ativa = card.classList.contains('ativa');
-  setOp(op, !ativa);
-}
-
-function setOp(op, ativo){
-  const card = document.getElementById('op-' + op);
-  const toggle = document.getElementById('toggle-' + op);
-  if (ativo){
-    card.classList.add('ativa');
-    toggle.classList.add('on');
-  } else {
-    card.classList.remove('ativa');
-    toggle.classList.remove('on');
-  }
+/* ---------- Toggle de projeto ---------- */
+function toggleOp(projetoId){
+  const card = document.getElementById('op-' + projetoId);
+  const toggle = document.getElementById('toggle-' + projetoId);
+  if (!card) return;
+  const ativa = card.classList.toggle('ativa');
+  toggle.classList.toggle('on', ativa);
 }
 
 /* ---------- Toggle ativo ---------- */
@@ -391,37 +365,53 @@ async function salvarItem(){
   const nome = document.getElementById('item-nome').value.trim();
   if (!nome){ alert('Informe o nome do item.'); return; }
 
-  const avulso = document.getElementById('op-avulso').classList.contains('ativa');
-  const assinatura = document.getElementById('op-assinatura').classList.contains('ativa');
-  const assados = document.getElementById('op-assados').classList.contains('ativa');
+  const projetos = (CATALOGO.projetos || []).filter(p => p.ativo);
 
-  if (!avulso && !assinatura && !assados){
-    alert('Ative ao menos uma operação para este item.'); return;
-  }
+  // Montar item.projetos a partir dos cards
+  const projetosItem = {};
+  let algumAtivo = false;
+  projetos.forEach(p => {
+    const ativa = document.getElementById('op-' + p.id)?.classList.contains('ativa') || false;
+    const preco = parseFloat(document.getElementById('item-preco-' + p.id)?.value) || 0;
+    projetosItem[p.id] = { ativo: ativa, preco };
+    if (ativa) algumAtivo = true;
+  });
+
+  if (!algumAtivo){ alert('Ative este item em ao menos um projeto.'); return; }
 
   const categoria = document.getElementById('item-categoria').value;
   const descricao = document.getElementById('item-descricao').value.trim();
   const ativo = document.getElementById('toggle-ativo').classList.contains('on');
-  const precoAvulso = parseFloat(document.getElementById('item-preco-avulso').value) || 0;
-  const precoAssinatura = parseFloat(document.getElementById('item-preco-assinatura').value) || 0;
-  const precoAssados = parseFloat(document.getElementById('item-preco-assados').value) || 0;
   const imagem = document.getElementById('img-drop-zone').dataset.imagem || null;
 
-  const modalidades = { avulso, assinatura, assados };
+  // Calcular precoAvulso/Assinatura/Assados legado para compatibilidade
+  const projAvulso     = projetos.find(p => p.fluxo === 'avulso');
+  const projAssinatura = projetos.find(p => p.fluxo === 'assinatura');
+  const projAssados    = projetos.find(p => p.fluxo === 'assados');
+  const precoAvulso     = projAvulso     ? (projetosItem[projAvulso.id]?.preco || 0) : 0;
+  const precoAssinatura = projAssinatura ? (projetosItem[projAssinatura.id]?.preco || 0) : 0;
+  const precoAssados    = projAssados    ? (projetosItem[projAssados.id]?.preco || 0) : 0;
+
+  const dadosItem = {
+    nome, categoria, descricao, ativo, imagem,
+    projetos: projetosItem,
+    // Campos legado mantidos para compatibilidade com módulos ainda não migrados
+    precoAvulso, precoAssinatura, precoAssados,
+    modalidades: {
+      avulso:     projAvulso     ? (projetosItem[projAvulso.id]?.ativo || false) : false,
+      assinatura: projAssinatura ? (projetosItem[projAssinatura.id]?.ativo || false) : false,
+      assados:    projAssados    ? (projetosItem[projAssados.id]?.ativo || false) : false
+    }
+  };
 
   if (itemEditandoId){
     const item = CATALOGO.itens.find(i => i.id === itemEditandoId);
-    if (item){
-      Object.assign(item, { nome, categoria, descricao, ativo, imagem, modalidades, precoAvulso, precoAssinatura, precoAssados });
-    }
+    if (item) Object.assign(item, dadosItem);
   } else {
-    const novoItem = {
+    CATALOGO.itens.push({
       id: gerarIdUnico(nome, CATALOGO.itens || []),
-      nome, categoria, descricao, ativo, imagem, modalidades,
-      precoAvulso, precoAssinatura, precoAssados
-    };
-    // Tudo vai para CATALOGO.itens — as modalidades definem onde aparece
-    CATALOGO.itens.push(novoItem);
+      ...dadosItem
+    });
   }
 
   await salvarCatalogo(CATALOGO);
@@ -431,7 +421,7 @@ async function salvarItem(){
 
 /* ---------- Excluir ---------- */
 async function excluirItem(){
-  if (!confirm(`Excluir "${document.getElementById('item-nome').value}"? Ele deixa de aparecer no Monte o seu e em combos.`)) return;
+  if (!confirm(`Excluir "${document.getElementById('item-nome').value}"? Ele deixa de aparecer em todos os projetos e combos.`)) return;
   CATALOGO.itens = (CATALOGO.itens || []).filter(i => i.id !== itemEditandoId);
   (CATALOGO.combos || []).forEach(c => delete c.itensPadrao[itemEditandoId]);
   await salvarCatalogo(CATALOGO);
