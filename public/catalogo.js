@@ -394,6 +394,32 @@ function migrarCatalogo(catalogo){
     }
   }
 
+  // MIGRAÇÃO: modalidades + precoAvulso/Assinatura/Assados → item.projetos{}
+  const mapFluxoParaProjeto = {};
+  (catalogo.projetos || []).forEach(p => { mapFluxoParaProjeto[p.fluxo] = p.id; });
+
+  let precisouMigrarItens = false;
+  (catalogo.itens || []).forEach(item => {
+    if (!item.projetos){
+      item.projetos = {};
+      const mods = item.modalidades || { avulso: true, assinatura: true };
+      // avulso
+      if (mods.avulso && mapFluxoParaProjeto['avulso']){
+        item.projetos[mapFluxoParaProjeto['avulso']] = { ativo: true, preco: item.precoAvulso || 0 };
+      }
+      // assinatura
+      if (mods.assinatura && mapFluxoParaProjeto['assinatura']){
+        item.projetos[mapFluxoParaProjeto['assinatura']] = { ativo: true, preco: item.precoAssinatura || item.precoAvulso || 0 };
+      }
+      // assados
+      if (mods.assados && mapFluxoParaProjeto['assados']){
+        item.projetos[mapFluxoParaProjeto['assados']] = { ativo: true, preco: item.precoAssados || item.precoAvulso || 0 };
+      }
+      precisouMigrarItens = true;
+    }
+  });
+  if (precisouMigrarItens) precisouMigrar = true;
+
   return precisouMigrar;
 }
 
@@ -466,6 +492,7 @@ function gerarIdUnico(nome, listaExistente){
 /* ---------- Helpers por operação ---------- */
 function nomeCatHelper(c){ return typeof c === 'string' ? c : c.nome; }
 
+/* ---------- Helpers por operação (legado — mantidos para compatibilidade) ---------- */
 function categoriasPorOperacao(catalogo, operacao){
   return (catalogo.categorias || [])
     .filter(c => {
@@ -478,16 +505,65 @@ function categoriasPorOperacao(catalogo, operacao){
 function itensPorOperacao(catalogo, operacao){
   return (catalogo.itens || []).filter(item => {
     if (!item.ativo) return false;
+    // Formato novo: item.projetos{}
+    if (item.projetos) {
+      // Buscar qualquer projeto do catálogo com esse fluxo
+      const projs = (catalogo.projetos || []).filter(p => p.fluxo === operacao);
+      return projs.some(p => item.projetos[p.id] && item.projetos[p.id].ativo);
+    }
+    // Legado: item.modalidades
     if (item.modalidades) return !!item.modalidades[operacao];
     return operacao !== 'assados';
   });
 }
 
-function precoPorOperacao(item, operacao){
+function precoPorOperacao(item, operacao, catalogo){
+  // Formato novo: item.projetos{}
+  if (item.projetos && catalogo){
+    const proj = (catalogo.projetos || []).find(p => p.fluxo === operacao && item.projetos[p.id] && item.projetos[p.id].ativo);
+    if (proj) return item.projetos[proj.id].preco || 0;
+  }
+  // Legado
   if (operacao === 'assados') return item.precoAssados || item.precoAvulso || 0;
   if (operacao === 'assinatura') return item.precoAssinatura || item.precoAvulso || 0;
   return item.precoAvulso || 0;
 }
+
+/* ---------- Helpers por projetoId (novo) ---------- */
+
+/* Retorna itens ativos vinculados a um projeto específico */
+function itensPorProjeto(catalogo, projetoId){
+  return (catalogo.itens || []).filter(item => {
+    if (!item.ativo) return false;
+    if (item.projetos) return !!(item.projetos[projetoId] && item.projetos[projetoId].ativo);
+    // Fallback legado: mapear projetoId para operação
+    const proj = projetoPorId(catalogo, projetoId);
+    const fluxo = proj ? proj.fluxo : projetoId;
+    if (item.modalidades) return !!item.modalidades[fluxo];
+    return fluxo !== 'assados';
+  });
+}
+
+/* Retorna o preço de um item para um projeto específico */
+function precoPorProjeto(item, projetoId, catalogo){
+  if (item.projetos && item.projetos[projetoId] !== undefined){
+    return item.projetos[projetoId].preco || 0;
+  }
+  // Fallback legado
+  const proj = catalogo ? projetoPorId(catalogo, projetoId) : null;
+  const fluxo = proj ? proj.fluxo : projetoId;
+  return precoPorOperacao(item, fluxo);
+}
+
+/* Retorna categorias que têm itens ativos em um projeto */
+function categoriasPorProjeto(catalogo, projetoId){
+  const itensAtivos = itensPorProjeto(catalogo, projetoId);
+  const cats = new Set(itensAtivos.map(i => i.categoria));
+  return (catalogo.categorias || [])
+    .map(c => nomeCatHelper(c))
+    .filter(nome => cats.has(nome));
+}
+
 
 /* ---------- Helpers de datas de Assados ---------- */
 function calcularDatasAssados(configAssados, maxDatas){
