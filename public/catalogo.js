@@ -189,11 +189,11 @@ function descricaoPorcao(unidadesAprox){
 
 const CATALOGO_PADRAO = {
   categorias: [
-    { nome: 'Pães',                 operacoes: ['avulso', 'assinatura'] },
-    { nome: 'Laticínios & Padaria', operacoes: ['avulso', 'assinatura'] },
-    { nome: 'Frutas & Extras',      operacoes: ['avulso', 'assinatura'] },
-    { nome: 'Assados',              operacoes: ['assados'] },
-    { nome: 'Acompanhamentos',      operacoes: ['assados'] }
+    { nome: 'Pães',                 projetos: ['avulso', 'assinatura'] },
+    { nome: 'Laticínios & Padaria', projetos: ['avulso', 'assinatura'] },
+    { nome: 'Frutas & Extras',      projetos: ['avulso', 'assinatura'] },
+    { nome: 'Assados',              projetos: ['assados'] },
+    { nome: 'Acompanhamentos',      projetos: ['assados'] }
   ],
   itens: [
     // Pães — vendidos por porção de peso (100g/250g), preço fixo, R$/kg exibido como referência
@@ -313,12 +313,25 @@ function migrarCatalogo(catalogo){
     const catAssados = new Set(catalogo.categoriasAssados || []);
     catalogo.categorias = (catalogo.categorias || []).map(c =>
       typeof c === 'string'
-        ? { nome: c, operacoes: catAssados.has(c) ? ['assados'] : ['avulso','assinatura'] }
+        ? { nome: c, projetos: catAssados.has(c) ? ['assados'] : ['avulso','assinatura'] }
         : c
     );
     (catalogo.categoriasAssados || []).forEach(nome => {
       if (!catalogo.categorias.some(c => c.nome === nome))
-        catalogo.categorias.push({ nome, operacoes: ['assados'] });
+        catalogo.categorias.push({ nome, projetos: ['assados'] });
+    });
+    precisouMigrar = true;
+  }
+
+  // MIGRAÇÃO: categorias com operacoes → projetos[]
+  if ((catalogo.categorias || []).some(c => c.operacoes && !c.projetos)){
+    const mapFluxoParaProjeto = {};
+    (catalogo.projetos || []).forEach(p => { mapFluxoParaProjeto[p.fluxo] = p.id; });
+    (catalogo.categorias || []).forEach(c => {
+      if (c.operacoes && !c.projetos){
+        c.projetos = (c.operacoes || []).map(op => mapFluxoParaProjeto[op] || op);
+        // Manter operacoes por compatibilidade temporária
+      }
     });
     precisouMigrar = true;
   }
@@ -494,12 +507,17 @@ function nomeCatHelper(c){ return typeof c === 'string' ? c : c.nome; }
 
 /* ---------- Helpers por operação (legado — mantidos para compatibilidade) ---------- */
 function categoriasPorOperacao(catalogo, operacao){
-  return (catalogo.categorias || [])
-    .filter(c => {
-      if (typeof c === 'string') return operacao !== 'assados';
-      return (c.operacoes || []).includes(operacao);
-    })
-    .map(c => nomeCatHelper(c));
+  // Buscar ID do projeto com esse fluxo
+  const proj = projetoPorFluxo(catalogo, operacao);
+  const projetoId = proj ? proj.id : operacao;
+  return categoriasPorProjeto(catalogo, projetoId);
+}
+
+function _projetosCategoria(c){
+  // Retorna projetos[] da categoria, com fallback para operacoes[]
+  if (c.projetos) return c.projetos;
+  if (c.operacoes) return c.operacoes; // legado
+  return [];
 }
 
 function itensPorOperacao(catalogo, operacao){
@@ -557,11 +575,22 @@ function precoPorProjeto(item, projetoId, catalogo){
 
 /* Retorna categorias que têm itens ativos em um projeto */
 function categoriasPorProjeto(catalogo, projetoId){
+  // Filtrar categorias vinculadas explicitamente ao projeto
+  const cats = (catalogo.categorias || []).filter(c => {
+    if (typeof c === 'string') return true; // legado: aparece em tudo
+    const projs = _projetosCategoria(c);
+    // Se não tem projetos definidos, aparece em todos
+    if (!projs || projs.length === 0) return true;
+    return projs.includes(projetoId);
+  }).map(c => nomeCatHelper(c));
+
+  // Filtrar só as que têm ao menos 1 item ativo neste projeto
   const itensAtivos = itensPorProjeto(catalogo, projetoId);
-  const cats = new Set(itensAtivos.map(i => i.categoria));
-  return (catalogo.categorias || [])
-    .map(c => nomeCatHelper(c))
-    .filter(nome => cats.has(nome));
+  const catsComItens = new Set(itensAtivos.map(i => i.categoria));
+
+  // Mostrar categoria se: tem itens OU está vinculada e não tem itens ainda (admin pode ter criado vazia)
+  return cats.filter(nome => catsComItens.has(nome) || true);
+  // Nota: retornamos todas as vinculadas; o catálogo do cliente só mostrará as que têm itens
 }
 
 
