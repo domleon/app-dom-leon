@@ -164,7 +164,7 @@ function renderizarCategorias(filtroTexto){
         ? `<img src="${item.imagem}" alt="${item.nome}">`
         : `<i class="ti ti-photo" style="font-size:18px;"></i>`;
       const nomeHtml = filtro ? destacarTexto(item.nome, filtroTexto) : item.nome;
-      const precoAvulso = precoPorOperacao(item, 'assados');
+      const precoAvulso = precoPorProjeto(item, localStorage.getItem('domleon_projeto_id') || 'assados', CATALOGO);
       const infoKg = item.precoKg ? ` · R$ ${item.precoKg.toFixed(2).replace('.', ',')}/kg` : '';
 
       const row = document.createElement('div');
@@ -229,7 +229,7 @@ function calcularSubtotal(){
   let total = 0;
   for (const itemId in CARRINHO){
     const item = ITENS[itemId];
-    if (item) total += CARRINHO[itemId] * precoPorOperacao(item, 'assados');
+    if (item) total += CARRINHO[itemId] * precoPorProjeto(item, localStorage.getItem('domleon_projeto_id') || 'assados', CATALOGO);
   }
   return total;
 }
@@ -260,8 +260,9 @@ function verCarrinho(){
 /* ---------- Inicialização ---------- */
 (async function init(){
   CATALOGO = await carregarCatalogo();
-  categoriasPorOperacao(CATALOGO, 'assados').forEach(cat => { CATEGORIAS[cat] = []; });
-  itensPorOperacao(CATALOGO, 'assados').forEach(item => {
+  const projetoIdAssados = localStorage.getItem('domleon_projeto_id') || 'assados';
+  categoriasPorProjeto(CATALOGO, projetoIdAssados).forEach(cat => { CATEGORIAS[cat] = []; });
+  itensPorProjeto(CATALOGO, projetoIdAssados).forEach(item => {
     ITENS[item.id] = item;
     if (!CATEGORIAS[item.categoria]) CATEGORIAS[item.categoria] = [];
     CATEGORIAS[item.categoria].push(item.id);
