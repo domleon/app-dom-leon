@@ -682,7 +682,7 @@ function contarOcorrenciasDias(diasStr, inicioStr, fimStr){
    multiplicando a qtd diária pelo nº real de ocorrências daquele dia */
 function parseItensPorDia(itensTexto, catalogo, ocorrenciasPorDia){
   if (!itensTexto) return [];
-
+  const _idParaNome = {};
   const diasTexto = itensTexto.split(' · ');
 
   // Mapa: nomeDia → { nomeItem → qtdDiaria }
@@ -701,8 +701,14 @@ function parseItensPorDia(itensTexto, catalogo, ocorrenciasPorDia){
       const match = itemStr.match(/^(\d+)\s+(.+)$/);
       if (match){
         const qtdDiaria = parseInt(match[1], 10);
-        const nomeItem = match[2].trim();
-        itensPorDiaMap[nomeDia][nomeItem] = (itensPorDiaMap[nomeDia][nomeItem] || 0) + qtdDiaria;
+        const itemRef = match[2].trim(); // pode ser "id|Nome" ou só "Nome" (legado)
+        const temPipe = itemRef.includes('|');
+        const itemId = temPipe ? itemRef.split('|')[0] : null;
+        const nomeItem = temPipe ? itemRef.split('|').slice(1).join('|') : itemRef;
+        const chave = itemId || nomeItem; // usar ID como chave se disponível
+        itensPorDiaMap[nomeDia][chave] = (itensPorDiaMap[nomeDia][chave] || 0) + qtdDiaria;
+        // Guardar mapeamento id → nome para exibição
+        if (itemId) _idParaNome[itemId] = nomeItem;
       }
     });
   });
@@ -718,31 +724,38 @@ function parseItensPorDia(itensTexto, catalogo, ocorrenciasPorDia){
     });
   });
 
-  return Object.keys(consolidacao).map(nome => ({
-    nome,
-    qtd: consolidacao[nome],
-    preco: buscarPrecoItem(nome, catalogo)
-  }));
+  return Object.keys(consolidacao).map(chave => {
+    const nomeExibido = _idParaNome[chave] || chave; // se tiver ID, pegar nome; senão usar como nome
+    return {
+      nome: nomeExibido,
+      qtd: consolidacao[chave],
+      preco: buscarPrecoItem(chave, nomeExibido, catalogo) // passa ID e nome
+    };
+  });
 }
 
-function buscarPrecoItem(nomeBuscado, catalogo){
+function buscarPrecoItem(itemId, nomeBuscado, catalogo){
   if (!catalogo || !catalogo.itens) return 0;
 
   const itensArray = Array.isArray(catalogo.itens)
     ? catalogo.itens
     : Object.values(catalogo.itens);
 
-  const buscaNormalizada = nomeBuscado.toLowerCase().trim();
-  const item = itensArray.find(it => {
-    const nomeNormalizado = (it.nome || '').toLowerCase().trim();
-    return nomeNormalizado === buscaNormalizada
-      || nomeNormalizado.includes(buscaNormalizada)
-      || buscaNormalizada.includes(nomeNormalizado);
-  });
+  // Buscar por ID primeiro (mais confiável)
+  let item = itensArray.find(it => it.id === itemId);
+
+  // Fallback: buscar por nome
+  if (!item && nomeBuscado){
+    const buscaNorm = nomeBuscado.toLowerCase().trim();
+    item = itensArray.find(it => {
+      const n = (it.nome || '').toLowerCase().trim();
+      return n === buscaNorm || n.includes(buscaNorm) || buscaNorm.includes(n);
+    });
+  }
 
   if (!item) return 0;
 
-  // Tentar novo formato projetos{} primeiro
+  // Novo formato projetos{}
   const projetoId = localStorage.getItem('domleon_projeto_id') || 'assinatura';
   if (item.projetos && item.projetos[projetoId] !== undefined){
     return item.projetos[projetoId].preco || 0;

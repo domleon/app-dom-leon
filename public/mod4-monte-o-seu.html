@@ -663,7 +663,7 @@ function montarDescricaoItens(){
     const itens = itensPorDia[dia] || {};
     const itensTxt = Object.keys(itens)
       .filter(id => itens[id] > 0)
-      .map(id => itens[id] + ' ' + NOMES[id])
+      .map(id => itens[id] + ' ' + id + '|' + NOMES[id])  // formato: "2 pao-frances|Pão Francês"
       .join(', ');
     if (itensTxt) partes.push(DIA_LABEL[dia] + ': ' + itensTxt);
   });
