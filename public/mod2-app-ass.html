@@ -685,7 +685,9 @@ function parseItensPorDia(itensTexto, catalogo, ocorrenciasPorDia){
   const _idParaNome = {};
   console.log('[DEBUG] itensTexto recebido:', itensTexto);
   console.log('[DEBUG] ocorrenciasPorDia:', JSON.stringify(ocorrenciasPorDia));
-  const diasTexto = itensTexto.split(' · ');
+  const diasTexto = itensTexto.includes(' || ')
+    ? itensTexto.split(' || ')
+    : itensTexto.split(' · '); // fallback legado
 
   // Mapa: nomeDia → { nomeItem → qtdDiaria }
   const itensPorDiaMap = {};
