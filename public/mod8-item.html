@@ -165,7 +165,8 @@
         <div class="field-row" style="margin-bottom:14px;">
           <div class="field" style="margin-bottom:0;">
             <label>Nome do item</label>
-            <input type="text" id="item-nome" placeholder="Ex: Frango assado inteiro">
+            <input type="text" id="item-nome" placeholder="Ex: Pão Francês" oninput="validarNomeItem(this)">
+            <small id="hint-nome" style="font-size:11px;color:var(--text-muted);margin-top:4px;display:block;">Use só o nome comercial — preço, peso e unidade são configurados nos campos abaixo.</small>
           </div>
           <div class="field" style="margin-bottom:0;">
             <label>Categoria</label>
@@ -376,6 +377,21 @@ function carregarItem(item){
 }
 
 /* ---------- Toggle de projeto ---------- */
+function validarNomeItem(input){
+  const hint = document.getElementById('hint-nome');
+  const caracteresInvalidos = /R\$|·|\/un|\/kg|peso médio|\(|\)/i;
+  if (caracteresInvalidos.test(input.value)){
+    hint.textContent = '⚠️ Remova preço, peso ou unidade do nome. Ex correto: "Pão Francês"';
+    hint.style.color = '#C05621';
+    input.style.borderColor = '#C05621';
+  } else {
+    hint.textContent = 'Use só o nome comercial — preço, peso e unidade são configurados nos campos abaixo.';
+    hint.style.color = 'var(--text-muted)';
+    input.style.borderColor = '';
+  }
+}
+
+
 function toggleOp(projetoId){
   const card = document.getElementById('op-' + projetoId);
   const toggle = document.getElementById('toggle-' + projetoId);
@@ -432,6 +448,13 @@ function removerImagem(){
 async function salvarItem(){
   const nome = document.getElementById('item-nome').value.trim();
   if (!nome){ alert('Informe o nome do item.'); return; }
+
+  // Validar nome — não deve conter preço ou unidade embutida
+  const caracteresInvalidos = /R\$|·|\/un|\/kg|peso médio|\(|\)/i;
+  if (caracteresInvalidos.test(nome)){
+    alert('O nome do item não deve conter preço, unidade ou peso.\n\nUse apenas o nome comercial do produto.\n\nExemplo correto: "Pão Francês"\nExemplo incorreto: "Pão Francês - R$ 0,95/un (peso médio 50g)"');
+    return;
+  }
 
   const projetos = (CATALOGO.projetos || []).filter(p => p.ativo);
 
