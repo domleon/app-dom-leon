@@ -683,6 +683,8 @@ function contarOcorrenciasDias(diasStr, inicioStr, fimStr){
 function parseItensPorDia(itensTexto, catalogo, ocorrenciasPorDia){
   if (!itensTexto) return [];
   const _idParaNome = {};
+  console.log('[DEBUG] itensTexto recebido:', itensTexto);
+  console.log('[DEBUG] ocorrenciasPorDia:', JSON.stringify(ocorrenciasPorDia));
   const diasTexto = itensTexto.split(' · ');
 
   // Mapa: nomeDia → { nomeItem → qtdDiaria }
@@ -717,6 +719,7 @@ function parseItensPorDia(itensTexto, catalogo, ocorrenciasPorDia){
   const consolidacao = {}; // nomeItem → qtdTotal
   Object.keys(itensPorDiaMap).forEach(nomeDia => {
     const ocorrencias = (ocorrenciasPorDia && ocorrenciasPorDia[nomeDia]) || 0;
+    console.log(`[DEBUG] Dia "${nomeDia}" → ocorrências: ${ocorrencias}`, Object.keys(itensPorDiaMap[nomeDia]));
     const itens = itensPorDiaMap[nomeDia];
     Object.keys(itens).forEach(nomeItem => {
       const qtdTotal = itens[nomeItem] * ocorrencias;
