@@ -686,15 +686,25 @@ function renderizarItens(){
         const thumb = item.imagem
           ? `<span class="item-thumb"><img src="${item.imagem}"></span>`
           : `<span class="item-thumb"><i class="ti ti-photo" style="font-size:12px;"></i></span>`;
-        const mods = item.modalidades || { avulso: true, assinatura: true, assados: false };
-        const precoAvulsoTxt = mods.avulso ? 'R$ ' + (item.precoAvulso || 0).toFixed(2).replace('.', ',') : '—';
-        const precoAssinaturaTxt = mods.assinatura ? 'R$ ' + (item.precoAssinatura || 0).toFixed(2).replace('.', ',') : '—';
-        const precoAssadosTxt = mods.assados ? 'R$ ' + (item.precoAssados || 0).toFixed(2).replace('.', ',') : '—';
-        const linhaPrecos = [
-          mods.avulso ? 'Avulso: ' + precoAvulsoTxt : null,
-          mods.assinatura ? 'Assinatura: ' + precoAssinaturaTxt : null,
-          mods.assados ? 'Assados: ' + precoAssadosTxt : null
-        ].filter(Boolean).join('<br>');
+
+        // Montar linha de preços por projeto (novo formato)
+        let linhaPrecos = '';
+        if (item.projetos && Object.keys(item.projetos).length > 0){
+          linhaPrecos = (CATALOGO.projetos || [])
+            .filter(p => item.projetos[p.id] && item.projetos[p.id].ativo)
+            .map(p => {
+              const preco = (item.projetos[p.id].preco || 0).toFixed(2).replace('.', ',');
+              return p.nome + ': R$ ' + preco;
+            }).join('<br>') || '<span style="color:var(--text-muted)">Sem projeto ativo</span>';
+        } else {
+          // Fallback legado
+          const mods = item.modalidades || { avulso: true, assinatura: true };
+          linhaPrecos = [
+            mods.avulso ? 'Avulso: R$ ' + (item.precoAvulso || 0).toFixed(2).replace('.', ',') : null,
+            mods.assinatura ? 'Assinatura: R$ ' + (item.precoAssinatura || 0).toFixed(2).replace('.', ',') : null,
+            mods.assados ? 'Assados: R$ ' + (item.precoAssados || 0).toFixed(2).replace('.', ',') : null
+          ].filter(Boolean).join('<br>');
+        }
         return `
           <tr>
             <td>${thumb}${item.nome}</td>
