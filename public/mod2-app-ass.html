@@ -445,17 +445,6 @@
       <div class="items"><i class="ti ti-refresh" style="margin-right:4px;"></i>Próximo ciclo: <b id="ciclo-proximo">—</b></div>
     </div>
 
-    <div class="section-label">Como você quer receber</div>
-    <div class="option-row" id="modo-row">
-      <div class="option-pill selected" onclick="selecionarModo(this,'retirada')"><i class="ti ti-building-store"></i>Retirada</div>
-      <div class="option-pill" onclick="selecionarModo(this,'entrega')"><i class="ti ti-truck-delivery"></i>Entrega</div>
-    </div>
-
-    <div class="items" id="taxa-entrega-info" style="display:none;margin-bottom:10px;">
-      <i class="ti ti-info-circle" style="margin-right:4px;"></i>
-      Taxa de entrega: <b>R$ 2,99</b> por entrega × <b id="taxa-entregas-qtd">0</b> entregas no ciclo = <b id="taxa-entrega-total">R$ 0,00</b>
-    </div>
-
     <div class="total-bar">
       <div>
         <div class="label">Total do ciclo (30 dias)</div>
@@ -537,7 +526,7 @@
 const TAXA_ENTREGA_ASSINATURA = 2.99;
 let PRECO_BASE_ITENS = 0;
 let TOTAL_ENTREGAS_CICLO = 0;
-let MODO_ATUAL = 'retirada';
+let MODO_ATUAL = 'entrega'; // Assinatura é sempre entrega
 
 function showScreen(name){
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -555,22 +544,7 @@ function selecionarModo(el, modo){
 }
 
 function atualizarTotalComTaxa(){
-  const taxaInfo = document.getElementById('taxa-entrega-info');
-  let total = PRECO_BASE_ITENS;
-
-  if (MODO_ATUAL === 'entrega' && TOTAL_ENTREGAS_CICLO > 0){
-    const taxaTotal = TAXA_ENTREGA_ASSINATURA * TOTAL_ENTREGAS_CICLO;
-    total += taxaTotal;
-    document.getElementById('taxa-entregas-qtd').textContent = TOTAL_ENTREGAS_CICLO;
-    document.getElementById('taxa-entrega-total').textContent = 'R$ ' + taxaTotal.toFixed(2).replace('.', ',');
-    taxaInfo.style.display = 'block';
-  } else {
-    taxaInfo.style.display = 'none';
-  }
-
-  const totalFormatado = 'R$ ' + total.toFixed(2).replace('.', ',');
-  document.getElementById('plano-preco').textContent = totalFormatado;
-  document.getElementById('pagamento-preco').textContent = totalFormatado;
+  // Total agora calculado dentro de montarGridConsolidado
 }
 
 function selecionarPagamento(el, tipo){
@@ -779,13 +753,13 @@ function montarGridConsolidado(itensArray){
     return;
   }
 
-  let totalGeral = 0;
+  let subtotalItens = 0;
 
   itensArray.forEach(item => {
     const precoUnit = parseFloat(item.preco) || 0;
     const qtd = parseInt(item.qtd) || 0;
     const totalItem = precoUnit * qtd;
-    totalGeral += totalItem;
+    subtotalItens += totalItem;
 
     const unitStr = precoUnit > 0 ? precoUnit.toFixed(2).replace('.', ',') : '—';
     const totalStr = precoUnit > 0 ? totalItem.toFixed(2).replace('.', ',') : '—';
@@ -801,12 +775,45 @@ function montarGridConsolidado(itensArray){
     container.appendChild(div);
   });
 
-  if (totalGeral > 0){
-    document.getElementById('plano-preco-cupom').textContent = 'R$ ' + totalGeral.toFixed(2).replace('.', ',');
-  } else {
-    document.getElementById('plano-preco-cupom').textContent = document.getElementById('plano-preco').textContent || '—';
+  // Subtotal itens
+  const taxaTotal = TAXA_ENTREGA_ASSINATURA * TOTAL_ENTREGAS_CICLO;
+  const totalComTaxa = subtotalItens + taxaTotal;
+
+  const subtotalDiv = document.createElement('div');
+  subtotalDiv.style.cssText = 'display:flex;justify-content:space-between;padding:7px 0 4px;border-top:0.5px dashed #C8B89A;margin-top:4px;font-size:11px;';
+  subtotalDiv.innerHTML = `
+    <span style="color:#8A7355;text-transform:uppercase;letter-spacing:.05em;font-size:9px;">Subtotal itens</span>
+    <span style="color:#5C4A2A;font-weight:500;">R$ ${subtotalItens.toFixed(2).replace('.', ',')}</span>`;
+  container.appendChild(subtotalDiv);
+
+  // Taxa de entrega
+  if (TOTAL_ENTREGAS_CICLO > 0){
+    const taxaDiv = document.createElement('div');
+    taxaDiv.style.cssText = 'display:flex;justify-content:space-between;align-items:baseline;padding:2px 0 5px;font-size:11px;';
+    taxaDiv.innerHTML = `
+      <div>
+        <div style="color:#8A7355;font-size:9px;">Taxa de entrega</div>
+        <div style="color:#A89070;font-size:8px;">R$ ${TAXA_ENTREGA_ASSINATURA.toFixed(2).replace('.',',')} × ${TOTAL_ENTREGAS_CICLO} entregas</div>
+      </div>
+      <span style="color:#5C4A2A;">R$ ${taxaTotal.toFixed(2).replace('.', ',')}</span>`;
+    container.appendChild(taxaDiv);
   }
+
+  // Total
+  const totalDiv = document.createElement('div');
+  totalDiv.style.cssText = 'display:flex;justify-content:space-between;align-items:baseline;padding-top:6px;border-top:1px solid #C8B89A;margin-top:2px;';
+  totalDiv.innerHTML = `
+    <span style="color:#5C4A2A;font-size:9px;text-transform:uppercase;letter-spacing:.05em;">TOTAL (30 dias)</span>
+    <span style="color:#3B2314;font-size:13px;font-weight:500;">R$ ${totalComTaxa.toFixed(2).replace('.', ',')}</span>`;
+  container.appendChild(totalDiv);
+
+  // Atualizar elementos externos
+  const totalFormatado = 'R$ ' + totalComTaxa.toFixed(2).replace('.', ',');
+  document.getElementById('plano-preco-cupom').style.display = 'none'; // agora está dentro do cupom
+  document.getElementById('plano-preco').textContent = totalFormatado;
+  document.getElementById('pagamento-preco').textContent = totalFormatado;
 }
+
 
 // Botão "Continuar" no plano leva para a tela de pagamento (mesma página)
 document.addEventListener('DOMContentLoaded', function() {
