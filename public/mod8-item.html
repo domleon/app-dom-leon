@@ -219,6 +219,19 @@
     </div>
   </div>
 
+  <!-- SEÇÃO: PARCEIROS & ENTREGA -->
+  <div class="sec-card" id="secao-parceiros" style="display:none;">
+    <div class="sec-title">Parceiros & entrega</div>
+    <p style="font-size:12px;color:var(--text-muted);margin-bottom:14px;">
+      Se este item é entregue por um parceiro externo, vincule abaixo. Cada parceiro atende um conjunto de bairros — nunca dois parceiros no mesmo bairro.
+    </p>
+    <div id="parceiros-item-container"></div>
+    <button onclick="adicionarParceiroPorItem()" style="margin-top:10px;height:32px;padding:0 14px;border:0.5px dashed var(--border-strong);border-radius:8px;background:transparent;font-size:12px;color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;gap:6px;">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Adicionar parceiro
+    </button>
+  </div>
+
 </div>
 
 <div class="toast" id="toast">
@@ -255,6 +268,10 @@ let itemEditandoId = null;
     else renderizarOperacoes(null);
   } else {
     renderizarOperacoes(null);
+    if ((CATALOGO.parceiros || []).length > 0){
+      document.getElementById('secao-parceiros').style.display = 'block';
+      renderizarParceirosItem([]);
+    }
   }
 })();
 
@@ -367,6 +384,12 @@ function carregarItem(item){
   // Restaurar categoria após filtro
   setTimeout(() => { document.getElementById('item-categoria').value = item.categoria || ''; }, 10);
 
+  // Renderizar parceiros
+  if ((CATALOGO.parceiros || []).length > 0){
+    document.getElementById('secao-parceiros').style.display = 'block';
+    renderizarParceirosItem(item.parceiros || []);
+  }
+
   // Imagem
   if (item.imagem){
     const zone = document.getElementById('img-drop-zone');
@@ -445,6 +468,101 @@ function removerImagem(){
 }
 
 /* ---------- Salvar ---------- */
+/* ---------- Parceiros & entrega ---------- */
+
+function renderizarParceirosItem(parceirosItem){
+  const container = document.getElementById('parceiros-item-container');
+  if (!container) return;
+
+  const parceiros = (CATALOGO.parceiros || []).filter(p => p.ativo !== false);
+  const bairros = (CATALOGO.bairros || []).map(b => typeof b === 'string' ? b : b.nome);
+
+  if (parceiros.length === 0){
+    container.innerHTML = '<p style="font-size:12px;color:var(--text-muted);">Nenhum parceiro cadastrado. Crie em Admin → Parceiros.</p>';
+    return;
+  }
+
+  // Mostrar seção
+  document.getElementById('secao-parceiros').style.display = 'block';
+
+  if (!parceirosItem || parceirosItem.length === 0){
+    container.innerHTML = '<p style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">Nenhum parceiro vinculado — entrega feita pela Dom Leon.</p>';
+    return;
+  }
+
+  container.innerHTML = parceirosItem.map((entrada, idx) => {
+    const parceiro = parceiros.find(p => p.id === entrada.parceiroId);
+    const bairrosSelecionados = entrada.bairros || [];
+
+    return `
+    <div style="border:0.5px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;" id="parceiro-entry-${idx}">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <select onchange="alterarParceiroEntry(${idx}, this.value)" style="flex:1;margin-right:10px;height:34px;border:0.5px solid var(--border-strong);border-radius:8px;padding:0 10px;font-size:13px;background:var(--bg);">
+          <option value="">Selecione o parceiro</option>
+          ${parceiros.map(p => `<option value="${p.id}" ${p.id === entrada.parceiroId ? 'selected' : ''}>${p.nome}</option>`).join('')}
+        </select>
+        <button onclick="removerParceiroEntry(${idx})" style="width:28px;height:28px;border:0.5px solid var(--border-strong);border-radius:6px;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted);">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">Bairros atendidos por este parceiro para este item:</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;">
+        ${bairros.map(b => {
+          const selecionado = bairrosSelecionados.includes(b);
+          const usadoOutro = parceirosItem.some((e, i) => i !== idx && (e.bairros || []).includes(b));
+          return `<label style="display:flex;align-items:center;gap:4px;font-size:12px;${usadoOutro ? 'opacity:.4;pointer-events:none;' : 'cursor:pointer;'}">
+            <input type="checkbox" ${selecionado ? 'checked' : ''} ${usadoOutro ? 'disabled' : ''}
+              onchange="toggleBairroEntry(${idx}, '${b}', this.checked)"
+              style="width:13px;height:13px;">
+            ${b}
+          </label>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function adicionarParceiroPorItem(){
+  const parceirosAtuais = getParceiroItemAtual();
+  parceirosAtuais.push({ parceiroId: '', bairros: [] });
+  renderizarParceirosItem(parceirosAtuais);
+}
+
+function removerParceiroEntry(idx){
+  const atual = getParceiroItemAtual();
+  atual.splice(idx, 1);
+  renderizarParceirosItem(atual);
+}
+
+function alterarParceiroEntry(idx, parceiroId){
+  const atual = getParceiroItemAtual();
+  if (atual[idx]) atual[idx].parceiroId = parceiroId;
+  renderizarParceirosItem(atual);
+}
+
+function toggleBairroEntry(idx, bairro, checked){
+  const atual = getParceiroItemAtual();
+  if (!atual[idx]) return;
+  if (!atual[idx].bairros) atual[idx].bairros = [];
+  if (checked) atual[idx].bairros.push(bairro);
+  else atual[idx].bairros = atual[idx].bairros.filter(b => b !== bairro);
+}
+
+function getParceiroItemAtual(){
+  // Lê estado atual dos entries renderizados
+  const entries = document.querySelectorAll('[id^="parceiro-entry-"]');
+  const resultado = [];
+  entries.forEach((entry, idx) => {
+    const sel = entry.querySelector('select');
+    const checks = entry.querySelectorAll('input[type=checkbox]:checked');
+    resultado.push({
+      parceiroId: sel ? sel.value : '',
+      bairros: Array.from(checks).map(c => c.nextSibling?.textContent?.trim() || '')
+    });
+  });
+  return resultado;
+}
+
 async function salvarItem(){
   const nome = document.getElementById('item-nome').value.trim();
   if (!nome){ alert('Informe o nome do item.'); return; }
@@ -475,6 +593,9 @@ async function salvarItem(){
   const ativo = document.getElementById('toggle-ativo').classList.contains('on');
   const imagem = document.getElementById('img-drop-zone').dataset.imagem || null;
 
+  // Parceiros — filtrar entradas válidas
+  const parceiros = getParceiroItemAtual().filter(e => e.parceiroId && e.bairros.length > 0);
+
   // Calcular precoAvulso/Assinatura/Assados legado para compatibilidade
   const projAvulso     = projetos.find(p => p.fluxo === 'avulso');
   const projAssinatura = projetos.find(p => p.fluxo === 'assinatura');
@@ -486,6 +607,7 @@ async function salvarItem(){
   const dadosItem = {
     nome, categoria, descricao, ativo, imagem,
     projetos: projetosItem,
+    parceiros,
     // Campos legado mantidos para compatibilidade com módulos ainda não migrados
     precoAvulso, precoAssinatura, precoAssados,
     modalidades: {

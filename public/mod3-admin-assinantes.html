@@ -161,6 +161,7 @@
   <div class="nav-item active" onclick="window.location.href='mod3-admin-assinantes.html'"><i class="ti ti-users"></i>Assinantes</div>
   <div class="nav-item" onclick="window.location.href='mod3-admin-assinantes.html?tab=avulsos'"><i class="ti ti-shopping-bag"></i>Pedidos avulsos</div>
   <div class="nav-item" onclick="window.location.href='mod3-admin-assinantes.html?tab=producao'"><i class="ti ti-clipboard-list"></i>Produção do dia</div>
+  <div class="nav-item" onclick="showPanel('repasses')"><i class="ti ti-building-store"></i>Repasses <span id="badge-repasses-nav" style="display:none;background:#B45309;color:#fff;border-radius:20px;padding:0 6px;font-size:10px;font-weight:600;margin-left:4px;">!</span></div>
   <div class="nav-item" onclick="window.location.href='mod8-planos.html'"><i class="ti ti-package"></i>Planos</div>
   <div class="nav-item" onclick="window.location.href='mod5-entrega.html'"><i class="ti ti-truck-delivery"></i>Logística</div>
   <div class="nav-item" onclick="window.location.href='mod7-relatorios.html?tab=checklist'"><i class="ti ti-checklist"></i>Checklist retirada</div>
@@ -423,20 +424,106 @@
     </div>
   </div>
 
+  <div class="panel" id="panel-repasses">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <div>
+        <div style="font-size:13px;font-weight:500;color:var(--text-primary);">Pedidos com repasse para parceiros</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:2px)">Apenas pedidos avulsos e assados com ao menos 1 item de parceiro</div>
+      </div>
+      <span id="badge-repasses" style="font-size:11px;font-weight:600;background:var(--bg-warning);color:var(--text-warning);border-radius:20px;padding:2px 10px;">0 pendentes</span>
+    </div>
+    <div id="lista-repasses">
+      <div style="text-align:center;padding:40px 20px;color:var(--text-muted);font-size:13px)">
+        <i class="ti ti-building-store" style="font-size:24px;display:block;margin-bottom:8px;opacity:.4;"></i>
+        Nenhum repasse pendente no momento
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
+async function carregarRepasses(){
+  const lista = document.getElementById('lista-repasses');
+  const badge = document.getElementById('badge-repasses');
+  const badgeNav = document.getElementById('badge-repasses-nav');
+  if (!lista) return;
+
+  lista.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-muted);font-size:13px;">Carregando...</div>';
+
+  try {
+    const catalogo = await carregarCatalogo();
+    const db = firebase.firestore();
+
+    // Buscar pedidos com temRepasse = true
+    const snap = await db.collection('pedidos')
+      .where('temRepasse', '==', true)
+      .orderBy('criadoEm', 'desc')
+      .limit(50)
+      .get();
+
+    if (snap.empty){
+      lista.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text-muted);font-size:13px;">
+        <i class="ti ti-building-store" style="font-size:24px;display:block;margin-bottom:8px;opacity:.4;"></i>
+        Nenhum repasse pendente no momento
+      </div>`;
+      if (badge) badge.textContent = '0 pendentes';
+      if (badgeNav) badgeNav.style.display = 'none';
+      return;
+    }
+
+    const pedidos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (badge) badge.textContent = pedidos.length + ' pedido' + (pedidos.length !== 1 ? 's' : '');
+    if (badgeNav) badgeNav.style.display = 'inline';
+
+    lista.innerHTML = pedidos.map(pedido => {
+      const entregas = (pedido.entregas || []).filter(e => e.responsavel === 'parceiro');
+      const porParceiro = {};
+      entregas.forEach(e => {
+        if (!porParceiro[e.parceiroId]) porParceiro[e.parceiroId] = { nome: e.parceiroNome || e.parceiroId, itens: [] };
+        const item = (catalogo.itens || []).find(i => i.id === e.itemId);
+        porParceiro[e.parceiroId].itens.push({ nome: item ? item.nome : e.itemId, qtd: e.qtd });
+      });
+
+      const data = pedido.criadoEm?.toDate ? pedido.criadoEm.toDate().toLocaleDateString('pt-BR') : '—';
+
+      return `<div style="border:0.5px solid var(--border);border-radius:10px;padding:14px;margin-bottom:8px;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;">
+          <div>
+            <span style="font-size:13px;font-weight:500;color:var(--text-primary);">Pedido ${pedido.numero || pedido.id}</span>
+            <span style="font-size:11px;color:var(--text-muted);margin-left:8px;">${data}</span>
+          </div>
+          <span style="font-size:11px;color:var(--text-secondary);">${pedido.bairro || '—'}</span>
+        </div>
+        ${Object.values(porParceiro).map(p => `
+          <div style="background:var(--surface-2);border-radius:8px;padding:8px 10px;margin-bottom:6px;">
+            <div style="font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;">
+              <i class="ti ti-building-store" style="margin-right:4px;"></i>${p.nome}
+            </div>
+            ${p.itens.map(i => `<div style="font-size:12px;color:var(--text-primary);">${i.qtd}x ${i.nome}</div>`).join('')}
+          </div>`).join('')}
+      </div>`;
+    }).join('');
+
+  } catch(e){
+    console.error('Erro ao carregar repasses:', e);
+    lista.innerHTML = '<div style="padding:20px;color:var(--text-muted);font-size:13px;">Erro ao carregar. Verifique o console.</div>';
+  }
+}
+
 function showPanel(name){
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.getElementById('panel-' + name).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   const navEl = document.querySelector(`.nav-item[onclick*="showPanel('${name}')"]`);
   if (navEl) navEl.classList.add('active');
+  if (name === 'repasses') carregarRepasses();
 
   const titles = {
     assinantes: ['Assinantes', 'Gerencie os assinantes ativos, pausados e pendentes'],
     avulsos: ['Pedidos avulsos', 'Pedidos únicos, fora da assinatura'],
-    producao: ['Produção do dia', 'Consolidado automático de tudo que precisa ser separado hoje']
+    producao: ['Produção do dia', 'Consolidado automático de tudo que precisa ser separado hoje'],
+    repasses: ['Repasses', 'Pedidos com itens a serem entregues por parceiros externos']
   };
   document.getElementById('page-title').textContent = titles[name][0];
   document.getElementById('page-sub').textContent = titles[name][1];

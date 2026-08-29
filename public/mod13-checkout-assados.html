@@ -421,6 +421,35 @@ function confirmarPagamento(){
     document.getElementById('sucesso-texto').textContent = 'Seu pedido está sendo preparado e chega no endereço informado em breve.';
   }
 
+  // Resolver parceiros por item
+  const bairroCliente = INFO_ENTREGA.bairro || localStorage.getItem('domleon_bairro') || '';
+  const itensPedido = Object.keys(CARRINHO).filter(id => CARRINHO[id] > 0).map(id => ({ itemId: id, qtd: CARRINHO[id] }));
+  const { entregas, temRepasse } = resolverEntregas(itensPedido, bairroCliente, CATALOGO);
+
+  // Montar nomes dos itens para mensagem do parceiro
+  const itensComNome = entregas.map(e => ({ ...e, nomeItem: (ITENS[e.itemId] || {}).nome || e.itemId }));
+
+  // Disparar webhook n8n para parceiros se houver repasse
+  if (temRepasse){
+    const porParceiro = {};
+    itensComNome.filter(e => e.responsavel === 'parceiro').forEach(e => {
+      if (!porParceiro[e.parceiroId]) porParceiro[e.parceiroId] = { parceiroId: e.parceiroId, parceiroNome: e.parceiroNome, itens: [] };
+      porParceiro[e.parceiroId].itens.push(e);
+    });
+    const clienteNome = document.getElementById('end-nome')?.value?.trim() || 'Cliente';
+    Object.values(porParceiro).forEach(grupo => {
+      const parceiro = (CATALOGO.parceiros || []).find(p => p.id === grupo.parceiroId);
+      if (!parceiro || !parceiro.telefone) return;
+      const msg = montarMensagemParceiro(parceiro, grupo.itens, clienteNome, bairroCliente, numero);
+      // Webhook n8n — substituir URL quando n8n estiver configurado
+      const N8N_WEBHOOK = localStorage.getItem('domleon_n8n_webhook') || '';
+      if (N8N_WEBHOOK){
+        fetch(N8N_WEBHOOK, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ telefone: parceiro.telefone, mensagem: msg, pedidoId: numero }) })
+          .catch(err => console.warn('n8n webhook erro:', err));
+      }
+    });
+  }
+
   localStorage.removeItem('domleon_carrinho_assados');
   showScreen('sucesso');
 }
