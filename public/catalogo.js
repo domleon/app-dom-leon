@@ -657,3 +657,68 @@ function arquivoParaBase64(file, callback){
   reader.onload = () => callback(reader.result);
   reader.readAsDataURL(file);
 }
+
+/* ============================================================
+   PARCEIROS — resolução por item + bairro
+   ============================================================ */
+
+/**
+ * Dado um item e o bairro do cliente, retorna o parceiro
+ * responsável pela entrega, ou null se for a Dom Leon.
+ *
+ * item.parceiros = [
+ *   { parceiroId: 'ultragas-rep1', bairros: ['Centro', 'Vila Nova'] },
+ *   { parceiroId: 'ultragas-rep2', bairros: ['Jardim América'] }
+ * ]
+ */
+function resolverParceiro(item, bairro, catalogo){
+  if (!item || !item.parceiros || item.parceiros.length === 0) return null;
+  if (!bairro) return null;
+
+  const bairroNorm = bairro.trim().toLowerCase();
+
+  const entrada = item.parceiros.find(p =>
+    (p.bairros || []).some(b => b.trim().toLowerCase() === bairroNorm)
+  );
+
+  if (!entrada) return null;
+
+  // Buscar dados completos do parceiro no catálogo
+  const parceiro = (catalogo.parceiros || []).find(p => p.id === entrada.parceiroId);
+  return parceiro || null;
+}
+
+/**
+ * Dado uma lista de itens do pedido e o bairro do cliente,
+ * retorna o array entregas[] com responsavel por item.
+ *
+ * Retorna também a flag temRepasse (true se qualquer item for de parceiro).
+ */
+function resolverEntregas(itensPedido, bairro, catalogo){
+  const itensArray = Array.isArray(itensPedido) ? itensPedido : Object.values(itensPedido);
+  let temRepasse = false;
+
+  const entregas = itensArray.map(({ itemId, qtd }) => {
+    const item = (catalogo.itens || []).find(i => i.id === itemId);
+    if (!item) return { itemId, qtd, responsavel: 'dom-leon' };
+
+    const parceiro = resolverParceiro(item, bairro, catalogo);
+    if (parceiro){
+      temRepasse = true;
+      return { itemId, qtd, responsavel: 'parceiro', parceiroId: parceiro.id, parceiroNome: parceiro.nome };
+    }
+    return { itemId, qtd, responsavel: 'dom-leon' };
+  });
+
+  return { entregas, temRepasse };
+}
+
+/**
+ * Monta a mensagem WhatsApp para o parceiro.
+ * Pronta para ser enviada via n8n webhook.
+ */
+function montarMensagemParceiro(parceiro, itensParceiro, cliente, bairro, pedidoId){
+  const linhasItens = itensParceiro.map(e => `${e.qtd}x ${e.nomeItem}`).join(', ');
+  return `Olá ${parceiro.nome}, novo pedido para repassar: ${linhasItens} para ${cliente} no bairro ${bairro}. Pedido #${pedidoId}.`;
+}
+
