@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <style>
   :root{
     --bg:#F5F0E8;--card:#FFFFFF;--border:#E3D8C4;--border-strong:#C7B79A;
@@ -215,12 +215,19 @@ function renderizarTabela(){
   lista.forEach(p => {
     const bairros = p.bairros || [];
     const itens = p.itens || [];
+    // Itens que referenciam este parceiro via item.parceiros[]
+    const itensVinculados = (CATALOGO.itens || []).filter(item =>
+      (item.parceiros || []).some(e => e.parceiroId === p.id)
+    );
     const MAX = 2;
 
     const tagsB = bairros.slice(0, MAX).map(b => `<span class="tag-bairro">${b}</span>`).join('');
     const maisB = bairros.length > MAX ? `<span class="tag-mais">+${bairros.length - MAX}</span>` : '';
     const tagsI = itens.slice(0, MAX).map(i => `<span class="tag-item">${i}</span>`).join('');
     const maisI = itens.length > MAX ? `<span class="tag-mais">+${itens.length - MAX}</span>` : '';
+    const tagVinc = itensVinculados.length > 0
+      ? `<span style="font-size:10px;background:#EFF6FF;color:#1D4ED8;border-radius:20px;padding:1px 8px;margin-left:4px;">${itensVinculados.length} item(ns) vinculado(s)</span>`
+      : '<span style="font-size:10px;color:var(--text-muted);">Nenhum item vinculado</span>';
 
     const tr = document.createElement('tr');
     if (!p.ativo) tr.classList.add('inativo');
@@ -277,7 +284,27 @@ function editarParceiro(id){
 async function excluirParceiro(id){
   const p = PARCEIROS.find(x => x.id === id);
   if (!p) return;
-  if (!confirm(`Excluir o parceiro "${p.nome}"? Esta ação não pode ser desfeita.`)) return;
+
+  // Verificar itens vinculados via item.parceiros[]
+  const itensVinculados = (CATALOGO.itens || []).filter(item =>
+    (item.parceiros || []).some(e => e.parceiroId === id)
+  );
+
+  let msg = `Excluir o parceiro "${p.nome}"?`;
+  if (itensVinculados.length > 0){
+    msg += `\n\n⚠️ ${itensVinculados.length} item(ns) tem este parceiro vinculado:\n`;
+    msg += itensVinculados.map(i => `• ${i.nome}`).join('\n');
+    msg += '\n\nO vínculo será removido automaticamente de todos eles.';
+  }
+  if (!confirm(msg)) return;
+
+  // Cascata: limpar referências nos itens
+  (CATALOGO.itens || []).forEach(item => {
+    if (item.parceiros){
+      item.parceiros = item.parceiros.filter(e => e.parceiroId !== id);
+    }
+  });
+
   CATALOGO.parceiros = CATALOGO.parceiros.filter(x => x.id !== id);
   PARCEIROS = CATALOGO.parceiros;
   await salvarCatalogo(CATALOGO);

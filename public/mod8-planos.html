@@ -1063,6 +1063,18 @@ function abrirModalNovoBairro(){
 
 function excluirBairro(nome){
   if (!confirm(`Excluir o bairro "${nome}"? Esta ação não pode ser desfeita.`)) return;
+
+  // Cascata: remover bairro dos vínculos de parceiro nos itens
+  (CATALOGO.itens || []).forEach(item => {
+    if (item.parceiros){
+      item.parceiros.forEach(e => {
+        e.bairros = (e.bairros || []).filter(b => b !== nome);
+      });
+      // Remover entradas de parceiro que ficaram sem bairros
+      item.parceiros = item.parceiros.filter(e => (e.bairros || []).length > 0);
+    }
+  });
+
   CATALOGO.bairros = CATALOGO.bairros.filter(b => b.nome !== nome);
   persistir();
   renderizarBairros();

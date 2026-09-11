@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <style>
   :root{
     --bg:#F5F0E8;--card:#FFFFFF;--border:#E3D8C4;--border-strong:#C7B79A;
@@ -241,6 +241,18 @@
         <div class="info-box" style="margin-top:8px;">
           <i class="ti ti-info-circle" style="font-size:12px;vertical-align:middle;margin-right:3px;"></i>
           Itens e bairros não selecionados continuam sendo atendidos pela operação padrão da Dom Leon.
+
+        </div>
+
+        <!-- Auditoria: itens que referenciam este parceiro via item.parceiros[] -->
+        <div class="sec-card" id="secao-auditoria" style="display:none;">
+          <div class="sec-title">Itens vinculados a este parceiro</div>
+          <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">
+            Itens que têm este parceiro configurado como responsável pela entrega em algum bairro.
+          </p>
+          <div id="lista-auditoria">
+            <span style="font-size:13px;color:var(--text-muted);">Nenhum item vinculado ainda.</span>
+          </div>
         </div>
       </div>
 
@@ -291,6 +303,7 @@ let TODOS_ITENS = [];
   parceiroEditandoId = params.get('id') || null;
 
   if (parceiroEditandoId){
+    renderizarAuditoria(parceiroEditandoId);
     const p = CATALOGO.parceiros.find(x => x.id === parceiroEditandoId);
     if (p) carregarParceiro(p);
   }
@@ -460,6 +473,34 @@ function atualizarResumo(){
 }
 
 /* ---------- Salvar ---------- */
+function renderizarAuditoria(parceiroId){
+  const secao = document.getElementById('secao-auditoria');
+  const lista = document.getElementById('lista-auditoria');
+  if (!secao || !lista) return;
+
+  const itensVinculados = (CATALOGO.itens || []).filter(item =>
+    (item.parceiros || []).some(e => e.parceiroId === parceiroId)
+  );
+
+  if (itensVinculados.length === 0){
+    secao.style.display = 'none';
+    return;
+  }
+
+  secao.style.display = 'block';
+  lista.innerHTML = itensVinculados.map(item => {
+    const entrada = item.parceiros.find(e => e.parceiroId === parceiroId);
+    const bairros = (entrada?.bairros || []).join(', ') || 'Todos';
+    return `<div style="display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:0.5px solid var(--border);">
+      <div>
+        <div style="font-size:13px;font-weight:500;color:var(--text-primary);">${item.nome}</div>
+        <div style="font-size:11px;color:var(--text-muted);">Bairros: ${bairros}</div>
+      </div>
+      <a onclick="location.href='mod8-item.html?id=${item.id}'" style="font-size:12px;color:var(--accent-text);cursor:pointer;text-decoration:none;">Editar item</a>
+    </div>`;
+  }).join('');
+}
+
 async function salvarParceiro(){
   const nome = document.getElementById('p-nome').value.trim();
   if (!nome){ alert('Informe o nome do parceiro.'); return; }

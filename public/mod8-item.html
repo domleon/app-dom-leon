@@ -628,7 +628,13 @@ async function salvarItem(){
   }
 
   await salvarCatalogo(CATALOGO);
-  mostrarToast('Item salvo com sucesso!');
+
+  // Informar se nenhum parceiro vinculado (comportamento padrão = Dom Leon entrega)
+  if (parceiros.length === 0){
+    mostrarToast('Item salvo — entrega pela Dom Leon em todos os bairros.');
+  } else {
+    mostrarToast('Item salvo com sucesso!');
+  }
   setTimeout(() => voltar(), 1000);
 }
 

@@ -683,8 +683,10 @@ function resolverParceiro(item, bairro, catalogo){
 
   if (!entrada) return null;
 
-  // Buscar dados completos do parceiro no catálogo
-  const parceiro = (catalogo.parceiros || []).find(p => p.id === entrada.parceiroId);
+  // Buscar dados completos do parceiro no catálogo — deve estar ativo
+  const parceiro = (catalogo.parceiros || []).find(p =>
+    p.id === entrada.parceiroId && p.ativo !== false
+  );
   return parceiro || null;
 }
 
