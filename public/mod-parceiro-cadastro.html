@@ -183,35 +183,9 @@
         </div>
       </div>
 
-      <!-- Bairros -->
-      <div class="sec-card">
-        <div class="sec-title">Bairros atendidos</div>
-        <div class="vinc-search">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" id="busca-bairros" placeholder="Filtrar bairros..." oninput="filtrarLista('bairros')">
-        </div>
-        <div class="vinc-count" id="count-bairros">0 selecionados</div>
-        <div class="vinc-lista" id="lista-bairros"></div>
-        <div class="chips-label" style="margin-top:10px;padding-top:10px;border-top:0.5px solid var(--border);font-size:11px;color:var(--text-muted);">Selecionados:</div>
-        <div class="chips-wrap" id="chips-bairros">
-          <span style="font-size:12px;color:var(--text-muted);">Nenhum bairro selecionado</span>
-        </div>
-      </div>
 
-      <!-- Itens -->
-      <div class="sec-card">
-        <div class="sec-title">Itens fornecidos</div>
-        <div class="vinc-search">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" id="busca-itens" placeholder="Filtrar itens por nome ou categoria..." oninput="filtrarLista('itens')">
-        </div>
-        <div class="vinc-count" id="count-itens">0 selecionados</div>
-        <div class="vinc-lista" id="lista-itens"></div>
-        <div class="chips-label" style="margin-top:10px;padding-top:10px;border-top:0.5px solid var(--border);font-size:11px;color:var(--text-muted);">Selecionados:</div>
-        <div class="chips-wrap" id="chips-itens">
-          <span style="font-size:12px;color:var(--text-muted);">Nenhum item selecionado</span>
-        </div>
-      </div>
+
+
 
     </div>
 
@@ -227,32 +201,14 @@
         </div>
       </div>
 
-      <!-- Resumo -->
-      <div class="sec-card">
-        <div class="sec-title">Resumo do vínculo</div>
-        <div class="rsm-row">
-          <span class="rl">Bairros selecionados</span>
-          <span class="rv" id="rv-bairros">0</span>
-        </div>
-        <div class="rsm-row acc">
-          <span class="rl">Itens vinculados</span>
-          <span class="rv" id="rv-itens">0</span>
-        </div>
-        <div class="info-box" style="margin-top:8px;">
-          <i class="ti ti-info-circle" style="font-size:12px;vertical-align:middle;margin-right:3px;"></i>
-          Itens e bairros não selecionados continuam sendo atendidos pela operação padrão da Dom Leon.
-
-        </div>
-
-        <!-- Auditoria: itens que referenciam este parceiro via item.parceiros[] -->
-        <div class="sec-card" id="secao-auditoria" style="display:none;">
-          <div class="sec-title">Itens vinculados a este parceiro</div>
-          <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">
-            Itens que têm este parceiro configurado como responsável pela entrega em algum bairro.
-          </p>
-          <div id="lista-auditoria">
-            <span style="font-size:13px;color:var(--text-muted);">Nenhum item vinculado ainda.</span>
-          </div>
+      <!-- Auditoria -->
+      <div class="sec-card" id="secao-auditoria" style="display:none;">
+        <div class="sec-title">Itens vinculados a este parceiro</div>
+        <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">
+          Itens que têm este parceiro configurado como responsável pela entrega em algum bairro.
+        </p>
+        <div id="lista-auditoria">
+          <span style="font-size:13px;color:var(--text-muted);">Nenhum item vinculado ainda.</span>
         </div>
       </div>
 
@@ -279,25 +235,14 @@
 <script>
 let CATALOGO = null;
 let parceiroEditandoId = null;
-let BAIRROS_SEL = new Set();
-let ITENS_SEL = new Set();
-let TODOS_BAIRROS = [];
-let TODOS_ITENS = [];
+
 
 /* ---------- Inicialização ---------- */
 (async function init(){
   CATALOGO = await carregarCatalogo();
   if (!CATALOGO.parceiros) CATALOGO.parceiros = [];
 
-  // Carregar bairros do catálogo
-  TODOS_BAIRROS = (CATALOGO.bairros || []).map(b => b.nome || b);
 
-  // Carregar itens do catálogo
-  TODOS_ITENS = (CATALOGO.itens || []).filter(i => i.ativo).map(i => ({
-    id: i.id,
-    nome: i.nome,
-    categoria: i.categoria || '—'
-  }));
 
   const params = new URLSearchParams(location.search);
   parceiroEditandoId = params.get('id') || null;
@@ -308,8 +253,7 @@ let TODOS_ITENS = [];
     if (p) carregarParceiro(p);
   }
 
-  renderizarListaBairros('');
-  renderizarListaItens('');
+
   atualizarResumo();
 })();
 
@@ -327,180 +271,10 @@ function carregarParceiro(p){
 
   if (!p.ativo) document.getElementById('toggle-ativo').classList.add('off');
 
-  BAIRROS_SEL = new Set(p.bairros || []);
-  ITENS_SEL = new Set(p.itens || []);
+
 }
 
 /* ---------- Renderizar listas de vínculos ---------- */
-function renderizarListaBairros(filtro){
-  const lista = document.getElementById('lista-bairros');
-  const termo = filtro.toLowerCase();
-  const filtrados = TODOS_BAIRROS.filter(b => !termo || b.toLowerCase().includes(termo));
-  lista.innerHTML = '';
-
-  if (filtrados.length === 0){
-    lista.innerHTML = '<div style="padding:10px;text-align:center;font-size:12px;color:var(--text-muted);">Nenhum bairro encontrado</div>';
-    return;
-  }
-
-  filtrados.forEach(b => {
-    const sel = BAIRROS_SEL.has(b);
-    const el = document.createElement('div');
-    el.className = 'vi' + (sel ? ' sel' : '');
-    el.dataset.nome = b;
-    el.onclick = () => toggleVinc('bairros', b, el);
-    el.innerHTML = `
-      <div><div class="vn">${b}</div></div>
-      <div class="vi-chk">${sel ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : ''}</div>`;
-    lista.appendChild(el);
-  });
-
-  atualizarChips('bairros');
-  atualizarResumo();
-}
-
-function renderizarListaItens(filtro){
-  const lista = document.getElementById('lista-itens');
-  const termo = filtro.toLowerCase();
-  const filtrados = TODOS_ITENS.filter(i =>
-    !termo || i.nome.toLowerCase().includes(termo) || i.categoria.toLowerCase().includes(termo)
-  );
-  lista.innerHTML = '';
-
-  if (filtrados.length === 0){
-    lista.innerHTML = '<div style="padding:10px;text-align:center;font-size:12px;color:var(--text-muted);">Nenhum item encontrado</div>';
-    return;
-  }
-
-  filtrados.forEach(item => {
-    const sel = ITENS_SEL.has(item.id);
-    const el = document.createElement('div');
-    el.className = 'vi' + (sel ? ' sel' : '');
-    el.dataset.id = item.id;
-    el.onclick = () => toggleVinc('itens', item.id, el);
-    el.innerHTML = `
-      <div>
-        <div class="vn">${item.nome}</div>
-        <div class="vs">${item.categoria}</div>
-      </div>
-      <div class="vi-chk">${sel ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : ''}</div>`;
-    lista.appendChild(el);
-  });
-
-  atualizarChips('itens');
-  atualizarResumo();
-}
-
-function filtrarLista(tipo){
-  const val = document.getElementById('busca-' + tipo).value;
-  if (tipo === 'bairros') renderizarListaBairros(val);
-  else renderizarListaItens(val);
-}
-
-/* ---------- Toggle seleção ---------- */
-function toggleVinc(tipo, valor, el){
-  const conjunto = tipo === 'bairros' ? BAIRROS_SEL : ITENS_SEL;
-  if (conjunto.has(valor)){
-    conjunto.delete(valor);
-    el.classList.remove('sel');
-    el.querySelector('.vi-chk').innerHTML = '';
-  } else {
-    conjunto.add(valor);
-    el.classList.add('sel');
-    el.querySelector('.vi-chk').innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>';
-  }
-  atualizarChips(tipo);
-  atualizarContador(tipo);
-  atualizarResumo();
-}
-
-/* ---------- Chips ---------- */
-function atualizarChips(tipo){
-  const wrap = document.getElementById('chips-' + tipo);
-  const conjunto = tipo === 'bairros' ? BAIRROS_SEL : ITENS_SEL;
-  const cls = tipo === 'bairros' ? 'chip-b' : 'chip-i';
-
-  if (conjunto.size === 0){
-    wrap.innerHTML = `<span style="font-size:12px;color:var(--text-muted);">Nenhum ${tipo === 'bairros' ? 'bairro' : 'item'} selecionado</span>`;
-    return;
-  }
-
-  wrap.innerHTML = '';
-
-  // Para itens, mostrar nome; para bairros, já é o nome
-  const items = tipo === 'bairros'
-    ? [...conjunto].map(v => ({ id: v, nome: v }))
-    : [...conjunto].map(id => ({ id, nome: TODOS_ITENS.find(i => i.id === id)?.nome || id }));
-
-  items.forEach(({ id, nome }) => {
-    const chip = document.createElement('span');
-    chip.className = cls;
-    chip.innerHTML = `${nome} <span class="chip-x" onclick="removerVinc('${tipo}','${id}')">✕</span>`;
-    wrap.appendChild(chip);
-  });
-}
-
-function removerVinc(tipo, valor){
-  const conjunto = tipo === 'bairros' ? BAIRROS_SEL : ITENS_SEL;
-  conjunto.delete(valor);
-  // Atualizar item na lista se visível
-  const sel = tipo === 'bairros'
-    ? document.querySelector(`#lista-bairros .vi[data-nome="${valor}"]`)
-    : document.querySelector(`#lista-itens .vi[data-id="${valor}"]`);
-  if (sel){
-    sel.classList.remove('sel');
-    sel.querySelector('.vi-chk').innerHTML = '';
-  }
-  atualizarChips(tipo);
-  atualizarContador(tipo);
-  atualizarResumo();
-}
-
-function atualizarContador(tipo){
-  const conjunto = tipo === 'bairros' ? BAIRROS_SEL : ITENS_SEL;
-  const total = tipo === 'bairros' ? TODOS_BAIRROS.length : TODOS_ITENS.length;
-  document.getElementById('count-' + tipo).textContent =
-    `${conjunto.size} de ${total} selecionado${conjunto.size !== 1 ? 's' : ''}`;
-}
-
-function atualizarResumo(){
-  document.getElementById('rv-bairros').textContent = BAIRROS_SEL.size;
-  document.getElementById('rv-itens').textContent = ITENS_SEL.size;
-  document.getElementById('count-bairros').textContent =
-    `${BAIRROS_SEL.size} de ${TODOS_BAIRROS.length} selecionado${BAIRROS_SEL.size !== 1 ? 's' : ''}`;
-  document.getElementById('count-itens').textContent =
-    `${ITENS_SEL.size} de ${TODOS_ITENS.length} selecionado${ITENS_SEL.size !== 1 ? 's' : ''}`;
-}
-
-/* ---------- Salvar ---------- */
-function renderizarAuditoria(parceiroId){
-  const secao = document.getElementById('secao-auditoria');
-  const lista = document.getElementById('lista-auditoria');
-  if (!secao || !lista) return;
-
-  const itensVinculados = (CATALOGO.itens || []).filter(item =>
-    (item.parceiros || []).some(e => e.parceiroId === parceiroId)
-  );
-
-  if (itensVinculados.length === 0){
-    secao.style.display = 'none';
-    return;
-  }
-
-  secao.style.display = 'block';
-  lista.innerHTML = itensVinculados.map(item => {
-    const entrada = item.parceiros.find(e => e.parceiroId === parceiroId);
-    const bairros = (entrada?.bairros || []).join(', ') || 'Todos';
-    return `<div style="display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:0.5px solid var(--border);">
-      <div>
-        <div style="font-size:13px;font-weight:500;color:var(--text-primary);">${item.nome}</div>
-        <div style="font-size:11px;color:var(--text-muted);">Bairros: ${bairros}</div>
-      </div>
-      <a onclick="location.href='mod8-item.html?id=${item.id}'" style="font-size:12px;color:var(--accent-text);cursor:pointer;text-decoration:none;">Editar item</a>
-    </div>`;
-  }).join('');
-}
-
 async function salvarParceiro(){
   const nome = document.getElementById('p-nome').value.trim();
   if (!nome){ alert('Informe o nome do parceiro.'); return; }
@@ -514,8 +288,7 @@ async function salvarParceiro(){
     email: document.getElementById('p-email').value.trim(),
     obs: document.getElementById('p-obs').value.trim(),
     ativo,
-    bairros: [...BAIRROS_SEL],
-    itens: [...ITENS_SEL],
+
     emoji: '🏢'
   };
 

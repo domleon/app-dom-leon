@@ -142,8 +142,6 @@
         <tr>
           <th style="width:26%;">Parceiro</th>
           <th style="width:18%;">Contato</th>
-          <th style="width:20%;">Bairros</th>
-          <th style="width:20%;">Itens</th>
           <th style="width:8%;text-align:center;">Status</th>
           <th style="width:8%;"></th>
         </tr>
@@ -213,21 +211,11 @@ function renderizarTabela(){
   }
 
   lista.forEach(p => {
-    const bairros = p.bairros || [];
-    const itens = p.itens || [];
-    // Itens que referenciam este parceiro via item.parceiros[]
-    const itensVinculados = (CATALOGO.itens || []).filter(item =>
-      (item.parceiros || []).some(e => e.parceiroId === p.id)
-    );
+
+
     const MAX = 2;
 
-    const tagsB = bairros.slice(0, MAX).map(b => `<span class="tag-bairro">${b}</span>`).join('');
-    const maisB = bairros.length > MAX ? `<span class="tag-mais">+${bairros.length - MAX}</span>` : '';
-    const tagsI = itens.slice(0, MAX).map(i => `<span class="tag-item">${i}</span>`).join('');
-    const maisI = itens.length > MAX ? `<span class="tag-mais">+${itens.length - MAX}</span>` : '';
-    const tagVinc = itensVinculados.length > 0
-      ? `<span style="font-size:10px;background:#EFF6FF;color:#1D4ED8;border-radius:20px;padding:1px 8px;margin-left:4px;">${itensVinculados.length} item(ns) vinculado(s)</span>`
-      : '<span style="font-size:10px;color:var(--text-muted);">Nenhum item vinculado</span>';
+
 
     const tr = document.createElement('tr');
     if (!p.ativo) tr.classList.add('inativo');
@@ -248,8 +236,7 @@ function renderizarTabela(){
           ${!p.telefone && !p.email ? '<span style="color:var(--text-muted);font-size:12px;">—</span>' : ''}
         </div>
       </td>
-      <td><div class="tags-wrap">${tagsB || '<span style="color:var(--text-muted);font-size:12px;">Nenhum</span>'}${maisB}</div></td>
-      <td><div class="tags-wrap">${tagsI || '<span style="color:var(--text-muted);font-size:12px;">Nenhum</span>'}${maisI}</div></td>
+
       <td style="text-align:center;">
         <span class="${p.ativo ? 'badge-ativo' : 'badge-inativo'}">${p.ativo ? 'Ativo' : 'Inativo'}</span>
       </td>
