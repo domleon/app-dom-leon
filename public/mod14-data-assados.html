@@ -68,7 +68,7 @@
     color:var(--text-muted);font-size:13px;
   }
 </style>
-<link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link rel="stylesheet" href="tabler-icons.min.css">
 </head>
 <body>
 <div class="phone">
@@ -156,7 +156,7 @@ function confirmarData(){
         <div class="limite">${formatarLimite(item.dataStr, item.horarioLimite)}</div>
       </div>
       <div>
-        ${idx === 0 ? `<span class="tag-proximo">Próximo</span>` : ''}
+
         <div class="check-icon">
           <svg class="check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
@@ -175,5 +175,6 @@ function confirmarData(){
   }
 })();
 </script>
+<script src="capacitor-back.js"></script>
 </body>
 </html>
