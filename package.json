@@ -1,0 +1,26 @@
+{
+  "name": "app-dom-leon",
+  "version": "1.0.0",
+  "description": "Sistema web de pedidos, assinatura mensal e gestão da **Padaria Dom Leon** (Salto de Pirapora, SP).",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/domleon/app-dom-leon.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/domleon/app-dom-leon/issues"
+  },
+  "homepage": "https://github.com/domleon/app-dom-leon#readme",
+  "dependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/cli": "^8.5.2",
+    "@capacitor/core": "^8.5.2"
+  }
+}
