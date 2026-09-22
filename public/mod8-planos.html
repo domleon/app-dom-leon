@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dom Leon Assinatura — Planos</title>
+<title>Dom Leon Assinatura — Cadastro</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -216,7 +216,7 @@
   <div class="nav-item" onclick="window.location.href='mod3-admin-assinantes.html'"><i class="ti ti-users"></i>Assinantes</div>
   <div class="nav-item" onclick="window.location.href='mod3-admin-assinantes.html?tab=avulsos'"><i class="ti ti-shopping-bag"></i>Pedidos avulsos</div>
   <div class="nav-item" onclick="window.location.href='mod3-admin-assinantes.html?tab=producao'"><i class="ti ti-clipboard-list"></i>Produção do dia</div>
-  <div class="nav-item active" onclick="window.location.href='mod8-planos.html'"><i class="ti ti-package"></i>Planos</div>
+  <div class="nav-item active" onclick="window.location.href='mod8-planos.html'"><i class="ti ti-package"></i>Cadastro</div>
   <div class="nav-item" onclick="window.location.href='mod5-entrega.html'"><i class="ti ti-truck-delivery"></i>Logística</div>
   <div class="nav-item" onclick="window.location.href='mod7-relatorios.html?tab=checklist'"><i class="ti ti-checklist"></i>Checklist retirada</div>
   <div class="nav-item" onclick="window.location.href='mod-projetos.html'"><i class="ti ti-layout-grid"></i>Projetos</div>
@@ -229,14 +229,14 @@
 
   <div class="page-header">
     <div>
-      <h1>Planos</h1>
+      <h1>Cadastro</h1>
       <p>Cadastro de categorias, itens do Monte o seu e combos fixos</p>
     </div>
   </div>
 
   <div class="tabs">
     <button class="tab-btn active" data-panel="combos" onclick="showPanel('combos')">Combos fixos</button>
-    <button class="tab-btn" data-panel="itens" onclick="showPanel('itens')">Itens do Monte o seu</button>
+    <button class="tab-btn" data-panel="itens" onclick="showPanel('itens')">Produtos</button>
     <button class="tab-btn" data-panel="categorias" onclick="showPanel('categorias')">Categorias</button>
     <button class="tab-btn" data-panel="bairros" onclick="showPanel('bairros')">Bairros</button>
 
@@ -439,9 +439,9 @@
 
     <div class="field">
       <label>Categoria</label>
-      <select id="item-categoria"></select>
+      <select id="item-categoria" required></select>
     </div>
-    <div class="field"><label>Nome do item</label><input type="text" id="item-nome"></div>
+    <div class="field"><label>Nome do item</label><input type="text" id="item-nome" required></div>
 
     <div class="field">
       <label>Disponível em quais modalidades?</label>
@@ -768,7 +768,18 @@ function salvarItem(){
     alert('Cadastre ao menos uma categoria antes de criar um item.');
     return;
   }
-  const nome = document.getElementById('item-nome').value.trim() || 'Novo item';
+  const nome = document.getElementById('item-nome').value.trim();
+  if (!nome){
+    alert('Informe o nome do item.');
+    document.getElementById('item-nome').focus();
+    return;
+  }
+  const categoria = document.getElementById('item-categoria').value;
+  if (!categoria){
+    alert('Selecione uma categoria.');
+    document.getElementById('item-categoria').focus();
+    return;
+  }
   const avulso = document.getElementById('item-mod-avulso').checked;
   const assinatura = document.getElementById('item-mod-assinatura').checked;
   if (!avulso && !assinatura){
@@ -777,7 +788,6 @@ function salvarItem(){
   }
   const precoAvulso = parseFloat(document.getElementById('item-preco-avulso').value.replace(',', '.')) || 0;
   const precoAssinatura = parseFloat(document.getElementById('item-preco-assinatura').value.replace(',', '.')) || 0;
-  const categoria = document.getElementById('item-categoria').value;
   const imagem = document.getElementById('item-img-preview').dataset.imagem || null;
   const modalidades = { avulso, assinatura };
 

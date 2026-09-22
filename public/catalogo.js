@@ -81,6 +81,7 @@ function montarProjetosPadrao(){
       fluxo: 'avulso',
       ordem: 1,
       ativo: true,
+      emBreve: false,
       disponibilidade: montarSemanaHorarios()
     },
     {
@@ -91,6 +92,7 @@ function montarProjetosPadrao(){
       fluxo: 'assados',
       ordem: 2,
       ativo: true,
+      emBreve: false,
       disponibilidade: montarSemanaHorarios({
         seg: { ativo: false, inicio: '00:00', fim: '23:59' },
         ter: { ativo: false, inicio: '00:00', fim: '23:59' },
@@ -114,6 +116,7 @@ function montarProjetosPadrao(){
       fluxo: 'assinatura',
       ordem: 3,
       ativo: true,
+      emBreve: false,
       disponibilidade: montarSemanaHorarios()
     }
   ];
@@ -373,6 +376,11 @@ function migrarCatalogo(catalogo){
   // MIGRAÇÃO PRINCIPAL: configCards + configAssados → projetos[]
   if (!catalogo.projetos || catalogo.projetos.length === 0) {
     const projetosPadrao = montarProjetosPadrao();
+
+    // Migração suave: garantir emBreve em projetos existentes
+    (catalogo.projetos || []).forEach(p => {
+      if (p.emBreve === undefined) { p.emBreve = false; precisouMigrar = true; }
+    });
 
     // Preservar disponibilidade do configCards se existir
     if (catalogo.configCards) {

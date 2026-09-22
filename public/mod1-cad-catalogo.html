@@ -320,6 +320,9 @@
   }
   .success-wrap h2{font-size:18px;font-weight:600;margin-bottom:6px;font-family:'Fraunces',serif;}
   .success-wrap p{font-size:13px;color:var(--text-secondary);max-width:260px;}
+
+  .opcao-card.em-breve { opacity: 0.72; cursor: default; }
+  .badge-em-breve { display:inline-flex; align-items:center; gap:4px; background:#E1F5EE; border:0.5px solid #5DCAA5; border-radius:20px; padding:3px 10px; font-size:11px; font-weight:500; color:#085041; margin-top:6px; }
 </style>
 </head>
 <body>
@@ -541,24 +544,31 @@ async function aplicarDisponibilidadeCards(){
   projetos.forEach(projeto => {
     const isAssados = projeto.fluxo === 'assados';
     const assadoTemDatas = isAssados ? assadosPossuiDatasDisponiveis(catalogo) : false;
-    const cardDisponivel = isAssados ? assadoTemDatas : cardDisponivelAgora(projeto);
+    const emBreve = projeto.emBreve === true;
+    const cardDisponivel = emBreve ? false : (isAssados ? assadoTemDatas : cardDisponivelAgora(projeto));
 
     const iconeHtml = projeto.icone
       ? `<img src="${projeto.icone}" alt="${projeto.nome}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">`
       : _iconeFluxoSvg(projeto.fluxo);
 
     const card = document.createElement('div');
-    card.className = 'opcao-card' + (cardDisponivel ? '' : ' fechado');
+    card.className = 'opcao-card' + (emBreve ? ' em-breve' : (cardDisponivel ? '' : ' fechado'));
     card.dataset.projetoId = projeto.id;
     card.innerHTML = `
-      <div class="opcao-icone">${cardDisponivel ? iconeHtml : _iconeCadeadoSvg()}</div>
+      <div class="opcao-icone">${(cardDisponivel && !emBreve) ? iconeHtml : (emBreve ? iconeHtml : _iconeCadeadoSvg())}</div>
       <div class="opcao-texto">
         <p class="opcao-titulo">${projeto.nome}</p>
         <p class="opcao-descricao">${projeto.descricao || ''}</p>
         <div class="card-extra" id="extra-${projeto.id}"></div>
       </div>`;
 
-    if (cardDisponivel){
+    if (emBreve){
+      const extra = card.querySelector('.card-extra');
+      if (extra) extra.innerHTML = \`<div class="badge-em-breve">
+        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        <span>Em breve</span>
+      </div>\`;
+    } else if (cardDisponivel){
       const acao = FLUXO_ONCLICK[projeto.fluxo];
       if (acao) card.onclick = () => acao(projeto.id);
     } else {

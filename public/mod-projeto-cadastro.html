@@ -309,6 +309,10 @@
           <span>Projeto ativo</span>
           <div class="toggle on" id="toggle-ativo" onclick="this.classList.toggle('on')"></div>
         </div>
+        <div class="toggle-row" style="margin-top:10px;">
+          <span>Em breve <span style="font-size:11px;color:var(--text-muted);">(card visível, mas bloqueado)</span></span>
+          <div class="toggle" id="toggle-em-breve" onclick="this.classList.toggle('on')"></div>
+        </div>
       </div>
 
       <!-- Preview -->
@@ -437,6 +441,8 @@ function carregarProjeto(p){
 
   if (!p.ativo) document.getElementById('toggle-ativo').classList.remove('on');
   else document.getElementById('toggle-ativo').classList.add('on');
+  if (p.emBreve) document.getElementById('toggle-em-breve').classList.add('on');
+  else document.getElementById('toggle-em-breve').classList.remove('on');
 
   // Ícone
   if (p.icone){
@@ -706,6 +712,7 @@ async function salvarProjeto(){
   if (!nome){ alert('Informe o nome do projeto.'); return; }
 
   const ativo = document.getElementById('toggle-ativo').classList.contains('on');
+  const emBreve = document.getElementById('toggle-em-breve').classList.contains('on');
 
   // Montar disponibilidade
   const disponibilidade = {};
@@ -726,6 +733,7 @@ async function salvarProjeto(){
     icone: ICONE_BASE64,
     fluxo: FLUXO_SEL,
     ativo,
+    emBreve,
     disponibilidade
   };
 
