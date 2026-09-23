@@ -564,10 +564,10 @@ async function aplicarDisponibilidadeCards(){
 
     if (emBreve){
       const extra = card.querySelector('.card-extra');
-      if (extra) extra.innerHTML = \`<div class="badge-em-breve">
-        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-        <span>Em breve</span>
-      </div>\`;
+      if (extra) extra.innerHTML = '<div class="badge-em-breve">'
+        + '<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>'
+        + '<span>Em breve</span>'
+        + '</div>';
     } else if (cardDisponivel){
       const acao = FLUXO_ONCLICK[projeto.fluxo];
       if (acao) card.onclick = () => acao(projeto.id);
