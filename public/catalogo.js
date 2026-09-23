@@ -403,6 +403,11 @@ function migrarCatalogo(catalogo){
     catalogo.projetos = projetosPadrao;
     precisouMigrar = true;
   } else {
+    // Migração suave: garantir emBreve em projetos existentes
+    catalogo.projetos.forEach(p => {
+      if (p.emBreve === undefined) { p.emBreve = false; precisouMigrar = true; }
+    });
+
     // Garantir que projeto de assados sempre tem configAssados
     const projAssados = catalogo.projetos.find(p => p.fluxo === 'assados');
     if (projAssados && !projAssados.configAssados) {
