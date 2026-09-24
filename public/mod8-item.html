@@ -108,27 +108,31 @@
   /* Toast */
   .toast{position:fixed;bottom:24px;right:24px;background:var(--text-primary);color:#fff;border-radius:10px;padding:12px 18px;font-size:13px;display:none;align-items:center;gap:8px;z-index:999;}
   .toast.show{display:flex;}
+
+  /* Carrossel de imagens */
+  .carousel-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:8px;}
+  .img-slot{position:relative;aspect-ratio:1;border-radius:8px;border:0.5px solid var(--border-strong);background:var(--bg);overflow:hidden;display:flex;align-items:center;justify-content:center;}
+  .img-slot img{width:100%;height:100%;object-fit:cover;display:block;}
+  .img-slot.empty{border-style:dashed;cursor:pointer;flex-direction:column;gap:4px;}
+  .img-slot.empty i{font-size:20px;color:var(--text-muted);}
+  .img-slot.empty span{font-size:10px;color:var(--text-muted);}
+  .img-slot.capa::after{content:'Capa';position:absolute;bottom:0;left:0;right:0;background:rgba(15,110,86,.85);color:#fff;font-size:10px;font-weight:500;text-align:center;padding:3px 0;}
+  .slot-actions{position:absolute;top:4px;right:4px;display:none;flex-direction:column;gap:3px;}
+  .img-slot:hover .slot-actions{display:flex;}
+  .slot-btn{width:22px;height:22px;border-radius:5px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;}
+  .slot-btn.del{background:rgba(200,50,50,.9);color:#fff;}
+  .slot-btn.star{background:rgba(15,110,86,.9);color:#fff;}
+  .slot-btn.zoom{background:rgba(0,0,0,.6);color:#fff;}
+  /* Lightbox */
+  .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.88);display:none;align-items:center;justify-content:center;z-index:9999;}
+  .lightbox.open{display:flex;}
+  .lightbox-img{max-width:90vw;max-height:85vh;border-radius:10px;object-fit:contain;}
+  .lightbox-close{position:absolute;top:16px;right:16px;background:rgba(255,255,255,.15);border:none;color:#fff;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 </style>
 </head>
 <body>
 
-<div class="sidebar">
-  <div class="sidebar-brand">
-    <i class="ti ti-bread" style="font-size:20px;color:var(--accent-text);"></i>
-    <span>Dom Leon Admin</span>
-  </div>
-  <div class="nav-item" onclick="window.location.href='mod3-admin-assinantes.html'"><i class="ti ti-layout-dashboard"></i>Dashboard</div>
-  <div class="nav-item" onclick="window.location.href='mod3-admin-assinantes.html'"><i class="ti ti-users"></i>Assinantes</div>
-  <div class="nav-item" onclick="window.location.href='mod3-admin-assinantes.html?tab=avulsos'"><i class="ti ti-shopping-bag"></i>Pedidos avulsos</div>
-  <div class="nav-item" onclick="window.location.href='mod3-admin-assinantes.html?tab=producao'"><i class="ti ti-clipboard-list"></i>Produção do dia</div>
-  <div class="nav-item active" onclick="window.location.href='mod8-planos.html'"><i class="ti ti-package"></i>Planos</div>
-  <div class="nav-item" onclick="window.location.href='mod5-entrega.html'"><i class="ti ti-truck-delivery"></i>Logística</div>
-  <div class="nav-item" onclick="window.location.href='mod7-relatorios.html?tab=checklist'"><i class="ti ti-checklist"></i>Checklist retirada</div>
-  <div class="nav-item" onclick="window.location.href='mod-projetos.html'"><i class="ti ti-layout-grid"></i>Projetos</div>
-  <div class="nav-item" onclick="window.location.href='mod-parceiros.html'"><i class="ti ti-building-store"></i>Parceiros</div>
-  <div class="nav-item"><i class="ti ti-cash"></i>Financeiro</div>
-  <div class="nav-item" onclick="window.location.href='mod7-relatorios.html'"><i class="ti ti-chart-bar"></i>Relatórios</div>
-</div>
+<div id="sidebar" class="sidebar"></div>
 
 <div class="main">
 
@@ -179,18 +183,17 @@
         </div>
       </div>
 
-      <!-- Imagem -->
+      <!-- Carrossel de imagens -->
       <div class="sec-card">
-        <div class="sec-title">Imagem do produto</div>
-        <div class="img-drop-zone" id="img-drop-zone" onclick="document.getElementById('item-img-input').click()">
-          <i class="ti ti-cloud-upload"></i>
-          <p>Clique ou arraste uma imagem</p>
-          <small>JPG, PNG ou WEBP · máx. 2 MB</small>
-          <input type="file" accept="image/*" id="item-img-input" onchange="preverImagem(this)" style="display:none;">
-        </div>
-        <button class="btn-remover-img" id="btn-remover-img" style="display:none;" onclick="removerImagem()">
-          <i class="ti ti-x" style="font-size:12px;"></i> Remover imagem
-        </button>
+        <div class="sec-title">Imagens do produto <span style="font-size:10px;color:var(--text-muted);font-weight:400;text-transform:none;">(até 5 · clique ⭐ para definir a capa)</span></div>
+        <div class="carousel-grid" id="carousel-grid"></div>
+        <input type="file" accept="image/*" id="item-img-input" style="display:none;" onchange="adicionarImagemCarrossel(this)">
+      </div>
+
+      <!-- Lightbox -->
+      <div class="lightbox" id="lightbox" onclick="fecharLightbox()">
+        <button class="lightbox-close" onclick="fecharLightbox()"><i class="ti ti-x" aria-hidden="true"></i></button>
+        <img class="lightbox-img" id="lightbox-img" src="" alt="Imagem ampliada">
       </div>
 
     </div>
@@ -261,6 +264,9 @@ let itemEditandoId = null;
 
   const params = new URLSearchParams(window.location.search);
   itemEditandoId = params.get('id') || null;
+
+  _carousel = [null,null,null,null,null];
+  renderCarrossel();
 
   if (itemEditandoId){
     const item = CATALOGO.itens.find(i => i.id === itemEditandoId);
@@ -390,13 +396,12 @@ function carregarItem(item){
     renderizarParceirosItem(item.parceiros || []);
   }
 
-  // Imagem
-  if (item.imagem){
-    const zone = document.getElementById('img-drop-zone');
-    zone.classList.add('tem-imagem');
-    zone.innerHTML = `<img src="${item.imagem}" alt="${item.nome}"><input type="file" accept="image/*" id="item-img-input" onchange="preverImagem(this)" style="display:none;">`;
-    document.getElementById('btn-remover-img').style.display = 'flex';
-  }
+  // Carrossel de imagens
+  _carousel = [null,null,null,null,null];
+  const imgs = item.imagens && item.imagens.length ? item.imagens : (item.imagem ? [item.imagem] : []);
+  imgs.forEach((img, i) => { if (i < 5) _carousel[i] = img; });
+  _capaIdx = item.capaIdx || 0;
+  renderCarrossel();
 }
 
 /* ---------- Toggle de projeto ---------- */
@@ -439,32 +444,83 @@ document.getElementById('toggle-ativo').addEventListener('click', function(){
   this.classList.toggle('on');
 });
 
-/* ---------- Imagem ---------- */
-function preverImagem(input){
+/* ---------- Carrossel de imagens ---------- */
+let _carousel = [];   // array de base64 (null = slot vazio)
+let _capaIdx  = 0;    // índice da imagem capa
+
+function renderCarrossel(){
+  const grid = document.getElementById('carousel-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  const totalImgs = _carousel.filter(Boolean).length;
+  for (let i = 0; i < 5; i++){
+    const div = document.createElement('div');
+    if (_carousel[i]){
+      div.className = 'img-slot' + (i === _capaIdx ? ' capa' : '');
+      div.innerHTML =
+        '<img src="' + _carousel[i] + '" alt="imagem ' + (i+1) + '">' +
+        '<div class="slot-actions">' +
+          '<button class="slot-btn zoom" onclick="abrirLightbox(' + i + ')" title="Ampliar"><i class="ti ti-zoom-in" aria-hidden="true"></i></button>' +
+          '<button class="slot-btn star" onclick="definirCapa(' + i + ')" title="Definir capa"><i class="ti ti-' + (i === _capaIdx ? 'star-filled' : 'star') + '" aria-hidden="true"></i></button>' +
+          '<button class="slot-btn del" onclick="removerSlot(' + i + ')" title="Remover"><i class="ti ti-x" aria-hidden="true"></i></button>' +
+        '</div>';
+    } else if (totalImgs < 5) {
+      div.className = 'img-slot empty';
+      div.innerHTML = '<i class="ti ti-plus" aria-hidden="true"></i><span>Adicionar</span>';
+      div.onclick = () => document.getElementById('item-img-input').click();
+    } else {
+      return;
+    }
+    grid.appendChild(div);
+  }
+}
+
+function definirCapa(idx){
+  _capaIdx = idx;
+  renderCarrossel();
+}
+
+function removerSlot(idx){
+  _carousel[idx] = null;
+  // compactar
+  _carousel = _carousel.filter(Boolean);
+  while (_carousel.length < 5) _carousel.push(null);
+  if (_capaIdx >= _carousel.filter(Boolean).length) _capaIdx = 0;
+  renderCarrossel();
+}
+
+function adicionarImagemCarrossel(input){
   const file = input.files[0];
   if (!file) return;
   if (file.size > 2 * 1024 * 1024){ alert('Imagem muito grande. Máximo 2 MB.'); return; }
   const reader = new FileReader();
   reader.onload = e => {
-    const zone = document.getElementById('img-drop-zone');
-    zone.classList.add('tem-imagem');
-    zone.innerHTML = `<img src="${e.target.result}" alt="preview"><input type="file" accept="image/*" id="item-img-input" onchange="preverImagem(this)" style="display:none;">`;
-    zone.dataset.imagem = e.target.result;
-    document.getElementById('btn-remover-img').style.display = 'flex';
+    const idx = _carousel.findIndex(x => !x);
+    if (idx === -1) return;
+    _carousel[idx] = e.target.result;
+    if (_carousel.filter(Boolean).length === 1) _capaIdx = 0;
+    renderCarrossel();
+    input.value = '';
   };
   reader.readAsDataURL(file);
 }
 
-function removerImagem(){
-  const zone = document.getElementById('img-drop-zone');
-  zone.classList.remove('tem-imagem');
-  zone.innerHTML = `
-    <i class="ti ti-cloud-upload"></i>
-    <p>Clique ou arraste uma imagem</p>
-    <small>JPG, PNG ou WEBP · máx. 2 MB</small>
-    <input type="file" accept="image/*" id="item-img-input" onchange="preverImagem(this)" style="display:none;">`;
-  zone.dataset.imagem = '';
-  document.getElementById('btn-remover-img').style.display = 'none';
+function abrirLightbox(idx){
+  if (!_carousel[idx]) return;
+  document.getElementById('lightbox-img').src = _carousel[idx];
+  document.getElementById('lightbox').classList.add('open');
+}
+
+function fecharLightbox(){
+  document.getElementById('lightbox').classList.remove('open');
+}
+
+function getImagemCapa(){
+  return _carousel.find(Boolean) || null;
+}
+
+function getImagens(){
+  return _carousel.filter(Boolean);
 }
 
 /* ---------- Salvar ---------- */
@@ -591,7 +647,8 @@ async function salvarItem(){
   const categoria = document.getElementById('item-categoria').value;
   const descricao = document.getElementById('item-descricao').value.trim();
   const ativo = document.getElementById('toggle-ativo').classList.contains('on');
-  const imagem = document.getElementById('img-drop-zone').dataset.imagem || null;
+  const imagens = getImagens();
+  const imagem = imagens[_capaIdx] || imagens[0] || null;
 
   // Parceiros — filtrar entradas válidas
   const parceiros = getParceiroItemAtual().filter(e => e.parceiroId && e.bairros.length > 0);
@@ -605,7 +662,7 @@ async function salvarItem(){
   const precoAssados    = projAssados    ? (projetosItem[projAssados.id]?.preco || 0) : 0;
 
   const dadosItem = {
-    nome, categoria, descricao, ativo, imagem,
+    nome, categoria, descricao, ativo, imagem, imagens, capaIdx: _capaIdx,
     projetos: projetosItem,
     parceiros,
     // Campos legado mantidos para compatibilidade com módulos ainda não migrados
@@ -663,6 +720,7 @@ function mostrarToast(msg){
   setTimeout(() => t.classList.remove('show'), 2000);
 }
 </script>
+<script src="nav.js"></script>
 <script src="capacitor-back.js"></script>
 </body>
 </html>
