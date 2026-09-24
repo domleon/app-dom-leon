@@ -1313,6 +1313,163 @@ const DIAS_ORDEM_DISP = ['seg','ter','qua','qui','sex','sab','dom'];
   else if (window.location.search.includes('tab=projetos')) showPanel('projetos');
   else if (window.location.search.includes('tab=parceiros')) showPanel('parceiros');
 })();
+
+/* =====================================================================
+   PROJETOS (aba)
+   ===================================================================== */
+let _projDragged = null;
+const _DIAS_ABREV  = {seg:'Seg',ter:'Ter',qua:'Qua',qui:'Qui',sex:'Sex',sab:'Sáb',dom:'Dom'};
+const _DIAS_ORDEM  = ['seg','ter','qua','qui','sex','sab','dom'];
+const _FLUXO_LABEL = {avulso:'Pedido avulso',assinatura:'Assinatura mensal',assados:'Assados'};
+const _FLUXO_CLS   = {avulso:'fluxo-avulso',assinatura:'fluxo-assinatura',assados:'fluxo-assados'};
+const _FLUXO_ICONE = {avulso:'ti-shopping-cart',assinatura:'ti-repeat',assados:'ti-tools-kitchen-2'};
+
+function renderizarProjetos(){
+  const list = document.getElementById('proj-list');
+  if (!list) return;
+  const projs = (CATALOGO.projetos || []).slice().sort((a,b)=>(a.ordem||0)-(b.ordem||0));
+  list.innerHTML = '';
+  if (projs.length === 0){
+    list.innerHTML = '<div style="text-align:center;padding:50px;color:var(--text-muted);font-size:13px;">Nenhum projeto cadastrado ainda.</div>';
+    return;
+  }
+  projs.forEach(p => {
+    const diasAtivos = _DIAS_ORDEM.filter(d => p.disponibilidade && p.disponibilidade[d] && p.disponibilidade[d].ativo);
+    const dispTexto  = diasAtivos.length === 7 ? 'Todos os dias' : diasAtivos.length === 0 ? 'Nenhum dia' : diasAtivos.map(d=>_DIAS_ABREV[d]).join(', ');
+    let horarioTexto = '';
+    if (diasAtivos.length > 0){ const h = p.disponibilidade[diasAtivos[0]]; horarioTexto = h.inicio+' - '+h.fim; }
+    const row = document.createElement('div');
+    row.className = 'proj-row'+(p.ativo?'':' inativo');
+    row.draggable = true;
+    row.dataset.id = p.id;
+    const iconeHtml = p.icone ? '<img src="'+p.icone+'" alt="'+p.nome+'">' : '<i class="ti '+(_FLUXO_ICONE[p.fluxo]||'ti-layout-grid')+'"></i>';
+    row.innerHTML =
+      '<div class="drag-handle"><i class="ti ti-grip-vertical"></i></div>'+
+      '<div><div class="proj-icon'+(p.ativo?'':' off')+'">'+iconeHtml+'</div></div>'+
+      '<div><div class="proj-nome">'+p.nome+'</div><div class="proj-desc">'+(p.descricao||'')+'</div></div>'+
+      '<div><span class="fluxo-badge '+(_FLUXO_CLS[p.fluxo]||'')+'">'+(_FLUXO_LABEL[p.fluxo]||p.fluxo)+'</span></div>'+
+      '<div class="disp-mini"><span><b>'+dispTexto+'</b></span>'+(horarioTexto?'<span>'+horarioTexto+'</span>':'')+'</div>'+
+      '<div><span class="'+(p.ativo?'badge-ativo':'badge-inativo')+'">'+(p.ativo?'Ativo':'Inativo')+'</span></div>'+
+      '<div class="row-actions">'+
+        '<div class="icon-btn danger" onclick="excluirProjeto(''+p.id+'')" title="Excluir">'+
+          '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>'+
+        '</div>'+
+        '<button class="btn-editar" onclick="location.href='mod-projeto-cadastro.html?id='+p.id+''">'+
+          '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Editar'+
+        '</button>'+
+      '</div>';
+    row.addEventListener('dragstart',()=>{ _projDragged=row; setTimeout(()=>row.classList.add('dragging'),0); });
+    row.addEventListener('dragend',()=>{ row.classList.remove('dragging'); document.querySelectorAll('.proj-row').forEach(r=>r.classList.remove('drag-over')); salvarOrdemProjetos(); });
+    row.addEventListener('dragover',e=>{ e.preventDefault(); if(row!==_projDragged) row.classList.add('drag-over'); });
+    row.addEventListener('dragleave',()=>row.classList.remove('drag-over'));
+    row.addEventListener('drop',e=>{ e.preventDefault(); row.classList.remove('drag-over'); if(_projDragged&&_projDragged!==row) list.insertBefore(_projDragged,row); });
+    list.appendChild(row);
+  });
+  const ativos = projs.filter(p=>p.ativo).length;
+  const rt = document.getElementById('proj-rodape-txt');
+  if (rt) rt.textContent = projs.length+' projeto'+(projs.length!==1?'s':'')+' - '+ativos+' ativo'+(ativos!==1?'s':'');
+}
+
+async function salvarOrdemProjetos(){
+  document.querySelectorAll('#proj-list .proj-row').forEach((row,idx)=>{
+    const p = CATALOGO.projetos.find(x=>x.id===row.dataset.id);
+    if(p) p.ordem = idx+1;
+  });
+  await salvarCatalogo(CATALOGO);
+  mostrarToast('Ordem salva!');
+}
+
+async function excluirProjeto(id){
+  const p = (CATALOGO.projetos||[]).find(x=>x.id===id);
+  if(!p) return;
+  if(!confirm('Excluir o projeto "'+p.nome+'"?')) return;
+  CATALOGO.projetos = CATALOGO.projetos.filter(x=>x.id!==id);
+  await salvarCatalogo(CATALOGO);
+  renderizarProjetos();
+  mostrarToast('Projeto excluido.');
+}
+
+/* =====================================================================
+   PARCEIROS (aba)
+   ===================================================================== */
+let _filtroParc = 'todos';
+
+function setFiltroParceiro(f, el){
+  _filtroParc = f;
+  document.querySelectorAll('.filtros-parc .filtro-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  renderizarParceiros();
+}
+
+function renderizarParceiros(){
+  const busca  = (document.getElementById('busca-parceiro') ? document.getElementById('busca-parceiro').value : '').toLowerCase().trim();
+  const tbody  = document.getElementById('tbody-parceiros');
+  if(!tbody) return;
+  const parceiros = CATALOGO.parceiros||[];
+  let lista = parceiros.filter(p=>{
+    if(_filtroParc==='ativos' && !p.ativo) return false;
+    if(_filtroParc==='inativos' && p.ativo) return false;
+    if(busca){ const txt=[p.nome,p.responsavel,p.telefone,p.email].concat(p.bairros||[]).concat(p.itens||[]).join(' ').toLowerCase(); if(!txt.includes(busca)) return false; }
+    return true;
+  });
+  tbody.innerHTML='';
+  if(lista.length===0){
+    tbody.innerHTML='<tr><td colspan="4" style="text-align:center;padding:50px;color:var(--text-muted);font-size:13px;">'+(busca?'Nenhum parceiro para "'+busca+'"':'Nenhum parceiro cadastrado ainda.')+'</td></tr>';
+    const rc=document.getElementById('parc-rodape-contagem'); if(rc) rc.textContent='';
+    return;
+  }
+  lista.forEach(p=>{
+    const tr=document.createElement('tr');
+    if(!p.ativo) tr.classList.add('inativo');
+    tr.style.cssText='border-bottom:0.5px solid var(--border);';
+    tr.innerHTML=
+      '<td style="padding:14px 16px;vertical-align:middle;">'+
+        '<div class="pc-info">'+
+          '<div class="pc-avatar'+(p.ativo?'':' off')+'">'+(p.emoji||'🏢')+'</div>'+
+          '<div><div class="pc-nome">'+p.nome+'</div><div class="pc-resp">'+(p.responsavel||'—')+'</div></div>'+
+        '</div>'+
+      '</td>'+
+      '<td style="padding:14px 16px;vertical-align:middle;">'+
+        '<div class="contato-col">'+
+          (p.telefone?'<div class="contato-row"><i class="ti ti-phone"></i>'+p.telefone+'</div>':'')+
+          (p.email?'<div class="contato-row"><i class="ti ti-mail"></i>'+p.email+'</div>':'')+
+          (!p.telefone&&!p.email?'<span style="color:var(--text-muted);font-size:12px;">-</span>':'')+
+        '</div>'+
+      '</td>'+
+      '<td style="padding:14px 16px;text-align:center;vertical-align:middle;">'+
+        '<span class="'+(p.ativo?'badge-ativo':'badge-inativo')+'">'+(p.ativo?'Ativo':'Inativo')+'</span>'+
+      '</td>'+
+      '<td style="padding:14px 16px;vertical-align:middle;">'+
+        '<div class="row-actions">'+
+          '<div class="icon-btn danger" onclick="excluirParceiroAba(''+p.id+'')" title="Excluir">'+
+            '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>'+
+          '</div>'+
+          '<button class="btn-editar" onclick="location.href='mod-parceiro-cadastro.html?id='+p.id+''">'+
+            '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Editar'+
+          '</button>'+
+        '</div>'+
+      '</td>';
+    tbody.appendChild(tr);
+  });
+  const ativos=parceiros.filter(p=>p.ativo).length;
+  const rc=document.getElementById('parc-rodape-contagem');
+  if(rc) rc.textContent=lista.length+' parceiro'+(lista.length!==1?'s':'')+' encontrado'+(lista.length!==1?'s':'')+' - '+ativos+' ativo'+(ativos!==1?'s':'');
+}
+
+async function excluirParceiroAba(id){
+  const p=(CATALOGO.parceiros||[]).find(x=>x.id===id);
+  if(!p) return;
+  const itensVinc=(CATALOGO.itens||[]).filter(i=>(i.parceiros||[]).some(e=>e.parceiroId===id));
+  let msg='Excluir o parceiro "'+p.nome+'"?';
+  if(itensVinc.length>0){ msg+='\n\nAtencao: '+itensVinc.length+' item(ns) vinculado(s) sera(o) desvinculado(s).'; }
+  if(!confirm(msg)) return;
+  (CATALOGO.itens||[]).forEach(i=>{ if(i.parceiros) i.parceiros=i.parceiros.filter(e=>e.parceiroId!==id); });
+  CATALOGO.parceiros=CATALOGO.parceiros.filter(x=>x.id!==id);
+  await salvarCatalogo(CATALOGO);
+  renderizarParceiros();
+  mostrarToast('Parceiro excluido.');
+}
+
 </script>
 
 <!-- POPUP: DATA AVULSA ASSADOS -->
