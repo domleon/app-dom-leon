@@ -407,12 +407,13 @@ const FLUXO_ICONE_TI = { avulso:'ti-shopping-cart', assinatura:'ti-repeat', assa
   const params = new URLSearchParams(location.search);
   projetoEditandoId = params.get('id') || null;
 
+  renderizarDiasGrid();
+
   if (projetoEditandoId){
     const p = CATALOGO.projetos.find(x => x.id === projetoEditandoId);
     if (p) carregarProjeto(p);
   }
 
-  renderizarDiasGrid();
   renderizarConfigAssados();
   atualizarPreview();
   atualizarInfos();
