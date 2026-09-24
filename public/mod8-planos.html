@@ -252,6 +252,9 @@
   .filtro-btn{height:34px;padding:0 14px;border:0.5px solid var(--border-strong);border-radius:var(--radius);background:var(--card);font-size:12px;color:var(--text-secondary);cursor:pointer;font-family:inherit;transition:all .15s;}
   .filtro-btn.active{background:var(--accent-bg);border-color:var(--accent);color:var(--accent-text);font-weight:500;}
   .filtro-btn:hover:not(.active){background:var(--bg);}
+
+  .badge-ativo{display:inline-flex;align-items:center;gap:4px;background:#E1F5EE;border:0.5px solid #5DCAA5;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:500;color:#085041;}
+  .badge-inativo{display:inline-flex;align-items:center;gap:4px;background:var(--bg);border:0.5px solid var(--border-strong);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:500;color:var(--text-muted);}
 </style>
 </head>
 <body>
@@ -1347,7 +1350,7 @@ function renderizarProjetos(){
     const diasAtivos = _DIAS_ORDEM.filter(d => p.disponibilidade && p.disponibilidade[d] && p.disponibilidade[d].ativo);
     const dispTexto  = diasAtivos.length === 7 ? 'Todos os dias' : diasAtivos.length === 0 ? 'Nenhum dia' : diasAtivos.map(d=>_DIAS_ABREV[d]).join(', ');
     let horarioTexto = '';
-    if (diasAtivos.length > 0){ const h = p.disponibilidade[diasAtivos[0]]; horarioTexto = h.inicio+' - '+h.fim; }
+    if (diasAtivos.length > 0){ const h = p.disponibilidade[diasAtivos[0]]; horarioTexto = h.vinte4h ? '24 horas' : h.inicio+' - '+h.fim; }
     const row = document.createElement('div');
     row.className = 'proj-row'+(p.ativo?'':' inativo');
     row.draggable = true;

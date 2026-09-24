@@ -128,6 +128,10 @@
   .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
   .modal-header h3{font-size:15px;font-weight:600;font-family:'Fraunces',serif;}
   .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;}
+
+  .btn-24h{height:30px;padding:0 10px;border:0.5px solid var(--border-strong);border-radius:8px;font-size:11px;font-weight:500;background:var(--bg);color:var(--text-secondary);cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;font-family:inherit;transition:all .15s;flex-shrink:0;}
+  .btn-24h.ativo{background:var(--accent-bg);border-color:var(--accent);color:var(--accent-text);}
+  .btn-24h:disabled{opacity:.35;cursor:not-allowed;}
 </style>
 </head>
 <body>
@@ -455,6 +459,12 @@ function carregarProjeto(p){
         if (ini) ini.value = h.inicio || '00:00';
         if (fim) fim.value = h.fim || '23:59';
         atualizarEstadoDia(chave, !!h.ativo);
+        const btn24 = document.getElementById('btn24-' + chave);
+        if (btn24 && h.vinte4h){
+          btn24.classList.add('ativo');
+          if (ini) ini.disabled = true;
+          if (fim) fim.disabled = true;
+        }
       }
     });
   }
@@ -485,6 +495,9 @@ function renderizarDiasGrid(){
         <input type="time" id="ini-${chave}" value="07:00" onchange="atualizarInfos()">
         <span>até</span>
         <input type="time" id="fim-${chave}" value="12:00" onchange="atualizarInfos()">
+        <button class="btn-24h" id="btn24-${chave}" onclick="toggle24h('${chave}')">
+          <i class="ti ti-clock-24" aria-hidden="true"></i>24h
+        </button>
       </div>`;
     grid.appendChild(row);
   });
@@ -499,11 +512,34 @@ function toggleDia(chave){
 
 function atualizarEstadoDia(chave, on){
   const label = document.getElementById('label-' + chave);
-  const ini = document.getElementById('ini-' + chave);
-  const fim = document.getElementById('fim-' + chave);
+  const ini   = document.getElementById('ini-' + chave);
+  const fim   = document.getElementById('fim-' + chave);
+  const btn24 = document.getElementById('btn24-' + chave);
   if (label) label.classList.toggle('ativo', on);
-  if (ini) ini.disabled = !on;
-  if (fim) fim.disabled = !on;
+  if (btn24) btn24.disabled = !on;
+  if (!on){
+    if (ini) ini.disabled = true;
+    if (fim) fim.disabled = true;
+  } else {
+    const is24 = btn24 && btn24.classList.contains('ativo');
+    if (ini) ini.disabled = is24;
+    if (fim) fim.disabled = is24;
+  }
+}
+
+function toggle24h(chave){
+  const btn24 = document.getElementById('btn24-' + chave);
+  const ini   = document.getElementById('ini-' + chave);
+  const fim   = document.getElementById('fim-' + chave);
+  const ativo = btn24.classList.toggle('ativo');
+  if (ativo){
+    if (ini){ ini.value = '00:00'; ini.disabled = true; }
+    if (fim){ fim.value = '23:59'; fim.disabled = true; }
+  } else {
+    if (ini){ ini.value = '07:00'; ini.disabled = false; }
+    if (fim){ fim.value = '12:00'; fim.disabled = false; }
+  }
+  atualizarInfos();
 }
 
 /* ---------- Fluxo ---------- */
@@ -704,8 +740,10 @@ async function salvarProjeto(){
     const tog = document.getElementById('tog-' + chave);
     const ini = document.getElementById('ini-' + chave);
     const fim = document.getElementById('fim-' + chave);
+    const btn24 = document.getElementById('btn24-' + chave);
     disponibilidade[chave] = {
       ativo: tog ? tog.classList.contains('on') : false,
+      vinte4h: btn24 ? btn24.classList.contains('ativo') : false,
       inicio: ini ? ini.value : '00:00',
       fim: fim ? fim.value : '23:59'
     };
