@@ -475,11 +475,18 @@ async function carregarCatalogo(){
 /* ---------- Salvar (grava o documento inteiro) ---------- */
 async function salvarCatalogo(catalogo){
   try {
+    // Estimativa do tamanho antes de salvar
+    const json = JSON.stringify(catalogo);
+    const bytes = new TextEncoder().encode(json).length;
+    if (bytes > 900000){
+      const kb = Math.round(bytes/1024);
+      throw new Error('Documento muito grande (' + kb + ' KB). Reduza o tamanho ou a quantidade de imagens.');
+    }
     await CATALOGO_DOC_REF.set(catalogo);
     return true;
   } catch (e) {
     console.error('Erro ao salvar catálogo no Firestore.', e);
-    return false;
+    throw e; // relança para o chamador tratar
   }
 }
 
