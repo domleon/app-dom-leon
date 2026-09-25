@@ -84,6 +84,40 @@
     border-radius:var(--radius);font-size:12.5px;font-family:inherit;cursor:pointer;
   }
   .btn-primary:disabled{background:var(--border-strong);cursor:not-allowed;}
+
+  /* Lightbox (clique na imagem) */
+  .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;z-index:999;flex-direction:column;gap:12px;}
+  .lightbox.open{display:flex;}
+  .lightbox-close-btn{position:absolute;top:16px;right:16px;background:rgba(255,255,255,.15);border:none;color:#fff;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .lb-car-wrap{position:relative;width:90vw;max-width:420px;aspect-ratio:1;}
+  .lb-car-imgs{display:flex;height:100%;transition:transform .25s ease;}
+  .lb-car-imgs img{width:100%;height:100%;object-fit:contain;flex-shrink:0;border-radius:10px;}
+  .lb-sem-img{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:rgba(255,255,255,.6);font-size:13px;width:90vw;max-width:420px;aspect-ratio:1;}
+  .lb-sem-img i{font-size:36px;}
+  .lb-btn{position:absolute;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:50%;border:none;background:rgba(255,255,255,.2);color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2;}
+  .lb-btn.prev{left:-44px;}
+  .lb-btn.next{right:-44px;}
+  .lb-dots{display:flex;gap:6px;}
+  .lb-dots span{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.35);cursor:pointer;}
+  .lb-dots span.on{background:#fff;}
+  .lb-thumbs{display:flex;gap:6px;max-width:90vw;overflow-x:auto;}
+  .lb-thumbs img{width:48px;height:48px;object-fit:cover;border-radius:6px;border:1.5px solid transparent;cursor:pointer;flex-shrink:0;opacity:.6;}
+  .lb-thumbs img.on{border-color:#fff;opacity:1;}
+  /* Popup detalhe (clique no nome) */
+  .popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-end;z-index:998;}
+  .popup-overlay.open{display:flex;}
+  .popup-sheet{background:var(--surface-2);border-radius:16px 16px 0 0;width:100%;padding:0 0 32px;max-height:80vh;overflow-y:auto;position:relative;}
+  .popup-handle{width:36px;height:4px;background:var(--border-strong);border-radius:2px;margin:12px auto 0;}
+  .popup-close-btn{position:absolute;top:12px;right:16px;width:28px;height:28px;border-radius:50%;border:none;background:var(--surface-1);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--text-secondary);}
+  .popup-body{padding:0 16px;}
+  .popup-nome{font-size:16px;font-weight:500;margin:14px 0 4px;color:var(--text-primary);}
+  .popup-preco{font-size:14px;color:#B8873B;font-weight:500;margin-bottom:8px;}
+  .popup-desc{font-size:13px;color:var(--text-secondary);line-height:1.6;margin-bottom:12px;}
+  .popup-qtd-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-top:0.5px solid var(--border);}
+  .popup-qtd-label{font-size:13px;color:var(--text-secondary);}
+  .stepper-lg{display:flex;align-items:center;gap:10px;}
+  .stepper-lg button{width:34px;height:34px;border-radius:50%;border:0.5px solid var(--border-strong);background:var(--surface-1);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-primary);}
+  .stepper-lg span{font-size:15px;font-weight:500;min-width:24px;text-align:center;}
 </style>
 </head>
 <body>
@@ -178,9 +212,9 @@ function renderizarCategorias(filtroTexto){
       const row = document.createElement('div');
       row.className = 'item-row';
       row.innerHTML = `
-        <div class="item-thumb">${thumb}</div>
+        <div class="item-thumb" onclick="abrirLightbox('${itemId}')" style="cursor:pointer;">${thumb}</div>
         <div class="item-info">
-          <div class="nome">${nomeHtml}</div>
+          <div class="nome" onclick="abrirPopupItem('${itemId}')" style="cursor:pointer;">${nomeHtml}</div>
           <div class="preco-un">R$ ${precoAvulso.toFixed(2).replace('.', ',')}${infoKg}</div>
         </div>
         <div class="stepper">
@@ -280,8 +314,121 @@ function verCarrinho(){
   renderizarCategorias('');
   atualizarResumo();
 })();
+
+/* ---------- Lightbox de imagens (clique na thumb) ---------- */
+let _lbImgs = [];
+let _lbIdx  = 0;
+
+function abrirLightbox(itemId){
+  event.stopPropagation();
+  const item = ITENS[itemId];
+  _lbImgs = (item && item.imagens && item.imagens.length) ? item.imagens
+           : (item && item.imagem) ? [item.imagem] : [];
+  _lbIdx = 0;
+  _renderLightbox();
+  document.getElementById('lightbox').classList.add('open');
+}
+
+function _renderLightbox(){
+  const wrap  = document.getElementById('lb-car-imgs');
+  const dots  = document.getElementById('lb-dots');
+  const thumbs = document.getElementById('lb-thumbs');
+  const prev  = document.getElementById('lb-prev');
+  const next  = document.getElementById('lb-next');
+
+  if(_lbImgs.length === 0){
+    document.getElementById('lb-car-wrap').innerHTML = '<div class="lb-sem-img"><i class="ti ti-photo-off" aria-hidden="true"></i><span>Sem fotos cadastradas</span></div>';
+    dots.innerHTML = ''; thumbs.innerHTML = '';
+    return;
+  }
+
+  wrap.innerHTML = _lbImgs.map(src => '<img src="'+src+'" alt="foto">').join('');
+  wrap.style.transform = 'translateX(-' + _lbIdx*100 + '%)';
+
+  const multi = _lbImgs.length > 1;
+  if(prev) prev.style.display = multi ? 'flex' : 'none';
+  if(next) next.style.display = multi ? 'flex' : 'none';
+
+  dots.innerHTML = multi ? _lbImgs.map((_,i) => '<span class="'+(i===_lbIdx?'on':'')+'" onclick="lbIr('+i+')"></span>').join('') : '';
+  thumbs.innerHTML = multi ? _lbImgs.map((src,i) => '<img src="'+src+'" class="'+(i===_lbIdx?'on':'')+'" onclick="lbIr('+i+')" alt="miniatura">').join('') : '';
+}
+
+function lbMover(d){ _lbIdx = (_lbIdx+d+_lbImgs.length)%_lbImgs.length; _atualizarLb(); }
+function lbIr(i){ _lbIdx = i; _atualizarLb(); }
+function _atualizarLb(){
+  document.getElementById('lb-car-imgs').style.transform = 'translateX(-'+_lbIdx*100+'%)';
+  document.querySelectorAll('.lb-dots span').forEach((s,i)=>s.classList.toggle('on',i===_lbIdx));
+  document.querySelectorAll('.lb-thumbs img').forEach((s,i)=>s.classList.toggle('on',i===_lbIdx));
+}
+function fecharLightbox(e){ if(!e || e.target===document.getElementById('lightbox')) document.getElementById('lightbox').classList.remove('open'); }
+
+/* ---------- Popup detalhe do produto (clique no nome) ---------- */
+let _popupItemId = null;
+
+function abrirPopupItem(itemId){
+  event.stopPropagation();
+  _popupItemId = itemId;
+  const item = ITENS[itemId];
+  if(!item) return;
+  document.getElementById('popup-nome').textContent = item.nome;
+  const projetoId = localStorage.getItem('domleon_projeto_id') || 'avulso';
+  const preco = (typeof precoPorProjeto === 'function')
+    ? precoPorProjeto(item, projetoId, CATALOGO)
+    : (item.precoAvulso || item.preco || 0);
+  const precoFmt = 'R$ ' + preco.toFixed(2).replace('.',',') + '/un';
+  const kgInfo = item.precoKg ? ' · peso médio '+item.pesoGramas+'g · R$ '+item.precoKg.toFixed(2).replace('.',',')+'/kg' : '';
+  document.getElementById('popup-preco').textContent = precoFmt + kgInfo;
+  document.getElementById('popup-desc').textContent = item.descricao || '';
+  document.getElementById('popup-desc').style.display = item.descricao ? 'block' : 'none';
+  const qtd = CARRINHO[itemId] || 0;
+  document.getElementById('popup-qtd').textContent = qtd;
+  document.getElementById('popup-overlay').classList.add('open');
+}
+
+function fecharPopupItem(e){ if(!e || e.target===document.getElementById('popup-overlay')) document.getElementById('popup-overlay').classList.remove('open'); }
+
+function alterarItemPopup(d){
+  if(!_popupItemId) return;
+  alterarItem(_popupItemId, d);
+  const qtd = CARRINHO[_popupItemId] || 0;
+  document.getElementById('popup-qtd').textContent = qtd;
+}
 </script>
 
 <script src="capacitor-back.js"></script>
+
+<!-- Lightbox de imagens -->
+<div class="lightbox" id="lightbox" onclick="fecharLightbox(event)">
+  <button class="lightbox-close-btn" onclick="fecharLightbox()"><i class="ti ti-x" aria-hidden="true"></i></button>
+  <div class="lb-car-wrap" id="lb-car-wrap">
+    <div class="lb-car-imgs" id="lb-car-imgs"></div>
+    <button class="lb-btn prev" id="lb-prev" onclick="lbMover(-1)" style="display:none;"><i class="ti ti-chevron-left" aria-hidden="true"></i></button>
+    <button class="lb-btn next" id="lb-next" onclick="lbMover(1)" style="display:none;"><i class="ti ti-chevron-right" aria-hidden="true"></i></button>
+  </div>
+  <div class="lb-dots" id="lb-dots"></div>
+  <div class="lb-thumbs" id="lb-thumbs"></div>
+</div>
+
+<!-- Popup detalhe do produto -->
+<div class="popup-overlay" id="popup-overlay" onclick="fecharPopupItem(event)">
+  <div class="popup-sheet">
+    <div class="popup-handle"></div>
+    <button class="popup-close-btn" onclick="fecharPopupItem()"><i class="ti ti-x" aria-hidden="true"></i></button>
+    <div class="popup-body">
+      <div class="popup-nome" id="popup-nome"></div>
+      <div class="popup-preco" id="popup-preco"></div>
+      <div class="popup-desc" id="popup-desc"></div>
+      <div class="popup-qtd-row">
+        <span class="popup-qtd-label">Quantidade</span>
+        <div class="stepper-lg">
+          <button onclick="alterarItemPopup(-1)">−</button>
+          <span id="popup-qtd">0</span>
+          <button onclick="alterarItemPopup(1)">+</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
