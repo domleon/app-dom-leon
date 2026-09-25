@@ -515,7 +515,7 @@ function showScreen(name){
 let TIMER_CARD_INTERVAL = null;
 
 const FLUXO_ONCLICK = {
-  avulso:     (projetoId) => { localStorage.setItem('domleon_projeto_id', projetoId); abrirEscolhaBairro(); },
+  avulso:     (projetoId) => { localStorage.setItem('domleon_projeto_id', projetoId); window.location.href = 'mod9-catalogo-avulso.html'; },
   assinatura: (projetoId) => { localStorage.setItem('domleon_projeto_id', projetoId); showScreen('catalogo'); },
   assados:    (projetoId) => { localStorage.setItem('domleon_projeto_id', projetoId); window.location.href = 'mod14-data-assados.html'; }
 };
@@ -733,6 +733,7 @@ function irParaAvulso(nomeBairro, frete, minimo, retirada){
     retirada: !!retirada
   };
   localStorage.setItem('domleon_avulso_bairro', JSON.stringify(carrinhoInfo));
+  localStorage.setItem('domleon_bairro_salvo', JSON.stringify(carrinhoInfo));
   window.location.href = 'mod9-catalogo-avulso.html';
 }
 
