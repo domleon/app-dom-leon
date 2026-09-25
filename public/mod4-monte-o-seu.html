@@ -210,6 +210,10 @@
   .stepper-lg{display:flex;align-items:center;gap:10px;}
   .stepper-lg button{width:34px;height:34px;border-radius:50%;border:0.5px solid var(--border-strong);background:var(--surface-1);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-primary);}
   .stepper-lg span{font-size:15px;font-weight:500;min-width:24px;text-align:center;}
+
+  .preco-de-riscado{font-size:10px;color:var(--text-muted);text-decoration:line-through;}
+  .preco-promo{color:#B8873B;font-weight:500;}
+  .badge-desc{background:#FAECE7;border:0.5px solid #D85A30;border-radius:20px;padding:1px 5px;font-size:9px;font-weight:500;color:#712B13;margin-left:3px;vertical-align:middle;}
 </style>
 </head>
 <body>
@@ -499,7 +503,14 @@ function renderizarEtapa2(){
         <div class="item-thumb" onclick="abrirLightbox('${itemId}')">${thumbConteudo}</div>
         <div class="item-info">
           <div class="nome" onclick="abrirPopupItem('${itemId}')" style="cursor:pointer;">${NOMES[itemId]}</div>
-          <div class="preco-un">R$ ${PRECOS[itemId].toFixed(2).replace('.', ',')}/un</div>
+          <div class="preco-un">
+            ${precoPromo !== null
+              ? `<span class="preco-de-riscado">R$ ${PRECOS[itemId].toFixed(2).replace('.', ',')}/un</span>
+                 <span class="preco-promo"> R$ ${precoPromo.toFixed(2).replace('.', ',')}/un</span>
+                 <span class="badge-desc">-${Math.round((1-precoPromo/PRECOS[itemId])*100)}%</span>`
+              : `R$ ${PRECOS[itemId].toFixed(2).replace('.', ',')}/un`
+            }
+          </div>
         </div>
         <div class="stepper">
           <button onclick="alterarItem('${itemId}', -1)">−</button>

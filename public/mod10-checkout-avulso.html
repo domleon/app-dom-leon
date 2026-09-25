@@ -479,6 +479,17 @@ function confirmarPagamento(){
   }
 
   localStorage.removeItem('domleon_carrinho_avulso');
+  // Incrementar qtdVendida nos itens com promo
+  let promoAtualizada = false;
+  (itensPedido || []).forEach(itemPed => {
+    const item = (CATALOGO.itens||[]).find(i => i.id === itemPed.id || i.id === itemPed.itemId);
+    if (item && item.promo && item.promo.ativa){
+      item.promo.qtdVendida = (item.promo.qtdVendida || 0) + (itemPed.qtd || 1);
+      promoAtualizada = true;
+    }
+  });
+  if (promoAtualizada) salvarCatalogo(CATALOGO).catch(()=>{});
+
   localStorage.removeItem('domleon_avulso_bairro');
   showScreen('sucesso');
 }

@@ -255,6 +255,13 @@
 
   .badge-ativo{display:inline-flex;align-items:center;gap:4px;background:#E1F5EE;border:0.5px solid #5DCAA5;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:500;color:#085041;}
   .badge-inativo{display:inline-flex;align-items:center;gap:4px;background:var(--bg);border:0.5px solid var(--border-strong);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:500;color:var(--text-muted);}
+
+  .badge-promo-ativa{display:inline-flex;align-items:center;gap:3px;background:#EAF3DE;border:0.5px solid #639922;border-radius:20px;padding:2px 8px;font-size:11px;font-weight:500;color:#27500A;}
+  .badge-promo-expirada{display:inline-flex;align-items:center;gap:3px;background:#FAECE7;border:0.5px solid #D85A30;border-radius:20px;padding:2px 8px;font-size:11px;font-weight:500;color:#712B13;}
+  .badge-promo-esgotada{display:inline-flex;align-items:center;gap:3px;background:#FAEEDA;border:0.5px solid #BA7517;border-radius:20px;padding:2px 8px;font-size:11px;font-weight:500;color:#633806;}
+  .promo-progress{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:3px;width:60px;}
+  .promo-progress-fill{height:100%;border-radius:2px;}
+  .desconto-pill-sm{background:#FAECE7;border:0.5px solid #D85A30;border-radius:20px;padding:1px 5px;font-size:10px;font-weight:500;color:#712B13;margin-left:3px;}
 </style>
 </head>
 <body>
@@ -277,6 +284,7 @@
     <button class="tab-btn" data-panel="bairros" onclick="showPanel('bairros')">Bairros</button>
     <button class="tab-btn" data-panel="projetos" onclick="showPanel('projetos')">Projetos</button>
     <button class="tab-btn" data-panel="parceiros" onclick="showPanel('parceiros')">Parceiros</button>
+    <button class="tab-btn" data-panel="promos" onclick="showPanel('promos')">Promos</button>
 
   </div>
 
@@ -368,6 +376,33 @@
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;margin-top:8px;">
       <span id="parc-rodape-contagem" style="font-size:12px;color:var(--text-muted);"></span>
+    </div>
+  </div>
+
+  <!-- PAINEL: PROMOS -->
+  <div class="panel" id="panel-promos">
+    <div class="page-header" style="margin-top:16px;">
+      <div>
+        <p style="font-size:13px;color:var(--text-secondary);">Itens com promoção de preço cadastrada</p>
+      </div>
+    </div>
+    <div class="table-card">
+      <table style="width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed;">
+        <thead>
+          <tr style="background:var(--bg);border-bottom:0.5px solid var(--border);">
+            <th style="text-align:left;padding:10px 16px;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);font-weight:600;width:30%;">Item</th>
+            <th style="text-align:left;padding:10px 16px;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);font-weight:600;width:18%;">Avulso</th>
+            <th style="text-align:left;padding:10px 16px;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);font-weight:600;width:18%;">Assinatura</th>
+            <th style="text-align:left;padding:10px 16px;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);font-weight:600;width:16%;">Validade</th>
+            <th style="text-align:left;padding:10px 16px;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);font-weight:600;width:10%;">Qtd</th>
+            <th style="text-align:left;padding:10px 16px;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);font-weight:600;width:8%;">Status</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-promos"></tbody>
+      </table>
+    </div>
+    <div style="padding:10px 0;">
+      <span id="promos-rodape" style="font-size:12px;color:var(--text-muted);"></span>
     </div>
   </div>
   <div class="panel" id="panel-bairros">
@@ -614,6 +649,7 @@ function showPanel(name){
   document.getElementById('panel-' + name).classList.add('active');
   document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
   if(name==='projetos') renderizarProjetos();
+  if(name==='promos') renderizarPromos();
   if(name==='parceiros'){ if(!CATALOGO.parceiros) CATALOGO.parceiros=[]; renderizarParceiros(); }
   event.currentTarget.classList.add('active');
   renderizarTudo();
@@ -1489,6 +1525,71 @@ document.addEventListener('click', function(e){
   const btn = e.target.closest('.btn-editar[data-href]');
   if (btn) window.location.href = btn.dataset.href;
 });
+
+
+/* =====================================================================
+   PROMOS (aba)
+   ===================================================================== */
+function statusPromo(promo){
+  const hoje = new Date();
+  if (promo.dataFim && new Date(promo.dataFim + 'T23:59:59') < hoje) return 'expirada';
+  if (promo.qtdLimite && (promo.qtdVendida||0) >= promo.qtdLimite) return 'esgotada';
+  if (promo.dataInicio && new Date(promo.dataInicio + 'T00:00:00') > hoje) return 'agendada';
+  return 'ativa';
+}
+
+function renderizarPromos(){
+  const tbody = document.getElementById('tbody-promos');
+  if(!tbody) return;
+  const itens = (CATALOGO.itens||[]).filter(i => i.promo && i.promo.ativa);
+  tbody.innerHTML = '';
+  if(itens.length === 0){
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:50px;color:var(--text-muted);font-size:13px;">Nenhum item com promoção ativa.</td></tr>';
+    const r = document.getElementById('promos-rodape'); if(r) r.textContent='';
+    return;
+  }
+  itens.forEach(item => {
+    const p = item.promo;
+    const st = statusPromo(p);
+    const badge = st==='ativa'
+      ? '<span class="badge-promo-ativa"><i class="ti ti-player-play" style="font-size:10px;" aria-hidden="true"></i>Ativa</span>'
+      : st==='expirada'
+      ? '<span class="badge-promo-expirada"><i class="ti ti-clock" style="font-size:10px;" aria-hidden="true"></i>Expirada</span>'
+      : st==='esgotada'
+      ? '<span class="badge-promo-esgotada"><i class="ti ti-check" style="font-size:10px;" aria-hidden="true"></i>Esgotada</span>'
+      : '<span class="badge-promo-esgotada"><i class="ti ti-calendar" style="font-size:10px;" aria-hidden="true"></i>Agendada</span>';
+
+    const fmtPreco = (de, para) => {
+      if(!de && !para) return '<span style="color:var(--text-muted);">—</span>';
+      const pct = (de&&para&&para<de) ? ' <span class="desconto-pill-sm">-'+Math.round((1-para/de)*100)+'%</span>' : '';
+      const deStr = de ? '<span style="text-decoration:line-through;color:var(--text-muted);font-size:11px;">R$ '+de.toFixed(2).replace('.',',')+'</span> ' : '';
+      const paraStr = para ? '<span style="color:#B8873B;font-weight:500;">R$ '+para.toFixed(2).replace('.',',')+'</span>' : '';
+      return deStr + paraStr + pct;
+    };
+
+    const dataIni = p.dataInicio ? p.dataInicio.split('-').reverse().join('/') : '—';
+    const dataFim = p.dataFim    ? p.dataFim.split('-').reverse().join('/')    : '—';
+
+    const qtdVend = p.qtdVendida || 0;
+    const qtdLim  = p.qtdLimite  || null;
+    const qtdHtml = qtdLim
+      ? qtdVend+' / '+qtdLim+'<div class="promo-progress"><div class="promo-progress-fill" style="width:'+Math.min(100,Math.round(qtdVend/qtdLim*100))+'%;background:'+(qtdVend>=qtdLim?'#D85A30':'#B8873B')+';"></div></div>'
+      : qtdVend+' vendido'+(qtdVend!==1?'s':'');
+
+    const tr = document.createElement('tr');
+    tr.style.cssText = 'border-bottom:0.5px solid var(--border);';
+    tr.innerHTML =
+      '<td style="padding:12px 16px;vertical-align:middle;"><div style="font-size:13px;font-weight:500;color:var(--text-primary);">'+item.nome+'</div><div style="font-size:11px;color:var(--text-muted);">'+(item.categoria||'')+'</div></td>'+
+      '<td style="padding:12px 16px;vertical-align:middle;">'+fmtPreco(p.precoDeAvulso, p.precoPromoAvulso)+'</td>'+
+      '<td style="padding:12px 16px;vertical-align:middle;">'+fmtPreco(p.precoDeAssinatura, p.precoPromoAssinatura)+'</td>'+
+      '<td style="padding:12px 16px;vertical-align:middle;font-size:12px;color:var(--text-secondary);">'+dataIni+' – '+dataFim+'</td>'+
+      '<td style="padding:12px 16px;vertical-align:middle;font-size:12px;">'+qtdHtml+'</td>'+
+      '<td style="padding:12px 16px;vertical-align:middle;">'+badge+'</td>';
+    tbody.appendChild(tr);
+  });
+  const r = document.getElementById('promos-rodape');
+  if(r) r.textContent = itens.length+' item'+(itens.length!==1?'s':'')+' com promoção';
+}
 
 </script>
 

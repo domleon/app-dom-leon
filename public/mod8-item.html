@@ -128,6 +128,19 @@
   .lightbox.open{display:flex;}
   .lightbox-img{max-width:90vw;max-height:85vh;border-radius:10px;object-fit:contain;}
   .lightbox-close{position:absolute;top:16px;right:16px;background:rgba(255,255,255,.15);border:none;color:#fff;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+
+  .promo-body{display:none;}
+  .promo-body.show{display:block;}
+  .preco-grid-promo{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+  .preco-grupo-promo{background:var(--bg);border-radius:var(--radius);padding:10px 12px;border:0.5px solid var(--border);}
+  .preco-label-promo{font-size:11px;color:var(--text-muted);margin-bottom:8px;font-weight:500;}
+  .preco-linha-promo{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+  .preco-de-label{font-size:11px;color:var(--text-muted);width:28px;flex-shrink:0;}
+  .promo-inp{width:90px;height:30px;border:0.5px solid var(--border-strong);border-radius:var(--radius);padding:0 8px;font-size:12px;background:var(--card);color:var(--text-primary);font-family:inherit;}
+  .promo-inp.para{border-color:#BA7517;color:#B8873B;font-weight:500;}
+  .desconto-pill{background:#FAECE7;border:0.5px solid #D85A30;border-radius:20px;padding:1px 7px;font-size:10px;font-weight:500;color:#712B13;}
+  .field-row-promo{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;}
+  .field-g label{display:block;font-size:11px;color:var(--text-muted);margin-bottom:4px;}
 </style>
 </head>
 <body>
@@ -207,6 +220,59 @@
         <div class="toggle-row">
           <span>Item ativo (visível para clientes)</span>
           <div class="toggle on" id="toggle-ativo" onclick="this.classList.toggle('on')"></div>
+        </div>
+      </div>
+
+
+      <!-- Promoção -->
+      <div class="sec-card">
+        <div class="sec-title">Preço promocional</div>
+        <div class="toggle-row">
+          <span>Ativar promoção neste item</span>
+          <div class="toggle" id="toggle-promo" onclick="togglePromo()"></div>
+        </div>
+        <div class="promo-body" id="promo-body">
+          <div class="preco-grid-promo">
+            <div class="preco-grupo-promo">
+              <div class="preco-label-promo">Pedido avulso</div>
+              <div class="preco-linha-promo">
+                <span class="preco-de-label">De</span>
+                <input type="number" class="promo-inp" id="promo-de-avulso" step="0.01" min="0" placeholder="0,00">
+              </div>
+              <div class="preco-linha-promo">
+                <span class="preco-de-label" style="color:#B8873B;">Para</span>
+                <input type="number" class="promo-inp para" id="promo-para-avulso" step="0.01" min="0" placeholder="0,00" oninput="calcDesconto('avulso')">
+                <span class="desconto-pill" id="desc-avulso"></span>
+              </div>
+            </div>
+            <div class="preco-grupo-promo">
+              <div class="preco-label-promo">Assinatura</div>
+              <div class="preco-linha-promo">
+                <span class="preco-de-label">De</span>
+                <input type="number" class="promo-inp" id="promo-de-assinatura" step="0.01" min="0" placeholder="0,00">
+              </div>
+              <div class="preco-linha-promo">
+                <span class="preco-de-label" style="color:#B8873B;">Para</span>
+                <input type="number" class="promo-inp para" id="promo-para-assinatura" step="0.01" min="0" placeholder="0,00" oninput="calcDesconto('assinatura')">
+                <span class="desconto-pill" id="desc-assinatura"></span>
+              </div>
+            </div>
+          </div>
+          <div class="field-row-promo">
+            <div class="field-g">
+              <label>Data de início</label>
+              <input type="date" id="promo-data-ini" style="width:100%;">
+            </div>
+            <div class="field-g">
+              <label>Data de fim</label>
+              <input type="date" id="promo-data-fim" style="width:100%;">
+            </div>
+            <div class="field-g">
+              <label>Qtd. limite</label>
+              <input type="number" id="promo-qtd-limite" min="1" placeholder="Sem limite" style="width:100%;">
+            </div>
+          </div>
+          <p style="font-size:11px;color:var(--text-muted);margin:0;">A promoção encerra ao atingir o prazo ou a quantidade — o que ocorrer primeiro.</p>
         </div>
       </div>
 
@@ -385,6 +451,20 @@ function carregarItem(item){
   if (item.ativo === false) toggleAtivo.classList.remove('on');
   else toggleAtivo.classList.add('on');
 
+  // Promoção
+  const promo = item.promo || {};
+  const togPromo = document.getElementById('toggle-promo');
+  if (promo.ativa){ togPromo.classList.add('on'); document.getElementById('promo-body').classList.add('show'); }
+  else togPromo.classList.remove('on');
+  if (promo.precoDeAvulso)     document.getElementById('promo-de-avulso').value     = promo.precoDeAvulso;
+  if (promo.precoPromoAvulso)  document.getElementById('promo-para-avulso').value   = promo.precoPromoAvulso;
+  if (promo.precoDeAssinatura) document.getElementById('promo-de-assinatura').value  = promo.precoDeAssinatura;
+  if (promo.precoPromoAssinatura) document.getElementById('promo-para-assinatura').value = promo.precoPromoAssinatura;
+  if (promo.dataInicio)  document.getElementById('promo-data-ini').value   = promo.dataInicio;
+  if (promo.dataFim)     document.getElementById('promo-data-fim').value   = promo.dataFim;
+  if (promo.qtdLimite)   document.getElementById('promo-qtd-limite').value = promo.qtdLimite;
+  calcDesconto('avulso'); calcDesconto('assinatura');
+
   // Renderizar operações com dados do item — categorias serão filtradas após
   renderizarOperacoes(item);
   // Restaurar categoria após filtro
@@ -402,6 +482,27 @@ function carregarItem(item){
   imgs.forEach((img, i) => { if (i < 5) _carousel[i] = img; });
   _capaIdx = item.capaIdx || 0;
   renderCarrossel();
+}
+
+
+/* ---------- Promoção ---------- */
+function togglePromo(){
+  const tog = document.getElementById('toggle-promo');
+  tog.classList.toggle('on');
+  document.getElementById('promo-body').classList.toggle('show', tog.classList.contains('on'));
+}
+
+function calcDesconto(modalidade){
+  const de   = parseFloat(document.getElementById('promo-de-'   + modalidade).value) || 0;
+  const para = parseFloat(document.getElementById('promo-para-' + modalidade).value) || 0;
+  const pill = document.getElementById('desc-' + modalidade);
+  if (de > 0 && para > 0 && para < de){
+    const pct = Math.round((1 - para/de)*100);
+    pill.textContent = '-' + pct + '%';
+    pill.style.display = 'inline-block';
+  } else {
+    pill.style.display = 'none';
+  }
 }
 
 /* ---------- Toggle de projeto ---------- */
@@ -676,8 +777,22 @@ async function salvarItem(){
   const precoAssinatura = projAssinatura ? (projetosItem[projAssinatura.id]?.preco || 0) : 0;
   const precoAssados    = projAssados    ? (projetosItem[projAssados.id]?.preco || 0) : 0;
 
+  // Montar objeto promo
+  const promoAtiva = document.getElementById('toggle-promo').classList.contains('on');
+  const promoObj = promoAtiva ? {
+    ativa: true,
+    precoDeAvulso:        parseFloat(document.getElementById('promo-de-avulso').value) || null,
+    precoPromoAvulso:     parseFloat(document.getElementById('promo-para-avulso').value) || null,
+    precoDeAssinatura:    parseFloat(document.getElementById('promo-de-assinatura').value) || null,
+    precoPromoAssinatura: parseFloat(document.getElementById('promo-para-assinatura').value) || null,
+    dataInicio:  document.getElementById('promo-data-ini').value || null,
+    dataFim:     document.getElementById('promo-data-fim').value || null,
+    qtdLimite:   parseInt(document.getElementById('promo-qtd-limite').value) || null,
+    qtdVendida:  (itemEditandoId ? ((CATALOGO.itens.find(i=>i.id===itemEditandoId)?.promo?.qtdVendida) || 0) : 0),
+  } : { ativa: false };
+
   const dadosItem = {
-    nome, categoria, descricao, ativo, imagem, imagens, capaIdx: _capaIdx,
+    nome, categoria, descricao, ativo, imagem, imagens, capaIdx: _capaIdx, promo: promoObj,
     projetos: projetosItem,
     parceiros,
     // Campos legado mantidos para compatibilidade com módulos ainda não migrados

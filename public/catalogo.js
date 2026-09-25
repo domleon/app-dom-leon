@@ -473,6 +473,34 @@ async function carregarCatalogo(){
 }
 
 /* ---------- Salvar (grava o documento inteiro) ---------- */
+
+/* ---------- Promoção de preço ---------- */
+function precoPromoAtiva(item, fluxo){
+  const promo = item.promo;
+  if (!promo || !promo.ativa) return null;
+
+  const hoje = new Date();
+  hoje.setHours(0,0,0,0);
+
+  if (promo.dataInicio){
+    const ini = new Date(promo.dataInicio + 'T00:00:00');
+    if (hoje < ini) return null;
+  }
+  if (promo.dataFim){
+    const fim = new Date(promo.dataFim + 'T23:59:59');
+    if (new Date() > fim) return null;
+  }
+  if (promo.qtdLimite && (promo.qtdVendida || 0) >= promo.qtdLimite) return null;
+
+  if (fluxo === 'avulso' || fluxo === 'assados'){
+    return (promo.precoPromoAvulso != null) ? promo.precoPromoAvulso : null;
+  }
+  if (fluxo === 'assinatura'){
+    return (promo.precoPromoAssinatura != null) ? promo.precoPromoAssinatura : null;
+  }
+  return null;
+}
+
 /* Recomprime uma imagem base64 para max 800px / JPEG 75% */
 async function _comprimirBase64(base64){
   if (!base64 || !base64.startsWith('data:image')) return base64;
