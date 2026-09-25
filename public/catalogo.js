@@ -473,20 +473,56 @@ async function carregarCatalogo(){
 }
 
 /* ---------- Salvar (grava o documento inteiro) ---------- */
+/* Recomprime uma imagem base64 para max 800px / JPEG 75% */
+async function _comprimirBase64(base64){
+  if (!base64 || !base64.startsWith('data:image')) return base64;
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 800;
+      let w = img.width, h = img.height;
+      if (w > MAX || h > MAX){
+        if (w > h){ h = Math.round(h * MAX / w); w = MAX; }
+        else { w = Math.round(w * MAX / h); h = MAX; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL('image/jpeg', 0.75));
+    };
+    img.onerror = () => resolve(base64);
+    img.src = base64;
+  });
+}
+
+/* Recomprime todas as imagens de todos os itens do catálogo */
+async function _comprimirImagensCatalogo(catalogo){
+  const itens = catalogo.itens || [];
+  for (const item of itens){
+    if (item.imagem) item.imagem = await _comprimirBase64(item.imagem);
+    if (item.imagens && item.imagens.length){
+      item.imagens = await Promise.all(item.imagens.map(img => _comprimirBase64(img)));
+    }
+  }
+  return catalogo;
+}
+
 async function salvarCatalogo(catalogo){
   try {
-    // Estimativa do tamanho antes de salvar
+    // Comprimir todas as imagens antes de verificar tamanho
+    await _comprimirImagensCatalogo(catalogo);
+
     const json = JSON.stringify(catalogo);
     const bytes = new TextEncoder().encode(json).length;
     if (bytes > 900000){
       const kb = Math.round(bytes/1024);
-      throw new Error('Documento muito grande (' + kb + ' KB). Reduza o tamanho ou a quantidade de imagens.');
+      throw new Error('Documento ainda muito grande (' + kb + ' KB) mesmo após compressão. Remova algumas imagens.');
     }
     await CATALOGO_DOC_REF.set(catalogo);
     return true;
   } catch (e) {
     console.error('Erro ao salvar catálogo no Firestore.', e);
-    throw e; // relança para o chamador tratar
+    throw e;
   }
 }
 
