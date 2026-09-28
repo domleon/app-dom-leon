@@ -103,25 +103,54 @@
   .lb-thumbs{display:flex;gap:6px;max-width:90vw;overflow-x:auto;}
   .lb-thumbs img{width:48px;height:48px;object-fit:cover;border-radius:6px;border:1.5px solid transparent;cursor:pointer;flex-shrink:0;opacity:.6;}
   .lb-thumbs img.on{border-color:#fff;opacity:1;}
-  /* Popup detalhe (clique no nome) */
-  .popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-end;z-index:998;}
-  .popup-overlay.open{display:flex;}
-  .popup-sheet{background:var(--surface-2);border-radius:16px 16px 0 0;width:100%;padding:0 0 32px;max-height:80vh;overflow-y:auto;position:relative;}
-  .popup-handle{width:36px;height:4px;background:var(--border-strong);border-radius:2px;margin:12px auto 0;}
-  .popup-close-btn{position:absolute;top:12px;right:16px;width:28px;height:28px;border-radius:50%;border:none;background:var(--surface-1);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--text-secondary);}
-  .popup-body{padding:0 16px;}
-  .popup-nome{font-size:16px;font-weight:500;margin:14px 0 4px;color:var(--text-primary);}
-  .popup-preco{font-size:14px;color:#B8873B;font-weight:500;margin-bottom:8px;}
-  .popup-desc{font-size:13px;color:var(--text-secondary);line-height:1.6;margin-bottom:12px;}
-  .popup-qtd-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-top:0.5px solid var(--border);}
-  .popup-qtd-label{font-size:13px;color:var(--text-secondary);}
-  .stepper-lg{display:flex;align-items:center;gap:10px;}
-  .stepper-lg button{width:34px;height:34px;border-radius:50%;border:0.5px solid var(--border-strong);background:var(--surface-1);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-primary);}
-  .stepper-lg span{font-size:15px;font-weight:500;min-width:24px;text-align:center;}
 
   .preco-de-riscado{font-size:10px;color:var(--text-muted);text-decoration:line-through;}
   .preco-promo{color:#B8873B;font-weight:500;}
   .badge-desc{background:#FAECE7;border:0.5px solid #D85A30;border-radius:20px;padding:1px 5px;font-size:9px;font-weight:500;color:#712B13;margin-left:3px;vertical-align:middle;}
+
+/* === BOTTOM SHEET DE DETALHE DO ITEM === */
+.bs-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-end;z-index:998;}
+.bs-overlay.open{display:flex;}
+.bs-sheet{background:#fff;border-radius:20px 20px 0 0;width:100%;max-height:88vh;overflow-y:auto;position:relative;display:flex;flex-direction:column;}
+.bs-handle{width:36px;height:4px;background:#E3D8C4;border-radius:2px;margin:12px auto 0;flex-shrink:0;}
+.bs-close{position:absolute;top:10px;right:14px;width:30px;height:30px;border-radius:50%;border:none;background:#F0EBE3;cursor:pointer;font-size:15px;color:#6B5B47;display:flex;align-items:center;justify-content:center;z-index:2;}
+.bs-scroll{flex:1;overflow-y:auto;scrollbar-width:none;}
+.bs-scroll::-webkit-scrollbar{display:none;}
+.bs-carousel{width:100%;aspect-ratio:4/3;background:#FBF3E2;overflow:hidden;position:relative;}
+.bs-car-track{display:flex;height:100%;transition:transform .25s ease;}
+.bs-car-track img{width:100%;height:100%;object-fit:cover;flex-shrink:0;}
+.bs-car-empty{width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#8A7860;font-size:13px;gap:8px;flex-direction:column;}
+.bs-car-empty i{font-size:32px;}
+.bs-car-dots{position:absolute;bottom:8px;left:0;right:0;display:flex;justify-content:center;gap:5px;}
+.bs-car-dots span{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.45);transition:all .2s;}
+.bs-car-dots span.on{background:#fff;width:16px;border-radius:3px;}
+.bs-car-btn{position:absolute;top:50%;transform:translateY(-50%);width:32px;height:32px;border-radius:50%;border:none;background:rgba(255,255,255,.25);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2;}
+.bs-car-btn.prev{left:8px;} .bs-car-btn.next{right:8px;}
+.bs-thumbs{display:flex;gap:7px;padding:10px 16px 0;overflow-x:auto;scrollbar-width:none;}
+.bs-thumbs::-webkit-scrollbar{display:none;}
+.bs-thumb{width:50px;height:50px;border-radius:8px;border:2px solid transparent;overflow:hidden;cursor:pointer;flex-shrink:0;background:#F5F0E8;}
+.bs-thumb img{width:100%;height:100%;object-fit:cover;}
+.bs-thumb.on{border-color:#B8873B;}
+.bs-info{padding:14px 16px 0;}
+.bs-badge{display:inline-block;background:#FBF3E2;color:#6B4E1E;font-size:11px;font-weight:600;padding:2px 10px;border-radius:20px;margin-bottom:8px;}
+.bs-nome{font-family:'Fraunces',serif;font-size:21px;font-weight:600;color:#3B2314;line-height:1.2;margin-bottom:10px;}
+.bs-preco-label{font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#8A7860;margin-bottom:3px;}
+.bs-preco-row{display:flex;align-items:baseline;gap:8px;margin-bottom:4px;}
+.bs-preco-atual{font-size:26px;font-weight:700;color:#B8873B;font-variant-numeric:tabular-nums;line-height:1;}
+.bs-preco-de{font-size:13px;color:#8A7860;text-decoration:line-through;font-variant-numeric:tabular-nums;}
+.bs-preco-badge{background:#E8F5E9;color:#2E7D32;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;}
+.bs-divider{height:1px;background:#E3D8C4;margin:14px 0;}
+.bs-desc-label{font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#8A7860;margin-bottom:6px;}
+.bs-desc{font-size:13.5px;color:#6B5B47;line-height:1.65;}
+.bs-scroll-pad{height:90px;}
+.bs-footer{flex-shrink:0;background:#fff;border-top:1px solid #E3D8C4;padding:11px 16px;padding-bottom:max(11px,env(safe-area-inset-bottom,11px));}
+.bs-footer-row{display:flex;align-items:center;gap:10px;}
+.bs-stepper{display:flex;align-items:center;border:1.5px solid #E3D8C4;border-radius:10px;overflow:hidden;flex-shrink:0;}
+.bs-stepper button{width:38px;height:42px;background:none;border:none;font-size:18px;cursor:pointer;color:#3B2314;display:flex;align-items:center;justify-content:center;}
+.bs-stepper-num{width:32px;text-align:center;font-size:15px;font-weight:600;color:#3B2314;font-variant-numeric:tabular-nums;}
+.bs-btn-add{flex:1;height:42px;background:#B8873B;color:#fff;border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:opacity .15s;}
+.bs-btn-add:active{opacity:.82;}
+.bs-total{font-size:12px;opacity:.85;font-weight:500;}
 </style>
 </head>
 <body>
@@ -366,36 +395,117 @@ function _atualizarLb(){
 }
 function fecharLightbox(e){ if(!e || e.target===document.getElementById('lightbox')) document.getElementById('lightbox').classList.remove('open'); }
 
-/* ---------- Popup detalhe do produto (clique no nome) ---------- */
-let _popupItemId = null;
+/* ===== BOTTOM SHEET DE DETALHE ===== */
+let _bsItemId = null;
+let _bsQty = 1;
+let _bsImgs = [];
+let _bsIdx = 0;
 
-function abrirPopupItem(itemId){
-  event.stopPropagation();
-  _popupItemId = itemId;
+function abrirBottomSheet(itemId, imgIdx){
+  _bsItemId = itemId;
+  _bsQty = CARRINHO[itemId] || 1;
   const item = ITENS[itemId];
   if(!item) return;
-  document.getElementById('popup-nome').textContent = item.nome;
-  const projetoId = localStorage.getItem('domleon_projeto_id') || 'avulso';
-  const preco = (typeof precoPorProjeto === 'function')
+
+  _bsImgs = (item.imagens && item.imagens.length) ? item.imagens : (item.imagem ? [item.imagem] : []);
+  _bsIdx = (imgIdx !== undefined && imgIdx < _bsImgs.length) ? imgIdx : 0;
+  _bsRenderCarrossel();
+
+  const badgeEl = document.getElementById('bs-badge');
+  if(item.categoria){ badgeEl.textContent = item.categoria; badgeEl.hidden = false; }
+  else badgeEl.hidden = true;
+
+  document.getElementById('bs-nome').textContent = item.nome;
+
+  // Preço (contexto assados)
+  const projetoId = localStorage.getItem('domleon_projeto_id') || 'assados';
+  const precoBase = (typeof precoPorProjeto === 'function')
     ? precoPorProjeto(item, projetoId, CATALOGO)
     : (item.precoAvulso || item.preco || 0);
-  const precoFmt = 'R$ ' + preco.toFixed(2).replace('.',',') + '/un';
-  const kgInfo = item.precoKg ? ' · peso médio '+item.pesoGramas+'g · R$ '+item.precoKg.toFixed(2).replace('.',',')+'/kg' : '';
-  document.getElementById('popup-preco').textContent = precoFmt + kgInfo;
-  document.getElementById('popup-desc').textContent = item.descricao || '';
-  document.getElementById('popup-desc').style.display = item.descricao ? 'block' : 'none';
-  const qtd = CARRINHO[itemId] || 0;
-  document.getElementById('popup-qtd').textContent = qtd;
-  document.getElementById('popup-overlay').classList.add('open');
+  const precoPromo = (typeof precoPromoAtiva === 'function') ? precoPromoAtiva(item, projetoId) : null;
+  const precoFinal = precoPromo !== null ? precoPromo : precoBase;
+
+  document.getElementById('bs-preco-label').textContent = 'Preço';
+  document.getElementById('bs-preco-atual').textContent = 'R$ ' + precoFinal.toFixed(2).replace('.',',');
+  const deEl = document.getElementById('bs-preco-de');
+  const badgePct = document.getElementById('bs-preco-badge');
+  if(precoPromo !== null && precoBase > 0){
+    deEl.textContent = 'R$ ' + precoBase.toFixed(2).replace('.',','); deEl.hidden = false;
+    badgePct.textContent = '-' + Math.round((1-precoPromo/precoBase)*100) + '%'; badgePct.hidden = false;
+  } else { deEl.hidden = true; badgePct.hidden = true; }
+
+  const kgEl = document.getElementById('bs-kg');
+  if(item.precoKg){ kgEl.textContent = 'Peso médio: '+item.pesoGramas+'g · R$ '+item.precoKg.toFixed(2).replace('.',',')+'/kg'; kgEl.hidden = false; }
+  else kgEl.hidden = true;
+
+  const descEl = document.getElementById('bs-desc-wrap');
+  document.getElementById('bs-desc').textContent = item.descricao || '';
+  descEl.hidden = !item.descricao;
+
+  _bsAtualizarQty(precoFinal);
+  document.getElementById('bs-overlay').classList.add('open');
 }
 
-function fecharPopupItem(e){ if(!e || e.target===document.getElementById('popup-overlay')) document.getElementById('popup-overlay').classList.remove('open'); }
+function abrirPopupItem(itemId){ event.stopPropagation(); abrirBottomSheet(itemId); }
 
-function alterarItemPopup(d){
-  if(!_popupItemId) return;
-  alterarItem(_popupItemId, d);
-  const qtd = CARRINHO[_popupItemId] || 0;
-  document.getElementById('popup-qtd').textContent = qtd;
+function fecharBottomSheet(e){
+  if(!e || e.target === document.getElementById('bs-overlay'))
+    document.getElementById('bs-overlay').classList.remove('open');
+}
+
+function _bsRenderCarrossel(){
+  const track = document.getElementById('bs-car-track');
+  const dots  = document.getElementById('bs-car-dots');
+  const thumbs = document.getElementById('bs-thumbs');
+  const prev  = document.getElementById('bs-car-prev');
+  const next  = document.getElementById('bs-car-next');
+  const empty = document.getElementById('bs-car-empty');
+
+  if(_bsImgs.length === 0){
+    track.innerHTML = ''; dots.innerHTML = ''; thumbs.innerHTML = '';
+    if(prev) prev.hidden = true; if(next) next.hidden = true;
+    empty.hidden = false; return;
+  }
+  empty.hidden = true;
+  track.innerHTML = _bsImgs.map(src => '<img src="'+src+'" alt="">').join('');
+  track.style.transform = 'translateX(-' + _bsIdx*100 + '%)';
+  const multi = _bsImgs.length > 1;
+  if(prev) prev.hidden = !multi; if(next) next.hidden = !multi;
+  dots.innerHTML = multi ? _bsImgs.map((_,i)=>'<span class="'+(i===_bsIdx?'on':'')+'"></span>').join('') : '';
+  thumbs.innerHTML = multi ? _bsImgs.map((src,i)=>'<div class="bs-thumb'+(i===_bsIdx?' on':'')+'" onclick="_bsIr('+i+')"><img src="'+src+'" alt=""></div>').join('') : '';
+}
+
+function _bsMover(d){ if(!_bsImgs.length) return; _bsIdx = (_bsIdx+d+_bsImgs.length)%_bsImgs.length; _bsAtualizar(); }
+function _bsIr(i){ _bsIdx = i; _bsAtualizar(); }
+function _bsAtualizar(){
+  document.getElementById('bs-car-track').style.transform = 'translateX(-'+_bsIdx*100+'%)';
+  document.querySelectorAll('#bs-car-dots span').forEach((s,i)=>s.classList.toggle('on',i===_bsIdx));
+  document.querySelectorAll('.bs-thumb').forEach((t,i)=>t.classList.toggle('on',i===_bsIdx));
+}
+
+function _bsAtualizarQty(precoOverride){
+  document.getElementById('bs-qty-num').textContent = _bsQty;
+  const item = ITENS[_bsItemId];
+  if(!item) return;
+  const projetoId = localStorage.getItem('domleon_projeto_id') || 'assados';
+  const precoBase = precoOverride !== undefined ? precoOverride
+    : ((typeof precoPorProjeto === 'function') ? precoPorProjeto(item, projetoId, CATALOGO) : (item.precoAvulso || item.preco || 0));
+  const precoPromo = (typeof precoPromoAtiva === 'function') ? precoPromoAtiva(item, projetoId) : null;
+  const precoFinal = precoPromo !== null ? precoPromo : precoBase;
+  document.getElementById('bs-total').textContent = '· R$ ' + (precoFinal * _bsQty).toFixed(2).replace('.',',');
+}
+
+function _bsChangeQty(d){ _bsQty = Math.max(1, _bsQty + d); _bsAtualizarQty(); }
+
+function _bsAdicionar(){
+  if(!_bsItemId) return;
+  const delta = _bsQty - (CARRINHO[_bsItemId] || 0);
+  if(delta !== 0){ alterarItem(_bsItemId, delta); }
+  const btn = document.getElementById('bs-btn-add');
+  const span = btn.querySelector('.bs-add-label');
+  span.textContent = '✓ Adicionado!'; btn.style.opacity = '.75';
+  setTimeout(()=>{ span.textContent = 'Adicionar'; btn.style.opacity = ''; }, 1300);
+  document.getElementById('bs-overlay').classList.remove('open');
 }
 </script>
 
@@ -413,22 +523,50 @@ function alterarItemPopup(d){
   <div class="lb-thumbs" id="lb-thumbs"></div>
 </div>
 
-<!-- Popup detalhe do produto -->
-<div class="popup-overlay" id="popup-overlay" onclick="fecharPopupItem(event)">
-  <div class="popup-sheet">
-    <div class="popup-handle"></div>
-    <button class="popup-close-btn" onclick="fecharPopupItem()"><i class="ti ti-x" aria-hidden="true"></i></button>
-    <div class="popup-body">
-      <div class="popup-nome" id="popup-nome"></div>
-      <div class="popup-preco" id="popup-preco"></div>
-      <div class="popup-desc" id="popup-desc"></div>
-      <div class="popup-qtd-row">
-        <span class="popup-qtd-label">Quantidade</span>
-        <div class="stepper-lg">
-          <button onclick="alterarItemPopup(-1)">−</button>
-          <span id="popup-qtd">0</span>
-          <button onclick="alterarItemPopup(1)">+</button>
+<!-- Bottom Sheet detalhe do produto -->
+<div class="bs-overlay" id="bs-overlay" onclick="fecharBottomSheet(event)">
+  <div class="bs-sheet">
+    <div class="bs-handle"></div>
+    <button class="bs-close" onclick="fecharBottomSheet()">✕</button>
+    <div class="bs-scroll">
+      <div class="bs-carousel">
+        <div class="bs-car-track" id="bs-car-track"></div>
+        <div class="bs-car-empty" id="bs-car-empty" hidden><i class="ti ti-photo-off"></i><span>Sem fotos</span></div>
+        <button class="bs-car-btn prev" id="bs-car-prev" onclick="_bsMover(-1)" hidden><i class="ti ti-chevron-left"></i></button>
+        <button class="bs-car-btn next" id="bs-car-next" onclick="_bsMover(1)" hidden><i class="ti ti-chevron-right"></i></button>
+        <div class="bs-car-dots" id="bs-car-dots"></div>
+      </div>
+      <div class="bs-thumbs" id="bs-thumbs"></div>
+      <div class="bs-info">
+        <div class="bs-badge" id="bs-badge"></div>
+        <div class="bs-nome" id="bs-nome"></div>
+        <div class="bs-preco-label" id="bs-preco-label">Preço</div>
+        <div class="bs-preco-row">
+          <span class="bs-preco-atual" id="bs-preco-atual">R$ 0,00</span>
+          <span class="bs-preco-de" id="bs-preco-de" hidden></span>
+          <span class="bs-preco-badge" id="bs-preco-badge" hidden></span>
         </div>
+        <div id="bs-kg" style="font-size:11px;color:#8A7860;margin-bottom:4px;" hidden></div>
+        <div class="bs-divider"></div>
+        <div id="bs-desc-wrap" hidden>
+          <div class="bs-desc-label">Descrição</div>
+          <div class="bs-desc" id="bs-desc"></div>
+          <div class="bs-divider"></div>
+        </div>
+        <div class="bs-scroll-pad"></div>
+      </div>
+    </div>
+    <div class="bs-footer">
+      <div class="bs-footer-row">
+        <div class="bs-stepper">
+          <button onclick="_bsChangeQty(-1)">−</button>
+          <span class="bs-stepper-num" id="bs-qty-num">1</span>
+          <button onclick="_bsChangeQty(1)">+</button>
+        </div>
+        <button class="bs-btn-add" id="bs-btn-add" onclick="_bsAdicionar()">
+          <span class="bs-add-label">Adicionar</span>
+          <span class="bs-total" id="bs-total">· R$ 0,00</span>
+        </button>
       </div>
     </div>
   </div>
